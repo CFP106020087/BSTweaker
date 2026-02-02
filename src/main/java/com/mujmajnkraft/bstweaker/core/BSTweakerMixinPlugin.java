@@ -6,8 +6,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.*;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
+import java.util.HashMap;
 import java.util.Map;
 
 @IFMLLoadingPlugin.MCVersion("1.12.2")
@@ -21,7 +23,6 @@ public class BSTweakerMixinPlugin implements IFMLLoadingPlugin {
 
     static {
         try {
-            // 注册 BetterSurvival 注入 Mixin (late mixin，在 BS 加载后)
             FermiumRegistryAPI.enqueueMixin(true, "mixins.bstweaker.json");
             LOGGER.info("Mixin queued via FermiumBooter");
         } catch (Throwable e) {
@@ -46,37 +47,160 @@ public class BSTweakerMixinPlugin implements IFMLLoadingPlugin {
 
     @Override
     public void injectData(Map<String, Object> data) {
-        // 在 Coremod 加载阶段创建资源包（最早时机）
         try {
             File mcDir = (File) data.get("mcLocation");
             if (mcDir != null) {
                 File configDir = new File(mcDir, "config/bstweaker");
-                File resourcepackDir = new File(mcDir, "resourcepacks/bstweaker");
+                File modsDir = new File(mcDir, "mods");
 
-                createResourcePack(configDir, resourcepackDir);
-                LOGGER.info("Resource pack created at: " + resourcepackDir.getAbsolutePath());
+                // 方案1: 尝试注入到 BS JAR
+                File bsJar = findBSJar(modsDir);
+                if (bsJar != null) {
+                    injectIntoJar(configDir, bsJar);
+                    LOGGER.info("Resources injected into: " + bsJar.getName());
+                } else {
+                    // 方案2: 如果找不到 BS JAR，创建资源包
+                    LOGGER.warn("BetterSurvival JAR not found, falling back to resource pack");
+                    createResourcePack(configDir, new File(mcDir, "resourcepacks/bstweaker"));
+                }
             }
         } catch (Throwable e) {
-            LOGGER.error("Resource pack creation failed: " + e.getMessage());
+            LOGGER.error("Resource injection failed: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
     /**
-     * 创建资源包文件夹结构
-     * resourcepacks/bstweaker/
-     * pack.mcmeta
-     * assets/mujmajnkraftsbettersurvival/
-     * models/item/
-     * textures/items/
+     * 查找 BetterSurvival JAR 文件
      */
-    private void createResourcePack(File configDir, File resourcepackDir) throws IOException {
+    private File findBSJar(File modsDir) {
+        if (!modsDir.exists())
+            return null;
+
+        File[] jars = modsDir.listFiles((d, n) -> n.toLowerCase().contains("bettersurvival") && n.endsWith(".jar"));
+
+        if (jars != null && jars.length > 0) {
+            return jars[0];
+        }
+        return null;
+    }
+
+    /**
+     * 注入资源到 BetterSurvival JAR
+     */
+    private void injectIntoJar(File configDir, File jarFile) {
         if (!configDir.exists()) {
-            LOGGER.info("Config dir not found, skipping resource pack creation");
+            LOGGER.info("Config dir not found, skipping injection");
             return;
         }
 
-        // 创建资源包目录结构
+        Map<String, String> env = new HashMap<>();
+        env.put("create", "false");
+
+        URI jarUri = URI.create("jar:" + jarFile.toURI());
+
+        try (FileSystem jarFs = FileSystems.newFileSystem(jarUri, env)) {
+            // 注入模型
+            injectModels(configDir, jarFs);
+            // 注入纹理
+            injectTextures(configDir, jarFs);
+
+            LOGGER.info("JAR injection completed");
+        } catch (Exception e) {
+            LOGGER.error("Failed to inject into JAR: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private void injectModels(File configDir, FileSystem jarFs) throws IOException {
+        File srcDir = new File(configDir, "models");
+        if (!srcDir.exists())
+            return;
+
+        File[] files = srcDir.listFiles((d, n) -> n.endsWith(".json"));
+        if (files == null)
+            return;
+
+        for (File file : files) {
+            String targetName = translateFileName(file.getName());
+            Path targetPath = jarFs.getPath("assets/" + BS_NAMESPACE + "/models/item/" + targetName);
+
+            // 确保目录存在
+            Files.createDirectories(targetPath.getParent());
+
+            // 读取并翻译模型内容
+            String content = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
+            content = translateModelContent(content);
+
+            // 写入 JAR
+            Files.write(targetPath, content.getBytes(StandardCharsets.UTF_8),
+                    StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+
+            LOGGER.info("Injected model: " + file.getName() + " -> " + targetName);
+        }
+    }
+
+    private void injectTextures(File configDir, FileSystem jarFs) throws IOException {
+        File srcDir = new File(configDir, "textures");
+        if (!srcDir.exists())
+            return;
+
+        File[] files = srcDir.listFiles();
+        if (files == null)
+            return;
+
+        for (File file : files) {
+            if (!file.getName().endsWith(".png") && !file.getName().endsWith(".mcmeta"))
+                continue;
+
+            String targetName = translateFileName(file.getName());
+            Path targetPath = jarFs.getPath("assets/" + BS_NAMESPACE + "/textures/items/" + targetName);
+
+            // 确保目录存在
+            Files.createDirectories(targetPath.getParent());
+
+            // 复制文件到 JAR
+            Files.copy(file.toPath(), targetPath, StandardCopyOption.REPLACE_EXISTING);
+
+            LOGGER.info("Injected texture: " + file.getName() + " -> " + targetName);
+        }
+    }
+
+    /**
+     * 翻译文件名: fieryingotnunchaku.json -> itembstweaker_fieryingotnunchaku.json
+     */
+    private String translateFileName(String fileName) {
+        int dotIndex = fileName.indexOf('.');
+        String name = dotIndex > 0 ? fileName.substring(0, dotIndex) : fileName;
+        String extension = dotIndex > 0 ? fileName.substring(dotIndex) : "";
+
+        if (name.startsWith("itembstweaker_")) {
+            return fileName;
+        }
+
+        if (name.startsWith("item")) {
+            return "itembstweaker_" + name.substring(4) + extension;
+        }
+
+        return "itembstweaker_" + name + extension;
+    }
+
+    /**
+     * 翻译模型内容中的命名空间引用
+     */
+    private String translateModelContent(String content) {
+        return content
+                .replace("bstweaker:items/", BS_NAMESPACE + ":items/itembstweaker_")
+                .replace("bstweaker:item/", BS_NAMESPACE + ":item/itembstweaker_");
+    }
+
+    /**
+     * 备用方案：创建资源包
+     */
+    private void createResourcePack(File configDir, File resourcepackDir) throws IOException {
+        if (!configDir.exists())
+            return;
+
         File assetsDir = new File(resourcepackDir, "assets/" + BS_NAMESPACE);
         File modelsDir = new File(assetsDir, "models/item");
         File texturesDir = new File(assetsDir, "textures/items");
@@ -84,95 +208,40 @@ public class BSTweakerMixinPlugin implements IFMLLoadingPlugin {
         modelsDir.mkdirs();
         texturesDir.mkdirs();
 
-        // 创建 pack.mcmeta
+        // pack.mcmeta
         File packMcmeta = new File(resourcepackDir, "pack.mcmeta");
-        String mcmetaContent = "{\n" +
-                "  \"pack\": {\n" +
-                "    \"pack_format\": 3,\n" +
-                "    \"description\": \"BSTweaker Custom Weapons Resources\"\n" +
-                "  }\n" +
-                "}";
+        String mcmetaContent = "{\n  \"pack\": {\n    \"pack_format\": 3,\n    \"description\": \"BSTweaker Custom Weapons\"\n  }\n}";
         Files.write(packMcmeta.toPath(), mcmetaContent.getBytes(StandardCharsets.UTF_8));
 
-        // 复制模型文件
-        File srcModelsDir = new File(configDir, "models");
-        if (srcModelsDir.exists()) {
-            copyResourceFiles(srcModelsDir, modelsDir, ".json", true);
-        }
-
-        // 复制纹理文件
-        File srcTexturesDir = new File(configDir, "textures");
-        if (srcTexturesDir.exists()) {
-            copyResourceFiles(srcTexturesDir, texturesDir, ".png", false);
-            copyResourceFiles(srcTexturesDir, texturesDir, ".png.mcmeta", false);
-        }
+        // 复制资源
+        copyResourceFiles(new File(configDir, "models"), modelsDir, ".json", true);
+        copyResourceFiles(new File(configDir, "textures"), texturesDir, ".png", false);
+        copyResourceFiles(new File(configDir, "textures"), texturesDir, ".png.mcmeta", false);
     }
 
-    /**
-     * 复制资源文件，翻译文件名和内容
-     */
     private void copyResourceFiles(File srcDir, File destDir, String ext, boolean translateModel) {
-        if (!srcDir.exists() || !srcDir.isDirectory())
+        if (!srcDir.exists())
             return;
-
         File[] files = srcDir.listFiles((d, n) -> n.endsWith(ext));
         if (files == null)
             return;
 
         for (File file : files) {
             try {
-                // 翻译文件名: fieryingotnunchaku -> itembstweaker_fieryingotnunchaku
-                String baseName = file.getName();
-                String targetName = translateFileName(baseName);
+                String targetName = translateFileName(file.getName());
                 File target = new File(destDir, targetName);
 
-                if (translateModel && ext.equals(".json")) {
-                    // 翻译模型内容
+                if (translateModel) {
                     String content = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
                     content = translateModelContent(content);
                     Files.write(target.toPath(), content.getBytes(StandardCharsets.UTF_8));
                 } else {
                     Files.copy(file.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING);
                 }
-                LOGGER.info("Copied: " + file.getName() + " -> " + targetName);
             } catch (Exception e) {
                 LOGGER.error("Failed to copy " + file.getName() + ": " + e.getMessage());
             }
         }
-    }
-
-    /**
-     * 翻译文件名
-     * fieryingotnunchaku.json -> itembstweaker_fieryingotnunchaku.json
-     */
-    private String translateFileName(String fileName) {
-        // 获取文件名和扩展名
-        int dotIndex = fileName.indexOf('.');
-        String name = dotIndex > 0 ? fileName.substring(0, dotIndex) : fileName;
-        String extension = dotIndex > 0 ? fileName.substring(dotIndex) : "";
-
-        // 如果已经有正确前缀，不修改
-        if (name.startsWith("itembstweaker_")) {
-            return fileName;
-        }
-
-        // 如果有 item 前缀但没有 bstweaker_
-        if (name.startsWith("item")) {
-            return "itembstweaker_" + name.substring(4) + extension;
-        }
-
-        // 添加 itembstweaker_ 前缀
-        return "itembstweaker_" + name + extension;
-    }
-
-    /**
-     * 翻译模型内容中的命名空间引用
-     * bstweaker:items/xxx -> mujmajnkraftsbettersurvival:items/itembstweaker_xxx
-     */
-    private String translateModelContent(String content) {
-        return content
-                .replace("bstweaker:items/", BS_NAMESPACE + ":items/itembstweaker_")
-                .replace("bstweaker:item/", BS_NAMESPACE + ":item/itembstweaker_");
     }
 
     @Override

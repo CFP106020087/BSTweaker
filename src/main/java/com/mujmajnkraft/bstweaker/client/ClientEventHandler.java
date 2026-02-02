@@ -61,33 +61,26 @@ public class ClientEventHandler {
 
     /**
      * 从 Mixin 中调用 - 在物品注册后立即注册模型
-     * 这个方法必须在正确的时机调用（物品注册事件中）
+     * 模型位置使用武器的注册名（mujmajnkraftsbettersurvival:itembstweaker_xxx）
      */
     @SideOnly(Side.CLIENT)
     public static void registerModelsForItems(List<Item> items) {
-        // 确保动态资源包已注册
-        registerDynamicResourcePack();
-
         int count = 0;
         for (Item item : items) {
             JsonObject def = TweakerWeaponInjector.getDefinition(item);
             if (def == null)
                 continue;
 
-            // 获取纹理名称
-            String textureName = getTextureName(def);
-
-            // 注册动态模型
-            DynamicResourcePack.registerModel(textureName);
-
-            // 使用 bstweaker 命名空间注册模型
-            ResourceLocation modelLocation = new ResourceLocation(Reference.MOD_ID, textureName);
+            // 使用物品的注册名作为模型位置
+            // 物品注册名: mujmajnkraftsbettersurvival:itembstweaker_fieryingotnunchaku
+            // 模型位置: mujmajnkraftsbettersurvival:itembstweaker_fieryingotnunchaku
+            ResourceLocation regName = item.getRegistryName();
             ModelLoader.setCustomModelResourceLocation(
                     item,
                     0,
-                    new ModelResourceLocation(modelLocation, "inventory"));
+                    new ModelResourceLocation(regName, "inventory"));
 
-            BSTweaker.LOG.info("Registered model via Mixin: " + item.getRegistryName() + " -> " + modelLocation);
+            BSTweaker.LOG.info("Registered model: " + regName);
             count++;
         }
 
@@ -96,42 +89,30 @@ public class ClientEventHandler {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onModelRegistry(ModelRegistryEvent event) {
-        // 注册动态资源包
-        registerDynamicResourcePack();
-
         Map<Item, JsonObject> itemMap = TweakerWeaponInjector.getItemDefinitionMap();
         BSTweaker.LOG.info("onModelRegistry: itemDefinitionMap size = " + itemMap.size());
 
-        // 如果 map 不为空，也注册模型（作为备份）
         if (itemMap.isEmpty()) {
-            BSTweaker.LOG.info("itemDefinitionMap is empty in onModelRegistry - models will be registered via Mixin");
+            BSTweaker.LOG.info("itemDefinitionMap is empty - models will be registered via Mixin");
             return;
         }
 
         int count = 0;
-
         for (Map.Entry<Item, JsonObject> entry : itemMap.entrySet()) {
             Item item = entry.getKey();
-            JsonObject def = entry.getValue();
 
-            // 获取纹理名称
-            String textureName = getTextureName(def);
-
-            // 注册动态模型（运行时生成）
-            DynamicResourcePack.registerModel(textureName);
-
-            // 使用 bstweaker 命名空间注册模型
-            ResourceLocation modelLocation = new ResourceLocation(Reference.MOD_ID, textureName);
+            // 使用物品的注册名作为模型位置
+            ResourceLocation regName = item.getRegistryName();
             ModelLoader.setCustomModelResourceLocation(
                     item,
                     0,
-                    new ModelResourceLocation(modelLocation, "inventory"));
+                    new ModelResourceLocation(regName, "inventory"));
 
-            BSTweaker.LOG.info("Registered model via event: " + item.getRegistryName() + " -> " + modelLocation);
+            BSTweaker.LOG.info("Registered model: " + regName);
             count++;
         }
 
-        BSTweaker.LOG.info("Registered " + count + " dynamic models (bstweaker namespace).");
+        BSTweaker.LOG.info("Registered " + count + " models.");
     }
 
     /**
