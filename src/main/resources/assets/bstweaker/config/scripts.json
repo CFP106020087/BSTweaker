@@ -68,10 +68,10 @@
         ]
         },
         {
-        "_comment": "受伤时减少20%伤害 / Reduce incoming damage by 20% when hurt",
+        "_comment": "受伤时完全免伤(测试用) / Full damage immunity when hurt (for testing)",
         "event": "onHurt",
         "actions": [
-            "event.setAmount(event.getAmount() * 0.8)"
+            "event.setAmount(0)"
         ]
         },
         {
