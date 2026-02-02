@@ -63,9 +63,16 @@ public class TooltipHandler {
     }
     
     /**
-     * 格式化 tooltip 行，支持颜色代码
+     * 格式化 tooltip 行，支持颜色代码和翻译键
+     * 如果以 @ 开头，视为翻译键，使用 I18n 翻译
      */
     private static String formatTooltipLine(String line) {
+        // 支持翻译键: @key.name -> I18n.format("key.name")
+        if (line.startsWith("@")) {
+            String key = line.substring(1);
+            line = I18n.format(key);
+        }
+
         // 支持 & 颜色代码
         line = line.replace("&0", TextFormatting.BLACK.toString())
                    .replace("&1", TextFormatting.DARK_BLUE.toString())
