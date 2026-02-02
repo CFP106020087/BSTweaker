@@ -92,11 +92,15 @@ public class BSTweakerMixinPlugin implements IFMLLoadingPlugin {
                 java.io.File target = new java.io.File(destDir, targetName);
 
                 if (translateModel && ext.equals(".json")) {
-                    // 翻译模型内容
+                    // 翻译模型内容 - 替换所有 bstweaker 命名空间
                     String content = new String(java.nio.file.Files.readAllBytes(file.toPath()),
                             java.nio.charset.StandardCharsets.UTF_8);
-                    content = content.replace("bstweaker:items/", "mujmajnkraftsbettersurvival:items/item")
-                            .replace("bstweaker:item/", "mujmajnkraftsbettersurvival:item/item");
+                    // 纹理路径: bstweaker:items/xxx -> mujmajnkraftsbettersurvival:items/itemxxx
+                    content = content.replace("bstweaker:items/", "mujmajnkraftsbettersurvival:items/item");
+                    // 模型路径: bstweaker:item/xxx -> mujmajnkraftsbettersurvival:item/itemxxx
+                    content = content.replace("bstweaker:item/", "mujmajnkraftsbettersurvival:item/item");
+                    // 通用替换: 任何其他 bstweaker: 引用
+                    content = content.replace("bstweaker:", "mujmajnkraftsbettersurvival:");
                     java.nio.file.Files.write(target.toPath(),
                             content.getBytes(java.nio.charset.StandardCharsets.UTF_8));
                 } else {
