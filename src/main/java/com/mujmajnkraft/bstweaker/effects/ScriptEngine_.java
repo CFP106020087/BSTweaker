@@ -206,6 +206,13 @@ public class ScriptEngine_ {
         public int getAmplifier() { return effect.getAmplifier(); }
         public int getDuration() { return effect.getDuration(); }
         
+        /**
+         * 获取药水效果的 ID (ResourceLocation 字符串)
+         */
+        public String getPotionId() {
+            return effect.getPotion().getRegistryName().toString();
+        }
+
         public void setAmplifier(int amplifier) {
             // 需要移除并重新添加
             Potion potion = effect.getPotion();

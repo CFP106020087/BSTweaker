@@ -78,7 +78,16 @@
             "_comment": "压制所有负面效果到2级 / Suppress all negative effects to level 2",
             "event": "whenHeld",
             "actions": [
-                "self.suppressBadEffects(2)"
+                "var effects = self.getBadPotionEffects();",
+                "for (var i = 0; i < effects.size(); i++) {",
+                "  var eff = effects.get(i);",
+                "  if (eff.getAmplifier() > 2) {",
+                "    var id = eff.getPotionId();",
+                "    var dur = eff.getDuration();",
+                "    self.removePotionEffect(id);",
+                "    self.addPotionEffect(id, dur, 2);",
+                "  }",
+                "}"
             ]
         }
       ]
