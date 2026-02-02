@@ -16,6 +16,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -55,14 +56,58 @@ public class ClientEventHandler {
         }
     }
 
+    /**
+     * 从 Mixin 中调用 - 在物品注册后立即注册模型
+     * 这个方法必须在正确的时机调用（物品注册事件中）
+     */
+    @SideOnly(Side.CLIENT)
+    public static void registerModelsForItems(List<Item> items) {
+        // 确保动态资源包已注册
+        registerDynamicResourcePack();
+
+        int count = 0;
+        for (Item item : items) {
+            JsonObject def = TweakerWeaponInjector.getDefinition(item);
+            if (def == null)
+                continue;
+
+            // 获取纹理名称
+            String textureName = getTextureName(def);
+
+            // 注册动态模型
+            DynamicResourcePack.registerModel(textureName);
+
+            // 使用 bstweaker 命名空间注册模型
+            ResourceLocation modelLocation = new ResourceLocation(Reference.MOD_ID, textureName);
+            ModelLoader.setCustomModelResourceLocation(
+                    item,
+                    0,
+                    new ModelResourceLocation(modelLocation, "inventory"));
+
+            BSTweaker.LOG.info("Registered model via Mixin: " + item.getRegistryName() + " -> " + modelLocation);
+            count++;
+        }
+
+        BSTweaker.LOG.info("Registered " + count + " models for custom weapons.");
+    }
+
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onModelRegistry(ModelRegistryEvent event) {
         // 注册动态资源包
         registerDynamicResourcePack();
 
+        Map<Item, JsonObject> itemMap = TweakerWeaponInjector.getItemDefinitionMap();
+        BSTweaker.LOG.info("onModelRegistry: itemDefinitionMap size = " + itemMap.size());
+
+        // 如果 map 不为空，也注册模型（作为备份）
+        if (itemMap.isEmpty()) {
+            BSTweaker.LOG.info("itemDefinitionMap is empty in onModelRegistry - models will be registered via Mixin");
+            return;
+        }
+
         int count = 0;
 
-        for (Map.Entry<Item, JsonObject> entry : TweakerWeaponInjector.getItemDefinitionMap().entrySet()) {
+        for (Map.Entry<Item, JsonObject> entry : itemMap.entrySet()) {
             Item item = entry.getKey();
             JsonObject def = entry.getValue();
 
@@ -79,7 +124,7 @@ public class ClientEventHandler {
                     0,
                     new ModelResourceLocation(modelLocation, "inventory"));
 
-            BSTweaker.LOG.debug("Model: " + item.getRegistryName() + " -> " + modelLocation);
+            BSTweaker.LOG.info("Registered model via event: " + item.getRegistryName() + " -> " + modelLocation);
             count++;
         }
 

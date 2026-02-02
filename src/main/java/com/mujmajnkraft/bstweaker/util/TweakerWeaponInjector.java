@@ -145,13 +145,30 @@ public class TweakerWeaponInjector {
                         weapons.add(weapon);
                         itemDefinitionMap.put(weapon, weaponDef);
 
-                        // 从 scripts.json 加载事件
+                        // 从 scripts.json 加载事件 (同时匹配 id 和 material.name)
+                        String materialName = weaponDef.has("material")
+                                && weaponDef.getAsJsonObject("material").has("name")
+                                        ? weaponDef.getAsJsonObject("material").get("name").getAsString().toLowerCase()
+                                        : "";
+                        JsonArray eventsArray = null;
+
                         if (scriptMap.containsKey(id)) {
-                            JsonArray eventsArray = scriptMap.get(id);
+                            eventsArray = scriptMap.get(id);
+                            System.out.println("[BSTweaker] Found scripts by id: " + id);
+                        } else if (!materialName.isEmpty() && scriptMap.containsKey(materialName)) {
+                            eventsArray = scriptMap.get(materialName);
+                            System.out.println("[BSTweaker] Found scripts by material: " + materialName);
+                        }
+
+                        if (eventsArray != null) {
+                            System.out.println("[BSTweaker] Found " + eventsArray.size() + " events for weapon: " + id);
                             List<WeaponEvent> events = WeaponEvent.fromJsonArray(eventsArray);
                             if (!events.isEmpty()) {
                                 EffectEventHandler.registerWeaponEffects(weapon, events);
                             }
+                        } else {
+                            System.out.println("[BSTweaker] No scripts found for weapon: " + id + " (material: "
+                                    + materialName + ")");
                         }
                     }
                 }
@@ -269,11 +286,11 @@ public class TweakerWeaponInjector {
             }
 
             if (weaponDef.has("speedModifier")) {
-                float speedModifier = weaponDef.get("speedModifier").getAsFloat();
+                double speedModifier = weaponDef.get("speedModifier").getAsDouble();
                 Field attackSpeedField = customWeaponClass.getDeclaredField("attackSpeed");
                 attackSpeedField.setAccessible(true);
-                float baseSpeed = attackSpeedField.getFloat(weapon);
-                attackSpeedField.setFloat(weapon, baseSpeed + speedModifier);
+                double baseSpeed = attackSpeedField.getDouble(weapon);
+                attackSpeedField.setDouble(weapon, baseSpeed + speedModifier);
             }
 
         } catch (Exception e) {

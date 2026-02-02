@@ -9,7 +9,7 @@ import net.minecraftforge.event.entity.living.LivingHurtEvent;
 
 import javax.script.Bindings;
 import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
+import javax.script.ScriptEngineFactory;
 import java.util.Collection;
 
 /**
@@ -21,14 +21,56 @@ public class ScriptEngine_ {
     
     static {
         try {
-            ScriptEngineManager manager = new ScriptEngineManager();
-            engine = manager.getEngineByName("nashorn");
-            if (engine == null) {
-                engine = manager.getEngineByName("JavaScript");
+            // 方法1: 尝试直接实例化 NashornScriptEngineFactory
+            try {
+                Class<?> factoryClass = Class.forName("jdk.nashorn.api.scripting.NashornScriptEngineFactory");
+                ScriptEngineFactory factory = (ScriptEngineFactory) factoryClass.newInstance();
+                engine = factory.getScriptEngine();
+                BSTweaker.LOG.info(
+                        "Script engine initialized via NashornScriptEngineFactory: " + engine.getClass().getName());
+            } catch (Exception e1) {
+                BSTweaker.LOG.warn("NashornScriptEngineFactory not available: " + e1.getMessage());
+
+                // 方法2: 尝试使用系统类加载器
+                try {
+                    ClassLoader systemCL = ClassLoader.getSystemClassLoader();
+                    Class<?> factoryClass = Class.forName("jdk.nashorn.api.scripting.NashornScriptEngineFactory", true,
+                            systemCL);
+                    ScriptEngineFactory factory = (ScriptEngineFactory) factoryClass.newInstance();
+                    engine = factory.getScriptEngine();
+                    BSTweaker.LOG
+                            .info("Script engine initialized via SystemClassLoader: " + engine.getClass().getName());
+                } catch (Exception e2) {
+                    BSTweaker.LOG.warn("SystemClassLoader method failed: " + e2.getMessage());
+
+                    // 方法3: 使用线程上下文类加载器
+                    try {
+                        ClassLoader contextCL = Thread.currentThread().getContextClassLoader();
+                        Thread.currentThread().setContextClassLoader(ClassLoader.getSystemClassLoader());
+                        javax.script.ScriptEngineManager manager = new javax.script.ScriptEngineManager();
+                        engine = manager.getEngineByName("nashorn");
+                        if (engine == null) {
+                            engine = manager.getEngineByName("JavaScript");
+                        }
+                        Thread.currentThread().setContextClassLoader(contextCL);
+                        if (engine != null) {
+                            BSTweaker.LOG.info(
+                                    "Script engine initialized via ContextClassLoader: " + engine.getClass().getName());
+                        }
+                    } catch (Exception e3) {
+                        BSTweaker.LOG.error("All script engine initialization methods failed: " + e3.getMessage());
+                    }
+                }
             }
-            BSTweaker.LOG.info("Script engine initialized: " + (engine != null ? engine.getClass().getName() : "null"));
+
+            if (engine == null) {
+                BSTweaker.LOG.error("Script engine is NULL - JavaScript scripting will not work!");
+                BSTweaker.LOG.error("This may be due to Minecraft's classloader blocking Nashorn.");
+            }
+
         } catch (Exception e) {
             BSTweaker.LOG.error("Failed to initialize script engine: " + e.getMessage());
+            e.printStackTrace();
         }
     }
     
@@ -36,7 +78,10 @@ public class ScriptEngine_ {
      * 执行脚本
      */
     public static void execute(String script, EventContext ctx) {
-        if (engine == null) return;
+        if (engine == null) {
+            // 只在第一次打印错误，避免刷屏
+            return;
+        }
         
         try {
             Bindings bindings = engine.createBindings();

@@ -8,6 +8,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
@@ -26,15 +27,17 @@ import java.util.Map;
 @Mod.EventBusSubscriber(modid = Reference.MOD_ID)
 public class EffectEventHandler {
 
-    // 武器 -> 事件列表 缓存
-    private static final Map<Item, List<WeaponEvent>> weaponEffectsCache = new HashMap<>();
+    // 武器注册名 -> 事件列表 (使用注册名作为 key，而不是 Item 对象)
+    private static final Map<ResourceLocation, List<WeaponEvent>> weaponEffectsCache = new HashMap<>();
 
     /**
      * 注册武器效果
      */
     public static void registerWeaponEffects(Item weapon, List<WeaponEvent> events) {
-        weaponEffectsCache.put(weapon, events);
-        BSTweaker.LOG.info("Registered " + events.size() + " script events for: " + weapon.getRegistryName());
+        ResourceLocation regName = weapon.getRegistryName();
+        weaponEffectsCache.put(regName, events);
+        BSTweaker.LOG.info("Registered " + events.size() + " script events for: " + regName);
+        BSTweaker.LOG.info("Cache now contains " + weaponEffectsCache.size() + " weapons");
     }
 
     /**
@@ -52,14 +55,24 @@ public class EffectEventHandler {
             return;
 
         Item weapon = mainHand.getItem();
-        List<WeaponEvent> effects = weaponEffectsCache.get(weapon);
+        ResourceLocation regName = weapon.getRegistryName();
+        List<WeaponEvent> effects = weaponEffectsCache.get(regName);
+
+        // 调试日志
+        if (weaponEffectsCache.size() > 0) {
+            BSTweaker.LOG.debug("onLivingHurt: weapon=" + regName + ", hasEffects=" + (effects != null));
+        }
+
         if (effects == null)
             return;
 
+        BSTweaker.LOG.info("Executing " + effects.size() + " effects for LivingHurtEvent with weapon: " + regName);
         EntityLivingBase victim = event.getEntityLiving();
 
         for (WeaponEvent we : effects) {
             if ("LivingHurtEvent".equals(we.eventType) || "onHit".equals(we.eventType)) {
+                BSTweaker.LOG.info("Executing onHit script: "
+                        + we.actions.get(0).substring(0, Math.min(30, we.actions.get(0).length())));
                 EventContext ctx = new EventContext(attacker, victim, weapon, event);
                 executeScripts(we, ctx);
             }
@@ -81,10 +94,12 @@ public class EffectEventHandler {
             return;
 
         Item weapon = mainHand.getItem();
-        List<WeaponEvent> effects = weaponEffectsCache.get(weapon);
+        ResourceLocation regName = weapon.getRegistryName();
+        List<WeaponEvent> effects = weaponEffectsCache.get(regName);
         if (effects == null)
             return;
 
+        BSTweaker.LOG.info("Executing " + effects.size() + " effects for LivingDeathEvent with weapon: " + regName);
         EntityLivingBase victim = event.getEntityLiving();
 
         for (WeaponEvent we : effects) {
@@ -111,7 +126,8 @@ public class EffectEventHandler {
             return;
 
         Item weapon = mainHand.getItem();
-        List<WeaponEvent> effects = weaponEffectsCache.get(weapon);
+        ResourceLocation regName = weapon.getRegistryName();
+        List<WeaponEvent> effects = weaponEffectsCache.get(regName);
         if (effects == null)
             return;
 
