@@ -51,9 +51,29 @@ public class DynamicResourcePack implements IResourcePack {
      * 扫描 config 目录中的资源文件
      */
     public static void scanConfigResources() {
-        // 扫描纹理
+        // 确保目录存在
         File texturesDir = new File(configDir, "textures");
-        if (texturesDir.exists()) {
+        File modelsDir = new File(configDir, "models");
+        File langDir = new File(configDir, "lang");
+
+        if (!texturesDir.exists()) {
+            texturesDir.mkdirs();
+            createReadme(texturesDir,
+                    "Place your weapon texture .png files here.\nOptionally add .png.mcmeta files for animations.");
+        }
+        if (!modelsDir.exists()) {
+            modelsDir.mkdirs();
+            createReadme(modelsDir,
+                    "Place custom model .json files here (optional).\nIf not provided, a default handheld model will be generated.");
+        }
+        if (!langDir.exists()) {
+            langDir.mkdirs();
+            createReadme(langDir,
+                    "Place language .lang files here (e.g., en_us.lang, zh_cn.lang).\nFormat: item.bstweaker.weapon_id.name=Display Name");
+        }
+
+        // 扫描纹理
+        if (texturesDir.exists() && texturesDir.listFiles() != null) {
             for (File file : texturesDir.listFiles()) {
                 if (file.getName().endsWith(".png")) {
                     String name = file.getName().replace(".png", "");
@@ -68,8 +88,7 @@ public class DynamicResourcePack implements IResourcePack {
         }
 
         // 扫描模型
-        File modelsDir = new File(configDir, "models");
-        if (modelsDir.exists()) {
+        if (modelsDir.exists() && modelsDir.listFiles() != null) {
             for (File file : modelsDir.listFiles()) {
                 if (file.getName().endsWith(".json")) {
                     String name = file.getName().replace(".json", "");
@@ -80,8 +99,7 @@ public class DynamicResourcePack implements IResourcePack {
         }
 
         // 扫描语言文件
-        File langDir = new File(configDir, "lang");
-        if (langDir.exists()) {
+        if (langDir.exists() && langDir.listFiles() != null) {
             for (File file : langDir.listFiles()) {
                 if (file.getName().endsWith(".lang")) {
                     String name = file.getName().replace(".lang", "");
@@ -95,6 +113,22 @@ public class DynamicResourcePack implements IResourcePack {
                 + configModels.size() + " models, " + configLangs.size() + " langs");
     }
     
+    /**
+     * 创建 README 文件说明目录用途
+     */
+    private static void createReadme(File dir, String content) {
+        try {
+            File readme = new File(dir, "README.txt");
+            if (!readme.exists()) {
+                java.io.FileWriter writer = new java.io.FileWriter(readme);
+                writer.write(content);
+                writer.close();
+            }
+        } catch (IOException e) {
+            BSTweaker.LOG.error("Failed to create README: " + e.getMessage());
+        }
+    }
+
     /**
      * 注册动态模型
      */
