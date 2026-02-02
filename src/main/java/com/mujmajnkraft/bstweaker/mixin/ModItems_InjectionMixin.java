@@ -24,13 +24,11 @@ public abstract class ModItems_InjectionMixin {
     private static List<Item> items;
 
     /**
-     * 在 registerItems 方法开始时注入资源
+     * 在 registerItems 方法开始时打印日志
      */
     @Inject(method = "registerItems(Lnet/minecraftforge/event/RegistryEvent$Register;)V", at = @At(value = "HEAD"))
     private void bstweaker$injectCustomWeaponsAtHead(RegistryEvent.Register<Item> event, CallbackInfo ci) {
         System.out.println("[BSTweaker] Mixin triggered - registerItems HEAD");
-        // 在注册物品前先注入资源文件到 BS 命名空间目录
-        com.mujmajnkraft.bstweaker.util.ResourceInjector.injectResources();
     }
 
     /**

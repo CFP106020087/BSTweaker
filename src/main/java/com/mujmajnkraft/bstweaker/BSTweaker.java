@@ -33,6 +33,8 @@ public class BSTweaker {
     @EventHandler
     public void preInit(FMLPreInitializationEvent event) {
         LOG.info("BSTweaker PreInit");
+        // 在模型加载前注入资源文件到 BS 命名空间目录
+        com.mujmajnkraft.bstweaker.util.ResourceInjector.injectResources();
         proxy.preInit();
     }
 
