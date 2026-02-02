@@ -1,7 +1,8 @@
 {
   "_tutorial_zh": [
     "=== 武器注册配置 ===",
-    "此文件定义武器的基础属性：类型、材质、伤害、耐久等",
+    "此文件定义新武器的基础属性：类型、材质、伤害、耐久等",
+    "注意：此文件用于创建新武器，已有武器无需在此定义",
     "",
     "字段说明：",
     "  id: 武器ID，必须唯一",
@@ -19,7 +20,8 @@
   ],
   "_tutorial_en": [
     "=== Weapon Registration Config ===",
-    "This file defines base weapon properties: type, material, damage, durability, etc.",
+    "This file defines new weapon properties: type, material, damage, durability, etc.",
+    "Note: This file is for creating NEW weapons. Existing weapons don't need to be defined here.",
     "",
     "Fields:",
     "  id: Unique weapon ID",
@@ -35,21 +37,5 @@
     "  speedModifier: Extra attack speed bonus (optional)",
     "  texture: Texture name (optional, defaults to id)"
   ],
-  "weapons": [
-    {
-      "id": "void_blade",
-      "type": "dagger",
-      "texture": "void_blade",
-      "material": {
-        "name": "voidsteel",
-        "harvestLevel": 3,
-        "durability": 1500,
-        "efficiency": 8.0,
-        "damage": 8.0,
-        "enchantability": 15
-      },
-      "damageModifier": 2.0,
-      "speedModifier": 0.5
-    }
-  ]
+  "weapons": []
 }
