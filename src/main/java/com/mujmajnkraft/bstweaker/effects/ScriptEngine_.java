@@ -155,6 +155,36 @@ public class ScriptEngine_ {
             return entity.getActivePotionEffects();
         }
         
+        /**
+         * 获取所有负面药水效果
+         */
+        public java.util.List<PotionEffectWrapper> getBadPotionEffects() {
+            java.util.List<PotionEffectWrapper> badEffects = new java.util.ArrayList<>();
+            for (PotionEffect effect : entity.getActivePotionEffects()) {
+                if (effect.getPotion().isBadEffect()) {
+                    badEffects.add(new PotionEffectWrapper(effect, entity));
+                }
+            }
+            return badEffects;
+        }
+
+        /**
+         * 压制所有负面效果到指定等级
+         */
+        public void suppressBadEffects(int maxLevel) {
+            java.util.List<PotionEffect> toSuppress = new java.util.ArrayList<>();
+            for (PotionEffect effect : entity.getActivePotionEffects()) {
+                if (effect.getPotion().isBadEffect() && effect.getAmplifier() > maxLevel) {
+                    toSuppress.add(effect);
+                }
+            }
+            for (PotionEffect effect : toSuppress) {
+                Potion potion = effect.getPotion();
+                entity.removePotionEffect(potion);
+                entity.addPotionEffect(new PotionEffect(potion, effect.getDuration(), maxLevel));
+            }
+        }
+
         // === 其他 ===
         public void setFire(int seconds) { entity.setFire(seconds); }
         public boolean isBurning() { return entity.isBurning(); }

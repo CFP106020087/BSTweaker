@@ -78,14 +78,7 @@
             "_comment": "压制所有负面效果到2级 / Suppress all negative effects to level 2",
             "event": "whenHeld",
             "actions": [
-                "var negativeEffects = ['minecraft:poison', 'minecraft:wither', 'minecraft:weakness', 'minecraft:slowness', 'minecraft:mining_fatigue', 'minecraft:blindness', 'minecraft:hunger', 'minecraft:nausea'];",
-                "for (var i = 0; i < negativeEffects.length; i++) {",
-                "  var eff = self.getPotionEffect(negativeEffects[i]);",
-                "  if (eff != null && eff.getAmplifier() > 2) {",
-                "    self.removePotionEffect(negativeEffects[i]);",
-                "    self.addPotionEffect(negativeEffects[i], eff.getDuration(), 2);",
-                "  }",
-                "}"
+                "self.suppressBadEffects(2)"
             ]
         }
       ]
