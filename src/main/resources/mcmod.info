@@ -1,0 +1,12 @@
+[
+  {
+    "modid": "bstweaker",
+    "name": "${mod_name}",
+    "description": "${mod_description}",
+    "version": "${version}",
+    "mcversion": "${mcversion}",
+    "authorList": ["${mod_author}"],
+    "credits": "Based on BetterSurvival by mujmajnkraft",
+    "dependencies": ["mujmajnkraftsbettersurvival"]
+  }
+]

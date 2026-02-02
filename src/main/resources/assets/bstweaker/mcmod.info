@@ -1,0 +1,12 @@
+[
+  {
+    "modid": "bstweaker",
+    "name": "BetterSurvival Tweaker",
+    "description": "JSON-based weapon configuration addon for BetterSurvival. Add custom weapons by editing config/bstweaker/weapons.json.",
+    "version": "1.0.0",
+    "mcversion": "1.12.2",
+    "authorList": ["BSTweaker"],
+    "credits": "Based on BetterSurvival by mujmajnkraft",
+    "dependencies": ["mujmajnkraftsbettersurvival"]
+  }
+]

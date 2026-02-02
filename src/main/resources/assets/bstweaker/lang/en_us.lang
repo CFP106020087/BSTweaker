@@ -1,0 +1,8 @@
+# BSTweaker Language File (English)
+
+# Example weapons from default config
+item.bstweaker.blazing_iron_nunchaku.name=Blazing Iron Nunchaku
+item.bstweaker.enhanced_diamond_hammer.name=Enhanced Diamond Hammer
+
+# General
+itemGroup.bstweaker=BSTweaker Weapons
