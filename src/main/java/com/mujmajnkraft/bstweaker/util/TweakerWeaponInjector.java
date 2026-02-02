@@ -55,9 +55,22 @@ public class TweakerWeaponInjector {
 
         try {
             File configDir = new File(Loader.instance().getConfigDir(), "bstweaker");
+
+            // 确保配置目录存在
+            if (!configDir.exists()) {
+                configDir.mkdirs();
+            }
+
             File weaponsFile = new File(configDir, "weapons.json");
             File tooltipsFile = new File(configDir, "tooltips.json");
             File scriptsFile = new File(configDir, "scripts.json");
+            File apiFile = new File(configDir, "SCRIPT_API.md");
+
+            // 自动生成默认配置文件
+            copyDefaultConfig("weapons.json", weaponsFile);
+            copyDefaultConfig("tooltips.json", tooltipsFile);
+            copyDefaultConfig("scripts.json", scriptsFile);
+            copyDefaultConfig("SCRIPT_API.md", apiFile);
 
             if (!weaponsFile.exists()) {
                 System.out.println("[BSTweaker] No weapons.json found, skipping weapon injection");
@@ -273,5 +286,35 @@ public class TweakerWeaponInjector {
      */
     public static Map<Item, JsonObject> getItemDefinitionMap() {
         return itemDefinitionMap;
+    }
+
+    /**
+     * 从 JAR 复制默认配置文件
+     */
+    private static void copyDefaultConfig(String resourceName, File targetFile) {
+        if (targetFile.exists())
+            return;
+
+        try {
+            java.io.InputStream in = TweakerWeaponInjector.class.getResourceAsStream(
+                    "/assets/bstweaker/config/" + resourceName);
+            if (in == null) {
+                System.out.println("[BSTweaker] Default config not found: " + resourceName);
+                return;
+            }
+
+            java.io.OutputStream out = new java.io.FileOutputStream(targetFile);
+            byte[] buffer = new byte[1024];
+            int len;
+            while ((len = in.read(buffer)) > 0) {
+                out.write(buffer, 0, len);
+            }
+            in.close();
+            out.close();
+
+            System.out.println("[BSTweaker] Generated default config: " + targetFile.getName());
+        } catch (Exception e) {
+            System.err.println("[BSTweaker] Failed to copy default config: " + e.getMessage());
+        }
     }
 }
