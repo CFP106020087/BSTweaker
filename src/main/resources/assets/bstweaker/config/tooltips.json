@@ -1,0 +1,45 @@
+{
+  "_tutorial_zh": [
+    "=== 武器提示信息配置 ===",
+    "此文件定义武器的显示名称和鼠标悬停提示",
+    "",
+    "字段说明：",
+    "  id: 武器ID，必须与 weapons.json 中的 id 匹配",
+    "  displayName: 显示名称",
+    "  tooltip: 提示信息，可以是字符串或字符串数组",
+    "",
+    "颜色代码：",
+    "  &0=黑 &1=深蓝 &2=深绿 &3=深青 &4=深红 &5=紫",
+    "  &6=金 &7=灰 &8=深灰 &9=蓝 &a=绿 &b=青",
+    "  &c=红 &d=粉 &e=黄 &f=白",
+    "  &l=粗体 &o=斜体 &n=下划线 &r=重置"
+  ],
+  "_tutorial_en": [
+    "=== Weapon Tooltip Config ===",
+    "This file defines display names and hover tooltips for weapons",
+    "",
+    "Fields:",
+    "  id: Weapon ID, must match id in weapons.json",
+    "  displayName: Display name shown in game",
+    "  tooltip: Tooltip text, can be string or array of strings",
+    "",
+    "Color codes:",
+    "  &0=black &1=dark_blue &2=dark_green &3=dark_aqua &4=dark_red &5=purple",
+    "  &6=gold &7=gray &8=dark_gray &9=blue &a=green &b=aqua",
+    "  &c=red &d=light_purple &e=yellow &f=white",
+    "  &l=bold &o=italic &n=underline &r=reset"
+  ],
+
+  "tooltips": [
+    {
+      "id": "void_blade",
+      "displayName": "虚空之刃",
+      "tooltip": [
+        "&5◆ 虚空之力灌注的利刃",
+        "&7・击中时重置敌人无敌帧",
+        "&7・伤害提升50%",
+        "&7・击杀回复生命"
+      ]
+    }
+  ]
+}

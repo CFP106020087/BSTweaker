@@ -14,6 +14,8 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.mujmajnkraft.bstweaker.effects.EffectEventHandler;
+import com.mujmajnkraft.bstweaker.effects.WeaponEvent;
 
 import net.minecraft.item.Item;
 import net.minecraft.item.Item.ToolMaterial;
@@ -54,6 +56,8 @@ public class TweakerWeaponInjector {
         try {
             File configDir = new File(Loader.instance().getConfigDir(), "bstweaker");
             File weaponsFile = new File(configDir, "weapons.json");
+            File tooltipsFile = new File(configDir, "tooltips.json");
+            File scriptsFile = new File(configDir, "scripts.json");
 
             if (!weaponsFile.exists()) {
                 System.out.println("[BSTweaker] No weapons.json found, skipping weapon injection");
@@ -62,6 +66,32 @@ public class TweakerWeaponInjector {
 
             JsonParser parser = new JsonParser();
             JsonObject root = parser.parse(new FileReader(weaponsFile)).getAsJsonObject();
+
+            // 加载 tooltips 配置
+            Map<String, JsonObject> tooltipMap = new HashMap<>();
+            if (tooltipsFile.exists()) {
+                JsonObject tooltipsRoot = parser.parse(new FileReader(tooltipsFile)).getAsJsonObject();
+                if (tooltipsRoot.has("tooltips")) {
+                    for (JsonElement elem : tooltipsRoot.getAsJsonArray("tooltips")) {
+                        JsonObject t = elem.getAsJsonObject();
+                        tooltipMap.put(t.get("id").getAsString(), t);
+                    }
+                }
+            }
+
+            // 加载 scripts 配置
+            Map<String, JsonArray> scriptMap = new HashMap<>();
+            if (scriptsFile.exists()) {
+                JsonObject scriptsRoot = parser.parse(new FileReader(scriptsFile)).getAsJsonObject();
+                if (scriptsRoot.has("scripts")) {
+                    for (JsonElement elem : scriptsRoot.getAsJsonArray("scripts")) {
+                        JsonObject s = elem.getAsJsonObject();
+                        if (s.has("events")) {
+                            scriptMap.put(s.get("id").getAsString(), s.getAsJsonArray("events"));
+                        }
+                    }
+                }
+            }
 
             // 加载武器定义
             if (root.has("weapons")) {
@@ -79,10 +109,30 @@ public class TweakerWeaponInjector {
                 // 第二遍：创建武器
                 for (JsonElement elem : weaponDefs) {
                     JsonObject weaponDef = elem.getAsJsonObject();
+                    String id = weaponDef.get("id").getAsString();
+
+                    // 合并 tooltip 配置
+                    if (tooltipMap.containsKey(id)) {
+                        JsonObject tooltip = tooltipMap.get(id);
+                        if (tooltip.has("displayName"))
+                            weaponDef.add("displayName", tooltip.get("displayName"));
+                        if (tooltip.has("tooltip"))
+                            weaponDef.add("tooltip", tooltip.get("tooltip"));
+                    }
+
                     Item weapon = createWeapon(weaponDef);
                     if (weapon != null) {
                         weapons.add(weapon);
                         itemDefinitionMap.put(weapon, weaponDef);
+
+                        // 从 scripts.json 加载事件
+                        if (scriptMap.containsKey(id)) {
+                            JsonArray eventsArray = scriptMap.get(id);
+                            List<WeaponEvent> events = WeaponEvent.fromJsonArray(eventsArray);
+                            if (!events.isEmpty()) {
+                                EffectEventHandler.registerWeaponEffects(weapon, events);
+                            }
+                        }
                     }
                 }
             }
