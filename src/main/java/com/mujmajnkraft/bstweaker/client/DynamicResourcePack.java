@@ -35,9 +35,6 @@ import java.util.Set;
  */
 public class DynamicResourcePack implements IResourcePack {
 
-    // BS 命名空间 - 武器注册使用此命名空间
-    private static final String BS_NAMESPACE = "mujmajnkraftsbettersurvival";
-
     private static final Map<String, String> dynamicModels = new HashMap<>();
     private static final Map<String, File> configTextures = new HashMap<>();
     private static final Map<String, File> configModels = new HashMap<>();
@@ -173,99 +170,13 @@ public class DynamicResourcePack implements IResourcePack {
         String namespace = location.getNamespace();
         String path = location.getPath();
 
-        // 处理 mujmajnkraftsbettersurvival 命名空间 (武器实际注册的命名空间)
-        if (BS_NAMESPACE.equals(namespace)) {
-            return getBSNamespaceResource(path);
+        // 检查是否是 bstweaker 命名空间
+        if (!Reference.MOD_ID.equals(namespace)) {
+            throw new FileNotFoundException("Resource not found: " + location);
         }
 
-        // 处理 bstweaker 命名空间 (用户在模型中可能使用的命名空间)
-        if (Reference.MOD_ID.equals(namespace)) {
-            return getBSTweakerNamespaceResource(path);
-        }
-
-        throw new FileNotFoundException("Resource not found: " + location);
-    }
-
-    /**
-     * 处理 BS 命名空间请求 - 翻译 itembstweaker_ 前缀
-     * 请求: mujmajnkraftsbettersurvival:items/itembstweaker_fieryingotnunchaku
-     * 映射: config/bstweaker/textures/fieryingotnunchaku.png
-     */
-    private InputStream getBSNamespaceResource(String path) throws IOException {
-        // 模型请求: models/item/itembstweaker_xxx.json
-        if (path.startsWith("models/item/") && path.endsWith(".json")) {
-            String itemName = path.replace("models/item/", "").replace(".json", "");
-            String originalName = translateBSNameToConfig(itemName);
-
-            if (configModels.containsKey(originalName)) {
-                // 读取模型并翻译内容
-                File modelFile = configModels.get(originalName);
-                String content = new String(java.nio.file.Files.readAllBytes(modelFile.toPath()),
-                        StandardCharsets.UTF_8);
-                content = translateModelContent(content);
-                BSTweaker.LOG.info("Loading BS model: " + itemName + " from " + originalName);
-                return new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
-            }
-        }
-
-        // 纹理请求: textures/items/itembstweaker_xxx.png
-        if (path.startsWith("textures/items/") && path.endsWith(".png")) {
-            String texName = path.replace("textures/items/", "").replace(".png", "");
-            String originalName = translateBSNameToConfig(texName);
-
-            if (configTextures.containsKey(originalName)) {
-                BSTweaker.LOG.info("Loading BS texture: " + texName + " from " + originalName);
-                return new FileInputStream(configTextures.get(originalName));
-            }
-        }
-
-        // mcmeta 请求
-        if (path.startsWith("textures/items/") && path.endsWith(".png.mcmeta")) {
-            String mcmetaName = path.replace("textures/items/", "").replace(".png.mcmeta", "");
-            String originalName = translateBSNameToConfig(mcmetaName);
-
-            if (configMcmeta.containsKey(originalName)) {
-                return new FileInputStream(configMcmeta.get(originalName));
-            }
-        }
-
-        throw new FileNotFoundException("BS resource not found: " + path);
-    }
-
-    /**
-     * 翻译 BS 物品名到 config 原始文件名
-     * itembstweaker_fieryingotnunchaku -> fieryingotnunchaku
-     */
-    private String translateBSNameToConfig(String bsName) {
-        // 移除 itembstweaker_ 前缀
-        if (bsName.startsWith("itembstweaker_")) {
-            return bsName.substring("itembstweaker_".length());
-        }
-        // 移除 item 前缀 (如果没有 bstweaker)
-        if (bsName.startsWith("item")) {
-            return bsName.substring("item".length());
-        }
-        return bsName;
-    }
-
-    /**
-     * 翻译模型内容中的命名空间引用
-     * bstweaker:items/xxx -> mujmajnkraftsbettersurvival:items/itembstweaker_xxx
-     */
-    private String translateModelContent(String content) {
-        // 纹理路径翻译
-        content = content.replace("bstweaker:items/", BS_NAMESPACE + ":items/itembstweaker_");
-        // 模型路径翻译
-        content = content.replace("bstweaker:item/", BS_NAMESPACE + ":item/itembstweaker_");
-        return content;
-    }
-
-    /**
-     * 处理 bstweaker 命名空间请求 (原有逻辑)
-     */
-    private InputStream getBSTweakerNamespaceResource(String path) throws IOException {
         // 检查动态生成的模型
-        String fullPath = "assets/" + Reference.MOD_ID + "/" + path;
+        String fullPath = "assets/" + namespace + "/" + path;
         String content = dynamicModels.get(fullPath);
         if (content != null) {
             return new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
@@ -304,7 +215,7 @@ public class DynamicResourcePack implements IResourcePack {
             }
         }
 
-        throw new FileNotFoundException("Resource not found: " + path);
+        throw new FileNotFoundException("Resource not found: " + location);
     }
 
     @Override
@@ -312,12 +223,6 @@ public class DynamicResourcePack implements IResourcePack {
         String namespace = location.getNamespace();
         String path = location.getPath();
 
-        // 处理 BS 命名空间
-        if (BS_NAMESPACE.equals(namespace)) {
-            return bsResourceExists(path);
-        }
-
-        // 处理 bstweaker 命名空间
         if (!Reference.MOD_ID.equals(namespace)) {
             return false;
         }
@@ -357,38 +262,9 @@ public class DynamicResourcePack implements IResourcePack {
         return false;
     }
 
-    /**
-     * 检查 BS 命名空间资源是否存在
-     */
-    private boolean bsResourceExists(String path) {
-        // 模型
-        if (path.startsWith("models/item/") && path.endsWith(".json")) {
-            String itemName = path.replace("models/item/", "").replace(".json", "");
-            String originalName = translateBSNameToConfig(itemName);
-            return configModels.containsKey(originalName);
-        }
-
-        // 纹理
-        if (path.startsWith("textures/items/") && path.endsWith(".png")) {
-            String texName = path.replace("textures/items/", "").replace(".png", "");
-            String originalName = translateBSNameToConfig(texName);
-            return configTextures.containsKey(originalName);
-        }
-
-        // mcmeta
-        if (path.startsWith("textures/items/") && path.endsWith(".png.mcmeta")) {
-            String mcmetaName = path.replace("textures/items/", "").replace(".png.mcmeta", "");
-            String originalName = translateBSNameToConfig(mcmetaName);
-            return configMcmeta.containsKey(originalName);
-        }
-
-        return false;
-    }
-
     @Override
     public Set<String> getResourceDomains() {
-        // 支持 bstweaker 和 mujmajnkraftsbettersurvival 两个命名空间
-        return ImmutableSet.of(Reference.MOD_ID, BS_NAMESPACE);
+        return ImmutableSet.of(Reference.MOD_ID);
     }
 
     @Nullable
