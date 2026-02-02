@@ -88,17 +88,29 @@ public class BSTweakerMixinPlugin implements IFMLLoadingPlugin {
 
         for (java.io.File file : files) {
             try {
-                String targetName = file.getName().startsWith("item") ? file.getName() : "item" + file.getName();
+                // 文件名翻译: fieryingotnunchaku -> itembstweaker_fieryingotnunchaku
+                // 因为材质名使用 BSTWEAKER_ 前缀，所以BS生成的注册名是 itembstweaker_xxx
+                String baseName = file.getName();
+                String targetName;
+                if (baseName.startsWith("item")) {
+                    // 已经有 item 前缀，添加 bstweaker_
+                    targetName = baseName.replace("item", "itembstweaker_");
+                } else {
+                    // 添加 itembstweaker_ 前缀
+                    targetName = "itembstweaker_" + baseName;
+                }
                 java.io.File target = new java.io.File(destDir, targetName);
 
                 if (translateModel && ext.equals(".json")) {
                     // 翻译模型内容 - 替换所有 bstweaker 命名空间
                     String content = new String(java.nio.file.Files.readAllBytes(file.toPath()),
                             java.nio.charset.StandardCharsets.UTF_8);
-                    // 纹理路径: bstweaker:items/xxx -> mujmajnkraftsbettersurvival:items/itemxxx
-                    content = content.replace("bstweaker:items/", "mujmajnkraftsbettersurvival:items/item");
-                    // 模型路径: bstweaker:item/xxx -> mujmajnkraftsbettersurvival:item/itemxxx
-                    content = content.replace("bstweaker:item/", "mujmajnkraftsbettersurvival:item/item");
+                    // 纹理路径: bstweaker:items/xxx ->
+                    // mujmajnkraftsbettersurvival:items/itembstweaker_xxx
+                    content = content.replace("bstweaker:items/", "mujmajnkraftsbettersurvival:items/itembstweaker_");
+                    // 模型路径: bstweaker:item/xxx ->
+                    // mujmajnkraftsbettersurvival:item/itembstweaker_xxx
+                    content = content.replace("bstweaker:item/", "mujmajnkraftsbettersurvival:item/itembstweaker_");
                     // 通用替换: 任何其他 bstweaker: 引用
                     content = content.replace("bstweaker:", "mujmajnkraftsbettersurvival:");
                     java.nio.file.Files.write(target.toPath(),
