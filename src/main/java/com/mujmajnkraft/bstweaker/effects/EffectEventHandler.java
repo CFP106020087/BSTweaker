@@ -117,8 +117,8 @@ public class EffectEventHandler {
     public static void onLivingUpdate(LivingEvent.LivingUpdateEvent event) {
         EntityLivingBase entity = event.getEntityLiving();
 
-        // 性能优化：每 10 tick 才检查一次
-        if (entity.ticksExisted % 10 != 0)
+        // 性能优化：每 5 tick 才检查一次 (原来是10，压制效果需要更快响应)
+        if (entity.ticksExisted % 5 != 0)
             return;
 
         ItemStack mainHand = entity.getHeldItemMainhand();

@@ -66,11 +66,14 @@
           "actions": ["self.heal(2)"]
         },
         {
-          "_comment": "压制中毒效果 / Suppress poison effect",
+        "_comment": "压制高等级中毒 / Suppress high-level poison",
           "event": "whenHeld",
           "actions": [
-            "var eff = self.getPotionEffect('poison');",
-            "if (eff != null && eff.getAmplifier() > 2) { eff.setAmplifier(2); }"
+            "var eff = self.getPotionEffect('minecraft:poison');",
+            "if (eff != null && eff.getAmplifier() > 2) {",
+            "  self.removePotionEffect('minecraft:poison');",
+            "  self.addPotionEffect('minecraft:poison', eff.getDuration(), 2);",
+            "}"
           ]
         }
       ]

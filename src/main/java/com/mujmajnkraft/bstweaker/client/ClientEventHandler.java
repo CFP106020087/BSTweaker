@@ -43,6 +43,9 @@ public class ClientEventHandler {
             return;
 
         try {
+            // 先扫描 config 目录中的资源文件
+            DynamicResourcePack.scanConfigResources();
+
             // 通过反射添加资源包到 Minecraft 的资源包列表
             Field field = Minecraft.class.getDeclaredField("defaultResourcePacks");
             field.setAccessible(true);
