@@ -78,12 +78,17 @@ public class TweakerWeaponInjector {
             }
 
             JsonParser parser = new JsonParser();
-            JsonObject root = parser.parse(new FileReader(weaponsFile)).getAsJsonObject();
+            // 使用 UTF-8 编码读取
+            JsonObject root = parser.parse(new java.io.InputStreamReader(
+                    new java.io.FileInputStream(weaponsFile), java.nio.charset.StandardCharsets.UTF_8))
+                    .getAsJsonObject();
 
             // 加载 tooltips 配置
             Map<String, JsonObject> tooltipMap = new HashMap<>();
             if (tooltipsFile.exists()) {
-                JsonObject tooltipsRoot = parser.parse(new FileReader(tooltipsFile)).getAsJsonObject();
+                JsonObject tooltipsRoot = parser.parse(new java.io.InputStreamReader(
+                        new java.io.FileInputStream(tooltipsFile), java.nio.charset.StandardCharsets.UTF_8))
+                        .getAsJsonObject();
                 if (tooltipsRoot.has("tooltips")) {
                     for (JsonElement elem : tooltipsRoot.getAsJsonArray("tooltips")) {
                         JsonObject t = elem.getAsJsonObject();
@@ -95,7 +100,9 @@ public class TweakerWeaponInjector {
             // 加载 scripts 配置
             Map<String, JsonArray> scriptMap = new HashMap<>();
             if (scriptsFile.exists()) {
-                JsonObject scriptsRoot = parser.parse(new FileReader(scriptsFile)).getAsJsonObject();
+                JsonObject scriptsRoot = parser.parse(new java.io.InputStreamReader(
+                        new java.io.FileInputStream(scriptsFile), java.nio.charset.StandardCharsets.UTF_8))
+                        .getAsJsonObject();
                 if (scriptsRoot.has("scripts")) {
                     for (JsonElement elem : scriptsRoot.getAsJsonArray("scripts")) {
                         JsonObject s = elem.getAsJsonObject();
@@ -289,7 +296,7 @@ public class TweakerWeaponInjector {
     }
 
     /**
-     * 从 JAR 复制默认配置文件
+     * 从 JAR 复制默认配置文件 (UTF-8 编码)
      */
     private static void copyDefaultConfig(String resourceName, File targetFile) {
         if (targetFile.exists())
@@ -303,14 +310,20 @@ public class TweakerWeaponInjector {
                 return;
             }
 
-            java.io.OutputStream out = new java.io.FileOutputStream(targetFile);
-            byte[] buffer = new byte[1024];
-            int len;
-            while ((len = in.read(buffer)) > 0) {
-                out.write(buffer, 0, len);
+            // 使用 UTF-8 编码
+            java.io.BufferedReader reader = new java.io.BufferedReader(
+                    new java.io.InputStreamReader(in, java.nio.charset.StandardCharsets.UTF_8));
+            java.io.BufferedWriter writer = new java.io.BufferedWriter(
+                    new java.io.OutputStreamWriter(
+                            new java.io.FileOutputStream(targetFile), java.nio.charset.StandardCharsets.UTF_8));
+
+            String line;
+            while ((line = reader.readLine()) != null) {
+                writer.write(line);
+                writer.newLine();
             }
-            in.close();
-            out.close();
+            reader.close();
+            writer.close();
 
             System.out.println("[BSTweaker] Generated default config: " + targetFile.getName());
         } catch (Exception e) {
