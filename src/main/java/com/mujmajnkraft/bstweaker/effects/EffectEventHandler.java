@@ -41,40 +41,50 @@ public class EffectEventHandler {
     }
 
     /**
-     * LivingHurtEvent - 伤害事件
+     * LivingHurtEvent - 处理 onHit（攻击别人）和 onHurt（自己被攻击）
      */
     @SubscribeEvent(priority = EventPriority.NORMAL)
     public static void onLivingHurt(LivingHurtEvent event) {
+        EntityLivingBase victim = event.getEntityLiving();
         Entity source = event.getSource().getTrueSource();
-        if (!(source instanceof EntityLivingBase))
-            return;
 
-        EntityLivingBase attacker = (EntityLivingBase) source;
-        ItemStack mainHand = attacker.getHeldItemMainhand();
-        if (mainHand.isEmpty())
-            return;
+        // === onHit: 攻击者手持武器攻击别人 ===
+        if (source instanceof EntityLivingBase) {
+            EntityLivingBase attacker = (EntityLivingBase) source;
+            ItemStack mainHand = attacker.getHeldItemMainhand();
+            if (!mainHand.isEmpty()) {
+                Item weapon = mainHand.getItem();
+                ResourceLocation regName = weapon.getRegistryName();
+                List<WeaponEvent> effects = weaponEffectsCache.get(regName);
 
-        Item weapon = mainHand.getItem();
-        ResourceLocation regName = weapon.getRegistryName();
-        List<WeaponEvent> effects = weaponEffectsCache.get(regName);
-
-        // 调试日志
-        if (weaponEffectsCache.size() > 0) {
-            BSTweaker.LOG.debug("onLivingHurt: weapon=" + regName + ", hasEffects=" + (effects != null));
+                if (effects != null) {
+                    for (WeaponEvent we : effects) {
+                        if ("LivingHurtEvent".equals(we.eventType) || "onHit".equals(we.eventType)) {
+                            EventContext ctx = new EventContext(attacker, victim, weapon, event);
+                            executeScripts(we, ctx);
+                        }
+                    }
+                }
+            }
         }
 
-        if (effects == null)
-            return;
+        // === onHurt: 被攻击者手持武器被攻击 ===
+        ItemStack victimMainHand = victim.getHeldItemMainhand();
+        if (!victimMainHand.isEmpty()) {
+            Item weapon = victimMainHand.getItem();
+            ResourceLocation regName = weapon.getRegistryName();
+            List<WeaponEvent> effects = weaponEffectsCache.get(regName);
 
-        BSTweaker.LOG.info("Executing " + effects.size() + " effects for LivingHurtEvent with weapon: " + regName);
-        EntityLivingBase victim = event.getEntityLiving();
-
-        for (WeaponEvent we : effects) {
-            if ("LivingHurtEvent".equals(we.eventType) || "onHit".equals(we.eventType)) {
-                BSTweaker.LOG.info("Executing onHit script: "
-                        + we.actions.get(0).substring(0, Math.min(30, we.actions.get(0).length())));
-                EventContext ctx = new EventContext(attacker, victim, weapon, event);
-                executeScripts(we, ctx);
+            if (effects != null) {
+                for (WeaponEvent we : effects) {
+                    if ("onHurt".equals(we.eventType)) {
+                        // self = 被攻击者, victim = 攻击者 (如果有)
+                        EntityLivingBase attacker = (source instanceof EntityLivingBase) ? (EntityLivingBase) source
+                                : null;
+                        EventContext ctx = new EventContext(victim, attacker, weapon, event);
+                        executeScripts(we, ctx);
+                    }
+                }
             }
         }
     }
