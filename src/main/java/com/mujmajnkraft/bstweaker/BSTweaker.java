@@ -49,4 +49,10 @@ public class BSTweaker {
         int weaponCount = TweakerWeaponInjector.getItemDefinitionMap().size();
         LOG.info("BSTweaker PostInit - Loaded " + weaponCount + " custom weapons");
     }
+
+    @EventHandler
+    public void serverStarting(net.minecraftforge.fml.common.event.FMLServerStartingEvent event) {
+        event.registerServerCommand(new com.mujmajnkraft.bstweaker.command.BSTweakerCommand());
+        LOG.info("BSTweaker command registered");
+    }
 }
