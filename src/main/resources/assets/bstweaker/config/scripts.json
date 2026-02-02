@@ -6,12 +6,13 @@
     "事件类型 (event)：",
     "  onHit: 攻击命中时触发",
     "  onKill: 击杀敌人时触发",
-    "  whenHeld: 主手持有时触发 (每10tick)",
+    "  onHurt: 自己被攻击时触发",
+    "  whenHeld: 主手持有时触发 (每5tick)",
     "",
     "可用变量：",
     "  self: 持有武器的玩家/实体",
-    "  victim: 受害者 (onHit/onKill时可用)",
-    "  event: Forge事件对象 (onHit时可用)",
+    "  victim: 受害者 (onHit/onKill) 或攻击者 (onHurt)",
+    "  event: Forge事件对象",
     "",
     "常用API：",
     "  self.heal(2) - 治疗2点血",
@@ -29,12 +30,13 @@
     "Event types (event):",
     "  onHit: Triggered when attack hits",
     "  onKill: Triggered when killing an enemy",
-    "  whenHeld: Triggered while held in main hand (every 10 ticks)",
+    "  onHurt: Triggered when you are attacked",
+    "  whenHeld: Triggered while held in main hand (every 5 ticks)",
     "",
     "Available variables:",
     "  self: The player/entity holding the weapon",
-    "  victim: The victim (available in onHit/onKill)",
-    "  event: Forge event object (available in onHit)",
+    "  victim: The victim (onHit/onKill) or attacker (onHurt)",
+    "  event: Forge event object",
     "",
     "Common APIs:",
     "  self.heal(2) - Heal 2 HP",
@@ -48,33 +50,29 @@
 
   "scripts": [
     {
-      "id": "void_blade",
+    "_comment": "火焰锭双截棍效果 / Fiery Ingot Nunchaku Effects",
+    "id": "fieryingotnunchaku",
       "events": [
         {
-          "_comment": "击中时清空无敌帧 / Clear i-frames on hit",
+        "_comment": "击中时点燃目标3秒 / Set target on fire for 3 seconds on hit",
           "event": "onHit",
-          "actions": ["victim.setHurtResistantTime(0)"]
+        "actions": [
+            "victim.setFire(3)"
+        ]
         },
         {
-          "_comment": "伤害提升50% / 50% damage boost",
-          "event": "onHit",
-          "actions": ["event.setAmount(event.getAmount() * 1.5)"]
-        },
-        {
-          "_comment": "击杀回血 / Heal on kill",
+        "_comment": "击杀时获得力量效果 / Gain strength on kill",
           "event": "onKill",
-          "actions": ["self.heal(2)"]
+        "actions": [
+            "self.addPotionEffect('minecraft:strength', 100, 0)"
+        ]
         },
         {
-        "_comment": "压制高等级中毒 / Suppress high-level poison",
-          "event": "whenHeld",
-          "actions": [
-            "var eff = self.getPotionEffect('minecraft:poison');",
-            "if (eff != null && eff.getAmplifier() > 2) {",
-            "  self.removePotionEffect('minecraft:poison');",
-            "  self.addPotionEffect('minecraft:poison', eff.getDuration(), 2);",
-            "}"
-          ]
+        "_comment": "受伤时减少20%伤害 / Reduce incoming damage by 20% when hurt",
+        "event": "onHurt",
+        "actions": [
+            "event.setAmount(event.getAmount() * 0.8)"
+        ]
         }
       ]
     }
