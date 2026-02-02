@@ -41,89 +41,9 @@ public class BSTweakerMixinPlugin implements IFMLLoadingPlugin {
 
     @Override
     public void injectData(Map<String, Object> data) {
-        // 在 Coremod 加载阶段注入资源（最早时机）
-        try {
-            // 获取 minecraft 目录
-            java.io.File mcDir = (java.io.File) data.get("mcLocation");
-            if (mcDir != null) {
-                java.io.File configDir = new java.io.File(mcDir, "config/bstweaker");
-                java.io.File assetsDir = new java.io.File(mcDir, "assets/mujmajnkraftsbettersurvival");
-
-                injectResourcesEarly(configDir, assetsDir);
-                LOGGER.info("Early resource injection completed (ASM phase)");
-            }
-        } catch (Throwable e) {
-            LOGGER.error("Early resource injection failed: " + e.getMessage());
-        }
-    }
-
-    /**
-     * 早期资源注入 - 在 ASM 阶段执行
-     */
-    private void injectResourcesEarly(java.io.File configDir, java.io.File assetsDir) {
-        if (!configDir.exists()) {
-            return;
-        }
-
-        // 创建目标目录
-        java.io.File modelsDir = new java.io.File(assetsDir, "models/item");
-        java.io.File texturesDir = new java.io.File(assetsDir, "textures/items");
-        modelsDir.mkdirs();
-        texturesDir.mkdirs();
-
-        // 复制模型
-        copyResourceFiles(new java.io.File(configDir, "models"), modelsDir, ".json", true);
-        // 复制纹理
-        copyResourceFiles(new java.io.File(configDir, "textures"), texturesDir, ".png", false);
-        copyResourceFiles(new java.io.File(configDir, "textures"), texturesDir, ".png.mcmeta", false);
-    }
-
-    private void copyResourceFiles(java.io.File srcDir, java.io.File destDir, String ext, boolean translateModel) {
-        if (!srcDir.exists() || !srcDir.isDirectory())
-            return;
-
-        java.io.File[] files = srcDir.listFiles((d, n) -> n.endsWith(ext));
-        if (files == null)
-            return;
-
-        for (java.io.File file : files) {
-            try {
-                // 文件名翻译: fieryingotnunchaku -> itembstweaker_fieryingotnunchaku
-                // 因为材质名使用 BSTWEAKER_ 前缀，所以BS生成的注册名是 itembstweaker_xxx
-                String baseName = file.getName();
-                String targetName;
-                if (baseName.startsWith("item")) {
-                    // 已经有 item 前缀，添加 bstweaker_
-                    targetName = baseName.replace("item", "itembstweaker_");
-                } else {
-                    // 添加 itembstweaker_ 前缀
-                    targetName = "itembstweaker_" + baseName;
-                }
-                java.io.File target = new java.io.File(destDir, targetName);
-
-                if (translateModel && ext.equals(".json")) {
-                    // 翻译模型内容 - 替换所有 bstweaker 命名空间
-                    String content = new String(java.nio.file.Files.readAllBytes(file.toPath()),
-                            java.nio.charset.StandardCharsets.UTF_8);
-                    // 纹理路径: bstweaker:items/xxx ->
-                    // mujmajnkraftsbettersurvival:items/itembstweaker_xxx
-                    content = content.replace("bstweaker:items/", "mujmajnkraftsbettersurvival:items/itembstweaker_");
-                    // 模型路径: bstweaker:item/xxx ->
-                    // mujmajnkraftsbettersurvival:item/itembstweaker_xxx
-                    content = content.replace("bstweaker:item/", "mujmajnkraftsbettersurvival:item/itembstweaker_");
-                    // 通用替换: 任何其他 bstweaker: 引用
-                    content = content.replace("bstweaker:", "mujmajnkraftsbettersurvival:");
-                    java.nio.file.Files.write(target.toPath(),
-                            content.getBytes(java.nio.charset.StandardCharsets.UTF_8));
-                } else {
-                    java.nio.file.Files.copy(file.toPath(), target.toPath(),
-                            java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-                }
-                LOGGER.info("Injected: " + file.getName() + " -> " + targetName);
-            } catch (Exception e) {
-                LOGGER.error("Failed to copy " + file.getName() + ": " + e.getMessage());
-            }
-        }
+        // 注意：资源文件的加载现在通过 DynamicResourcePack 完成
+        // 这个方法不再需要复制资源文件，因为 Minecraft 只通过 IResourcePack 加载资源
+        LOGGER.info("BSTweaker Coremod initialized");
     }
 
     @Override
