@@ -1,8 +1,22 @@
 # BSTweaker Language File (English)
 
-# Example weapons from default config
-item.bstweaker.blazing_iron_nunchaku.name=Blazing Iron Nunchaku
-item.bstweaker.enhanced_diamond_hammer.name=Enhanced Diamond Hammer
+# === Weapon Names ===
+bstweaker.weapon.fieryingotnunchaku.name=§6◆ Fiery Ingot Nunchaku
+
+# === Weapon Descriptions ===
+bstweaker.weapon.fieryingotnunchaku.desc=§7Forged from fiery ingots
+
+# === Tooltip Effects ===
+bstweaker.tooltip.fire_on_hit=§7・Sets enemies on fire for 3 seconds on hit
+bstweaker.tooltip.strength_on_kill=§7・Gain strength effect on kill
+bstweaker.tooltip.damage_immunity=§7・Immune to damage when hurt
+bstweaker.tooltip.suppress_poison=§7・Suppresses high-level poison when held
+
+# === Script Event Comments ===
+bstweaker.event.fire_on_hit=Sets enemies on fire for 3 seconds on hit
+bstweaker.event.strength_on_kill=Gain strength effect on kill
+bstweaker.event.damage_immunity=Full damage immunity when hurt
+bstweaker.event.suppress_poison=Suppresses all negative effects to level 2
 
 # General
 itemGroup.bstweaker=BSTweaker Weapons

@@ -56,6 +56,10 @@ public class TooltipHandler {
                 JsonObject eventDef = elem.getAsJsonObject();
                 if (eventDef.has("_comment")) {
                     String comment = eventDef.get("_comment").getAsString();
+                    // 支持翻译键
+                    if (comment.startsWith("@")) {
+                        comment = I18n.format(comment.substring(1));
+                    }
                     tooltip.add(TextFormatting.DARK_PURPLE + "◆ " + comment);
                 }
             }

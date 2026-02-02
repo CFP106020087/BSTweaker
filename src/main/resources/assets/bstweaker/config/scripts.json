@@ -14,14 +14,7 @@
     "  victim: 受害者 (onHit/onKill) 或攻击者 (onHurt)",
     "  event: Forge事件对象",
     "",
-    "常用API：",
-    "  self.heal(2) - 治疗2点血",
-    "  victim.setHurtResistantTime(0) - 清空无敌帧",
-    "  event.setAmount(event.getAmount() * 1.5) - 伤害倍率",
-    "  self.getPotionEffect('poison') - 获取药水效果",
-    "  self.addPotionEffect('speed', 200, 1) - 添加药水",
-    "",
-    "完整API请参考 SCRIPT_API.md"
+    "_comment使用@前缀可从lang文件翻译"
   ],
   "_tutorial_en": [
     "=== Weapon Event Script Config ===",
@@ -38,14 +31,7 @@
     "  victim: The victim (onHit/onKill) or attacker (onHurt)",
     "  event: Forge event object",
     "",
-    "Common APIs:",
-    "  self.heal(2) - Heal 2 HP",
-    "  victim.setHurtResistantTime(0) - Clear invincibility frames",
-    "  event.setAmount(event.getAmount() * 1.5) - Damage multiplier",
-    "  self.getPotionEffect('poison') - Get potion effect",
-    "  self.addPotionEffect('speed', 200, 1) - Add potion effect",
-    "",
-    "See SCRIPT_API.md for full API reference"
+    "_comment with @ prefix translates from lang file"
   ],
 
   "scripts": [
@@ -54,28 +40,28 @@
     "id": "fieryingotnunchaku",
       "events": [
         {
-        "_comment": "击中时点燃目标3秒 / Set target on fire for 3 seconds on hit",
+        "_comment": "@bstweaker.event.fire_on_hit",
           "event": "onHit",
         "actions": [
             "victim.setFire(3)"
         ]
         },
         {
-        "_comment": "击杀时获得力量效果 / Gain strength on kill",
+        "_comment": "@bstweaker.event.strength_on_kill",
           "event": "onKill",
         "actions": [
             "self.addPotionEffect('minecraft:strength', 100, 0)"
         ]
         },
         {
-        "_comment": "受伤时完全免伤(测试用) / Full damage immunity when hurt (for testing)",
+        "_comment": "@bstweaker.event.damage_immunity",
         "event": "onHurt",
         "actions": [
             "event.setAmount(0)"
         ]
         },
         {
-            "_comment": "压制所有负面效果到2级 / Suppress all negative effects to level 2",
+            "_comment": "@bstweaker.event.suppress_poison",
             "event": "whenHeld",
             "actions": [
                 "var effects = self.getBadPotionEffects();",
