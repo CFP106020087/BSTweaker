@@ -182,6 +182,15 @@ public class DynamicResourcePack implements IResourcePack {
             return new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
         }
 
+        // 检查 config 目录中的模型文件
+        if (path.startsWith("models/item/") && path.endsWith(".json")) {
+            String name = path.replace("models/item/", "").replace(".json", "");
+            if (configModels.containsKey(name)) {
+                BSTweaker.LOG.info("Loading config model: " + name);
+                return new FileInputStream(configModels.get(name));
+            }
+        }
+
         // 检查 config 目录中的纹理
         if (path.startsWith("textures/items/") && path.endsWith(".png")) {
             String name = path.replace("textures/items/", "").replace(".png", "");
@@ -222,6 +231,14 @@ public class DynamicResourcePack implements IResourcePack {
         String fullPath = "assets/" + namespace + "/" + path;
         if (dynamicModels.containsKey(fullPath)) {
             return true;
+        }
+
+        // 检查 config 模型
+        if (path.startsWith("models/item/") && path.endsWith(".json")) {
+            String name = path.replace("models/item/", "").replace(".json", "");
+            if (configModels.containsKey(name)) {
+                return true;
+            }
         }
 
         // 检查 config 纹理

@@ -1,0 +1,1 @@
+item.bstweaker.fieryingotnunchaku.name=炽铁双截棍

@@ -150,15 +150,20 @@ public class EffectEventHandler {
     }
 
     /**
-     * 执行脚本
+     * 执行脚本 - 合并所有 actions 为一个脚本执行
      */
     private static void executeScripts(WeaponEvent we, EventContext ctx) {
-        for (String script : we.actions) {
-            try {
-                ScriptEngine_.execute(script, ctx);
-            } catch (Exception e) {
-                BSTweaker.LOG.error("Script execution error: " + e.getMessage());
-            }
+        // 合并所有 actions 为一个完整脚本
+        StringBuilder sb = new StringBuilder();
+        for (String action : we.actions) {
+            sb.append(action).append("\n");
+        }
+        String fullScript = sb.toString();
+
+        try {
+            ScriptEngine_.execute(fullScript, ctx);
+        } catch (Exception e) {
+            BSTweaker.LOG.error("Script execution error: " + e.getMessage());
         }
     }
 }
