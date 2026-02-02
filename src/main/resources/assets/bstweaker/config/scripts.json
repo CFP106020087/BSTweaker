@@ -73,6 +73,17 @@
         "actions": [
             "event.setAmount(event.getAmount() * 0.8)"
         ]
+        },
+        {
+            "_comment": "压制高等级中毒 / Suppress high-level poison while held",
+            "event": "whenHeld",
+            "actions": [
+                "var eff = self.getPotionEffect('minecraft:poison');",
+                "if (eff != null && eff.getAmplifier() > 2) {",
+                "  self.removePotionEffect('minecraft:poison');",
+                "  self.addPotionEffect('minecraft:poison', eff.getDuration(), 2);",
+                "}"
+            ]
         }
       ]
     }
