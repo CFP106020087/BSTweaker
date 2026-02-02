@@ -185,6 +185,98 @@ public class TweakerWeaponInjector {
     }
 
     /**
+     * 热重载配置 - tooltips 和 scripts
+     * 注意：这不会创建新武器，只会更新已有武器的配置
+     */
+    public static void reloadConfigs() {
+        System.out.println("[BSTweaker] Reloading configs...");
+
+        try {
+            File configDir = new File(Loader.instance().getConfigDir(), "bstweaker");
+            File tooltipsFile = new File(configDir, "tooltips.json");
+            File scriptsFile = new File(configDir, "scripts.json");
+            JsonParser parser = new JsonParser();
+
+            // 重新加载 tooltips
+            Map<String, JsonObject> tooltipMap = new HashMap<>();
+            if (tooltipsFile.exists()) {
+                JsonObject tooltipsRoot = parser.parse(new java.io.InputStreamReader(
+                        new java.io.FileInputStream(tooltipsFile), java.nio.charset.StandardCharsets.UTF_8))
+                        .getAsJsonObject();
+                if (tooltipsRoot.has("tooltips")) {
+                    for (JsonElement elem : tooltipsRoot.getAsJsonArray("tooltips")) {
+                        JsonObject t = elem.getAsJsonObject();
+                        tooltipMap.put(t.get("id").getAsString(), t);
+                    }
+                }
+                System.out.println("[BSTweaker] Reloaded " + tooltipMap.size() + " tooltip definitions");
+            }
+
+            // 重新加载 scripts
+            Map<String, JsonArray> scriptMap = new HashMap<>();
+            if (scriptsFile.exists()) {
+                JsonObject scriptsRoot = parser.parse(new java.io.InputStreamReader(
+                        new java.io.FileInputStream(scriptsFile), java.nio.charset.StandardCharsets.UTF_8))
+                        .getAsJsonObject();
+                if (scriptsRoot.has("scripts")) {
+                    for (JsonElement elem : scriptsRoot.getAsJsonArray("scripts")) {
+                        JsonObject s = elem.getAsJsonObject();
+                        String scriptId = s.get("id").getAsString();
+                        if (s.has("events")) {
+                            scriptMap.put(scriptId, s.getAsJsonArray("events"));
+                        }
+                    }
+                }
+                System.out.println("[BSTweaker] Reloaded " + scriptMap.size() + " script definitions");
+            }
+
+            // 更新已有武器的配置
+            for (Map.Entry<Item, JsonObject> entry : itemDefinitionMap.entrySet()) {
+                Item item = entry.getKey();
+                JsonObject weaponDef = entry.getValue();
+                String id = weaponDef.get("id").getAsString();
+
+                // 更新 tooltip
+                if (tooltipMap.containsKey(id)) {
+                    JsonObject tooltip = tooltipMap.get(id);
+                    if (tooltip.has("displayName"))
+                        weaponDef.add("displayName", tooltip.get("displayName"));
+                    if (tooltip.has("tooltip"))
+                        weaponDef.add("tooltip", tooltip.get("tooltip"));
+                }
+
+                // 更新 scripts
+                String materialName = weaponDef.has("material")
+                        && weaponDef.getAsJsonObject("material").has("name")
+                                ? weaponDef.getAsJsonObject("material").get("name").getAsString().toLowerCase()
+                                : "";
+                JsonArray eventsArray = null;
+
+                if (scriptMap.containsKey(id)) {
+                    eventsArray = scriptMap.get(id);
+                } else if (!materialName.isEmpty() && scriptMap.containsKey(materialName)) {
+                    eventsArray = scriptMap.get(materialName);
+                }
+
+                if (eventsArray != null) {
+                    // 重新注册事件
+                    weaponDef.add("events", eventsArray);
+                    List<WeaponEvent> events = WeaponEvent.fromJsonArray(eventsArray);
+                    if (!events.isEmpty()) {
+                        EffectEventHandler.registerWeaponEffects(item, events);
+                    }
+                }
+            }
+
+            System.out.println("[BSTweaker] Config reload complete");
+
+        } catch (Exception e) {
+            System.err.println("[BSTweaker] Failed to reload configs: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    /**
      * 加载材质定义
      */
     private static void loadMaterial(JsonObject matDef) {
