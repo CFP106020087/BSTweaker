@@ -2,8 +2,7 @@ package com.mujmajnkraft.bstweaker.client;
 
 import com.mujmajnkraft.bstweaker.BSTweaker;
 import com.mujmajnkraft.bstweaker.Reference;
-import com.mujmajnkraft.bstweaker.config.WeaponDefinition;
-import com.mujmajnkraft.bstweaker.init.TweakerItems;
+import com.mujmajnkraft.bstweaker.util.TweakerWeaponInjector;
 
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.item.Item;
@@ -22,24 +21,15 @@ public class ClientEventHandler {
 
     @SubscribeEvent
     public static void onModelRegistry(ModelRegistryEvent event) {
-        BSTweaker.LOG.info("Registering models for tweaked weapons...");
-
-        for (Item item : TweakerItems.getRegisteredItems()) {
+        int count = 0;
+        for (Item item : TweakerWeaponInjector.getItemDefinitionMap().keySet()) {
             ResourceLocation registryName = item.getRegistryName();
-
-            // Get definition from mapping
-            WeaponDefinition def = TweakerItems.getDefinition(item);
-            String texturePath = (def != null) ? def.texture : null;
-
-            // Register model
             ModelLoader.setCustomModelResourceLocation(
                     item,
                     0,
                     new ModelResourceLocation(registryName, "inventory"));
-
-            BSTweaker.LOG.debug("Registered model for: " + registryName);
+            count++;
         }
-
-        BSTweaker.LOG.info("Model registration complete for " + TweakerItems.getRegisteredItems().size() + " items.");
+        BSTweaker.LOG.info("Registered models for " + count + " tweaked weapons.");
     }
 }

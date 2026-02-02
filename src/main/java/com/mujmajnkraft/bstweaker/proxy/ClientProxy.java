@@ -1,15 +1,12 @@
 package com.mujmajnkraft.bstweaker.proxy;
 
 import com.mujmajnkraft.bstweaker.BSTweaker;
-import com.mujmajnkraft.bstweaker.Reference;
-import com.mujmajnkraft.bstweaker.config.ConfigLoader;
-import com.mujmajnkraft.bstweaker.config.WeaponDefinition;
-import com.mujmajnkraft.bstweaker.init.TweakerItems;
+import com.mujmajnkraft.bstweaker.util.TweakerWeaponInjector;
+import com.google.gson.JsonObject;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.item.Item;
-import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.model.ModelLoader;
 
 /**
@@ -32,10 +29,12 @@ public class ClientProxy extends CommonProxy {
      * 注册物品渲染模型
      */
     private void registerItemRenders() {
-        for (Item item : TweakerItems.getRegisteredItems()) {
+        int count = 0;
+        for (Item item : TweakerWeaponInjector.getItemDefinitionMap().keySet()) {
             registerItemRender(item);
+            count++;
         }
-        BSTweaker.LOG.info("Registered renders for " + TweakerItems.getRegisteredItems().size() + " tweaked weapons.");
+        BSTweaker.LOG.info("Registered renders for " + count + " tweaked weapons.");
     }
 
     /**
@@ -46,18 +45,5 @@ public class ClientProxy extends CommonProxy {
                 item,
                 0,
                 new ModelResourceLocation(item.getRegistryName(), "inventory"));
-    }
-
-    /**
-     * 在 PreInit 阶段注册模型（用于自定义纹理路径）
-     * 需要在 ModelRegistryEvent 中调用
-     */
-    public static void registerModels() {
-        for (Item item : TweakerItems.getRegisteredItems()) {
-            ModelLoader.setCustomModelResourceLocation(
-                    item,
-                    0,
-                    new ModelResourceLocation(item.getRegistryName(), "inventory"));
-        }
     }
 }
