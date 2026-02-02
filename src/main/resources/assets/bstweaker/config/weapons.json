@@ -1,0 +1,58 @@
+{
+  "_comment_zh": "=== BSTweaker 武器配置教程 ===",
+  "_comment_en": "=== BSTweaker Weapon Configuration Tutorial ===",
+  
+  "_guide_zh_1": "每个武器需要: id(注册ID), type(武器类型), displayName(显示名称), material(材质定义)",
+  "_guide_en_1": "Each weapon needs: id (registry ID), type (weapon type), displayName, material (material definition)",
+  
+  "_guide_zh_2": "武器类型(type)可选: hammer(战锤), spear(长矛), dagger(匕首), battleaxe(战斧), nunchaku(双截棍)",
+  "_guide_en_2": "Available types: hammer, spear, dagger, battleaxe, nunchaku",
+  
+  "_guide_zh_3": "材质(material)属性: name(名称), harvestLevel(挖掘等级), durability(耐久), efficiency(效率), damage(基础伤害), enchantability(附魔能力), repairItem(修复物品ID)",
+  "_guide_en_3": "Material properties: name, harvestLevel, durability, efficiency, damage, enchantability, repairItem (item ID for repair)",
+  
+  "_guide_zh_4": "可选属性: damageModifier(额外伤害加成), speedModifier(攻击速度加成)",
+  "_guide_en_4": "Optional: damageModifier (extra damage), speedModifier (attack speed bonus)",
+  
+  "_guide_zh_5": "注册名格式: mujmajnkraftsbettersurvival:itembstweaker_<材质名><武器类型>",
+  "_guide_en_5": "Registry name format: mujmajnkraftsbettersurvival:itembstweaker_<materialname><weapontype>",
+  
+  "weapons": [
+    {
+      "_example_zh": "示例: 炽铁双截棍 (使用暮色森林的烈焰锭)",
+      "_example_en": "Example: Fiery Iron Nunchaku (uses Twilight Forest Fiery Ingot)",
+      "id": "fieryingotnunchaku",
+      "type": "nunchaku",
+      "displayName": "炽铁双截棍",
+      "material": {
+        "name": "fieryingot",
+        "harvestLevel": 0,
+        "durability": 3000,
+        "efficiency": 6.0,
+        "damage": 21.0,
+        "enchantability": 10,
+        "repairItem": "twilightforest:fiery_ingot"
+      },
+      "damageModifier": 1.0,
+      "speedModifier": 0.3577
+    },
+    {
+      "_example_zh": "示例: 钢叶双截棍 (使用暮色森林的钢叶锭)",
+      "_example_en": "Example: Steeleaf Nunchaku (uses Twilight Forest Steeleaf)",
+      "id": "steeleafingotnunchaku",
+      "type": "nunchaku",
+      "displayName": "钢叶双截棍",
+      "material": {
+        "name": "steeleafingot",
+        "harvestLevel": 0,
+        "durability": 600,
+        "efficiency": 6.0,
+        "damage": 1.5,
+        "enchantability": 10,
+        "repairItem": "twilightforest:steeleaf_ingot"
+      },
+      "damageModifier": 1.0,
+      "speedModifier": 0.3577
+    }
+  ]
+}
