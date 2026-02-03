@@ -207,7 +207,7 @@ config/bstweaker/
 
 ## 📄 License
 
-MIT License - Feel free to use in modpacks!
+**Public Domain (CC0)** - Do whatever you want with this code. No attribution required.
 
 ---
 
