@@ -56,7 +56,7 @@ public class TooltipHandler {
                     if (comment.startsWith("@")) {
                         comment = I18n.format(comment.substring(1));
                     }
-                    tooltip.add(TextFormatting.DARK_PURPLE + "◆ " + comment);
+                    tooltip.add(TextFormatting.DARK_PURPLE + "- " + comment);
                 }
             }
         }

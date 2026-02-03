@@ -59,29 +59,20 @@ public class BSTweakerCommand extends CommandBase {
     private void executeReload(ICommandSender sender) {
         sender.sendMessage(new TextComponentString(TextFormatting.YELLOW + "[BSTweaker] Reloading configs..."));
 
-        int reloaded = 0;
-
         try {
             // 1. Reload tooltips and scripts
             TweakerWeaponInjector.reloadConfigs();
-            sender.sendMessage(new TextComponentString(TextFormatting.GREEN + "  ✓ Reloaded tooltips.json and scripts.json"));
-            reloaded++;
+            sender.sendMessage(
+                    new TextComponentString(TextFormatting.GREEN + "  ✓ Reloaded tooltips.json and scripts.json"));
 
-            // 2. Re-inject resource files
-            com.mujmajnkraft.bstweaker.util.ResourceInjector.injectResources();
-            sender.sendMessage(new TextComponentString(TextFormatting.GREEN + "  ✓ Re-injected resource files"));
-            reloaded++;
-
-            // 3. Trigger resource reload (client)
+            // 2. Rescan resource files (textures/models/lang in config dir)
             if (isClientSide()) {
-                scheduleClientRefresh();
-                sender.sendMessage(
-                        new TextComponentString(TextFormatting.GREEN + "  ✓ Scheduled client resource refresh"));
-                reloaded++;
+                com.mujmajnkraft.bstweaker.client.DynamicResourcePack.rescan();
+                sender.sendMessage(new TextComponentString(TextFormatting.GREEN + "  ✓ Rescanned config resources"));
             }
 
             sender.sendMessage(new TextComponentString(
-                    TextFormatting.GREEN + "[BSTweaker] Reload complete! (" + reloaded + " tasks)"));
+                    TextFormatting.GREEN + "[BSTweaker] Reload complete! Use F3+T if textures need refresh."));
 
         } catch (Exception e) {
             sender.sendMessage(new TextComponentString(TextFormatting.RED + "[BSTweaker] Reload failed: " + e.getMessage()));
@@ -95,35 +86,5 @@ public class BSTweakerCommand extends CommandBase {
         } catch (Exception e) {
             return false;
         }
-    }
-
-    @SideOnly(Side.CLIENT)
-    private void scheduleClientRefresh() {
-        Minecraft mc = Minecraft.getMinecraft();
-        mc.addScheduledTask(() -> {
-            try {
-                // 1. Rescan DynamicResourcePack resources
-                com.mujmajnkraft.bstweaker.client.DynamicResourcePack.rescan();
-
-                // 2. Delete cached GPU textures
-                net.minecraft.client.renderer.texture.TextureManager texManager = mc.getTextureManager();
-                for (net.minecraft.util.ResourceLocation loc : com.mujmajnkraft.bstweaker.client.DynamicResourcePack
-                        .getTextureLocations()) {
-                    texManager.deleteTexture(loc);
-                }
-
-                // 3. Rebuild item texture atlas (faster than refreshResources!)
-                net.minecraft.client.renderer.texture.TextureMap texMap = mc.getTextureMapBlocks();
-                texMap.loadTextureAtlas(mc.getResourceManager());
-
-                // 4. Rebuild model cache
-                mc.getRenderItem().getItemModelMesher().rebuildCache();
-
-            } catch (Exception e) {
-                BSTweaker.LOG.error("Texture hot-reload failed: " + e.getMessage());
-                // Fallback to full refresh
-                mc.refreshResources();
-            }
-        });
     }
 }

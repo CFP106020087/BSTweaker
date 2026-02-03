@@ -1,38 +1,38 @@
 # Special Weapons
 item.deathdagger_death.name=Death
-item.ill battleaxe.name=Plague
+item.ill_battleaxe.name=Plague
 item.warspear.name=War
 item.hungerhammer.name=Famine
 item.sentientnunchaku.name=Sentient Nunchaku
 item.refineobnunchaku.name=Refined Obsidian Nunchaku
 
 # Fire Dragonsteel
-item.firedragonsteel nunchaku.name=Fire Dragonsteel Nunchaku
-item.firedragonsteel battleaxe.name=Fire Dragonsteel Battleaxe
-item.firedragonsteel dagger.name=Fire Dragonsteel Dagger
-item.firedragonsteel hammer.name=Fire Dragonsteel Hammer
-item.firedragonsteel spear.name=Fire Dragonsteel Spear
+item.firedragonsteel_nunchaku.name=Fire Dragonsteel Nunchaku
+item.firedragonsteel_battleaxe.name=Fire Dragonsteel Battleaxe
+item.firedragonsteel_dagger.name=Fire Dragonsteel Dagger
+item.firedragonsteel_hammer.name=Fire Dragonsteel Hammer
+item.firedragonsteel_spear.name=Fire Dragonsteel Spear
 
 # Ice Dragonsteel
-item.icedragonsteel nunchaku.name=Ice Dragonsteel Nunchaku
-item.icedragonsteel battleaxe.name=Ice Dragonsteel Battleaxe
-item.icedragonsteel dagger.name=Ice Dragonsteel Dagger
-item.icedragonsteel hammer.name=Ice Dragonsteel Hammer
-item.icedragonsteel spear.name=Ice Dragonsteel Spear
+item.icedragonsteel_nunchaku.name=Ice Dragonsteel Nunchaku
+item.icedragonsteel_battleaxe.name=Ice Dragonsteel Battleaxe
+item.icedragonsteel_dagger.name=Ice Dragonsteel Dagger
+item.icedragonsteel_hammer.name=Ice Dragonsteel Hammer
+item.icedragonsteel_spear.name=Ice Dragonsteel Spear
 
 # Lightning Dragonsteel
-item.lightingdragonsteel battleaxe.name=Lightning Dragonsteel Battleaxe
-item.lightingdragonsteel dagger.name=Lightning Dragonsteel Dagger
-item.lightingdragonsteel hammer.name=Lightning Dragonsteel Hammer
-item.lightingdragonsteel nunchaku.name=Lightning Dragonsteel Nunchaku
-item.lightingdragonsteel spear.name=Lightning Dragonsteel Spear
+item.lightingdragonsteel_battleaxe.name=Lightning Dragonsteel Battleaxe
+item.lightingdragonsteel_dagger.name=Lightning Dragonsteel Dagger
+item.lightingdragonsteel_hammer.name=Lightning Dragonsteel Hammer
+item.lightingdragonsteel_nunchaku.name=Lightning Dragonsteel Nunchaku
+item.lightingdragonsteel_spear.name=Lightning Dragonsteel Spear
 
 # Obsidian
-item.obsidian hammer.name=Obsidian Hammer
-item.obsidian dagger.name=Obsidian Dagger
-item.obsidian battleaxe.name=Obsidian Battleaxe
-item.obsidian nunchaku.name=Obsidian Nunchaku
-item.obsidian spear.name=Obsidian Spear
+item.obsidian_hammer.name=Obsidian Hammer
+item.obsidian_dagger.name=Obsidian Dagger
+item.obsidian_battleaxe.name=Obsidian Battleaxe
+item.obsidian_nunchaku.name=Obsidian Nunchaku
+item.obsidian_spear.name=Obsidian Spear
 
 # Scarlite
 item.scarlitehammer.name=Scarlite Hammer
@@ -49,8 +49,8 @@ item.emeraldbattleaxe.name=Emerald Battleaxe
 item.emeraldspear.name=Emerald Spear
 
 # Umbrium
-item.umbrium hammer.name=Umbrium Hammer
-item.umbrium dagger.name=Umbrium Dagger
-item.umbrium nunchaku.name=Umbrium Nunchaku
-item.umbrium battleaxe.name=Umbrium Battleaxe
-item.umbrium spear.name=Umbrium Spear
+item.umbrium_hammer.name=Umbrium Hammer
+item.umbrium_dagger.name=Umbrium Dagger
+item.umbrium_nunchaku.name=Umbrium Nunchaku
+item.umbrium_battleaxe.name=Umbrium Battleaxe
+item.umbrium_spear.name=Umbrium Spear
