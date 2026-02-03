@@ -34,7 +34,7 @@ public class ResourceInjector {
     }
 
     /**
-     * 注入资源到 BetterSurvival JAR
+     * 刷新资源 - 重新扫描 config 目录
      * 用于热重载 - 调用后需要 F3+T 或 refreshResources()
      */
     public static void injectResources() {
@@ -42,24 +42,9 @@ public class ResourceInjector {
             init();
         }
 
-        if (!configDir.exists()) {
-            BSTweaker.LOG.info("Config dir not found, skipping resource injection");
-            return;
-        }
-
-        File bsJar = findBSJar();
-        if (bsJar == null) {
-            BSTweaker.LOG.warn("BetterSurvival JAR not found");
-            return;
-        }
-
-        try {
-            injectIntoJar(bsJar);
-            BSTweaker.LOG.info("Resources injected into: " + bsJar.getName());
-        } catch (Exception e) {
-            BSTweaker.LOG.error("Resource injection failed: " + e.getMessage());
-            e.printStackTrace();
-        }
+        // 使用 DynamicResourcePack 重新扫描 config 目录
+        com.mujmajnkraft.bstweaker.client.DynamicResourcePack.rescan();
+        BSTweaker.LOG.info("Config resources rescanned via DynamicResourcePack");
     }
 
     /**
@@ -69,7 +54,11 @@ public class ResourceInjector {
         if (!modsDir.exists())
             return null;
 
-        File[] jars = modsDir.listFiles((d, n) -> n.toLowerCase().contains("bettersurvival") && n.endsWith(".jar"));
+        // Match "bettersurvival" or "better_survival" (with or without underscore)
+        File[] jars = modsDir.listFiles((d, n) -> {
+            String lower = n.toLowerCase();
+            return (lower.contains("bettersurvival") || lower.contains("better_survival")) && n.endsWith(".jar");
+        });
 
         if (jars != null && jars.length > 0) {
             return jars[0];
@@ -85,12 +74,33 @@ public class ResourceInjector {
         env.put("create", "false");
 
         URI jarUri = URI.create("jar:" + jarFile.toURI());
+        BSTweaker.LOG.info("Opening JAR: " + jarFile.getAbsolutePath());
 
-        try (FileSystem jarFs = FileSystems.newFileSystem(jarUri, env)) {
+        FileSystem jarFs = null;
+        boolean needClose = false;
+
+        try {
+            // 先尝试获取已存在的 FileSystem (JAR 被 JVM 加载时会创建)
+            jarFs = FileSystems.getFileSystem(jarUri);
+            BSTweaker.LOG.info("Using existing JAR filesystem");
+        } catch (FileSystemNotFoundException e) {
+            // 不存在则创建新的
+            jarFs = FileSystems.newFileSystem(jarUri, env);
+            needClose = true;
+            BSTweaker.LOG.info("Created new JAR filesystem");
+        }
+
+        try {
             // 注入模型
             injectModels(jarFs);
             // 注入纹理
             injectTextures(jarFs);
+            BSTweaker.LOG.info("Resource injection completed");
+        } finally {
+            // 只关闭我们自己创建的 FileSystem
+            if (needClose && jarFs != null) {
+                jarFs.close();
+            }
         }
     }
 

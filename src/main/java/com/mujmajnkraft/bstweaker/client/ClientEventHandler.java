@@ -34,6 +34,8 @@ import java.util.Map;
 public class ClientEventHandler {
 
     private static boolean resourcePackRegistered = false;
+    // 缓存反射字段，避免重复查找
+    private static Field defaultResourcePacksField = null;
 
     /**
      * 注册动态资源包（需要在模型注册前调用）
@@ -46,16 +48,24 @@ public class ClientEventHandler {
             // 先扫描 config 目录中的资源文件
             DynamicResourcePack.scanConfigResources();
 
-            // 通过反射添加资源包到 Minecraft 的资源包列表
-            Field field = Minecraft.class.getDeclaredField("defaultResourcePacks");
-            field.setAccessible(true);
+            // 获取或缓存反射字段
+            if (defaultResourcePacksField == null) {
+                // SRG 名: field_110449_ao = defaultResourcePacks
+                defaultResourcePacksField = net.minecraftforge.fml.relauncher.ReflectionHelper.findField(
+                        Minecraft.class, "defaultResourcePacks", "field_110449_ao");
+            }
+
             @SuppressWarnings("unchecked")
-            List<IResourcePack> packs = (List<IResourcePack>) field.get(Minecraft.getMinecraft());
-            packs.add(new DynamicResourcePack());
+            List<IResourcePack> packs = (List<IResourcePack>) defaultResourcePacksField.get(Minecraft.getMinecraft());
+
+            // 添加到列表开头获得最高优先级
+            packs.add(0, new DynamicResourcePack());
+
             resourcePackRegistered = true;
-            BSTweaker.LOG.info("Dynamic resource pack registered.");
+            BSTweaker.LOG.info("Dynamic resource pack registered at position 0 (highest priority)");
         } catch (Exception e) {
             BSTweaker.LOG.error("Failed to register dynamic resource pack: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 

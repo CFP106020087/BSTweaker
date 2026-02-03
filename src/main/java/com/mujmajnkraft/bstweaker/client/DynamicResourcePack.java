@@ -35,6 +35,8 @@ import java.util.Set;
  */
 public class DynamicResourcePack implements IResourcePack {
 
+    private static final String BS_NAMESPACE = "mujmajnkraftsbettersurvival";
+
     private static final Map<String, String> dynamicModels = new HashMap<>();
     private static final Map<String, File> configTextures = new HashMap<>();
     private static final Map<String, File> configModels = new HashMap<>();
@@ -45,6 +47,37 @@ public class DynamicResourcePack implements IResourcePack {
 
     static {
         configDir = new File(Loader.instance().getConfigDir(), "bstweaker");
+    }
+
+    /**
+     * 重新扫描资源 - 用于热重载
+     */
+    public static void rescan() {
+        dynamicModels.clear();
+        configTextures.clear();
+        configModels.clear();
+        configLangs.clear();
+        configMcmeta.clear();
+        scanConfigResources();
+        BSTweaker.LOG.info("DynamicResourcePack rescanned");
+    }
+
+    /**
+     * 获取所有配置纹理的 ResourceLocation - 用于热重载时清除纹理缓存
+     */
+    public static java.util.Set<net.minecraft.util.ResourceLocation> getTextureLocations() {
+        java.util.Set<net.minecraft.util.ResourceLocation> locations = new java.util.HashSet<>();
+        for (String name : configTextures.keySet()) {
+            // 添加 bstweaker 命名空间的纹理路径
+            locations.add(new net.minecraft.util.ResourceLocation(Reference.MOD_ID, "textures/items/" + name + ".png"));
+            // 也添加带前缀的版本
+            if (!name.startsWith("itembstweaker_")) {
+                locations.add(new net.minecraft.util.ResourceLocation(Reference.MOD_ID,
+                        "textures/items/itembstweaker_" + name + ".png"));
+            }
+        }
+        BSTweaker.LOG.info("DynamicResourcePack: " + locations.size() + " texture locations for cache invalidation");
+        return locations;
     }
 
     /**
@@ -170,8 +203,8 @@ public class DynamicResourcePack implements IResourcePack {
         String namespace = location.getNamespace();
         String path = location.getPath();
 
-        // 检查是否是 bstweaker 命名空间
-        if (!Reference.MOD_ID.equals(namespace)) {
+        // 检查是否是支持的命名空间 (bstweaker 或 mujmajnkraftsbettersurvival)
+        if (!Reference.MOD_ID.equals(namespace) && !BS_NAMESPACE.equals(namespace)) {
             throw new FileNotFoundException("Resource not found: " + location);
         }
 
@@ -182,20 +215,53 @@ public class DynamicResourcePack implements IResourcePack {
             return new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
         }
 
-        // 检查 config 目录中的模型文件
-        if (path.startsWith("models/item/") && path.endsWith(".json")) {
-            String name = path.replace("models/item/", "").replace(".json", "");
+        // 检查 config 目录中的模型文件 - 支持 models/ 和 models/item/ 两种格式
+        if (path.endsWith(".json") && (path.startsWith("models/") || path.startsWith("models/item/"))) {
+            String name;
+            if (path.startsWith("models/item/")) {
+                name = path.replace("models/item/", "").replace(".json", "");
+            } else {
+                name = path.replace("models/", "").replace(".json", "");
+            }
+            BSTweaker.LOG.info("Looking for model: " + name);
+            // 直接匹配
             if (configModels.containsKey(name)) {
                 BSTweaker.LOG.info("Loading config model: " + name);
                 return new FileInputStream(configModels.get(name));
+            }
+            // 尝试去掉 itembstweaker_ 前缀
+            if (name.startsWith("itembstweaker_")) {
+                String shortName = name.substring(14);
+                BSTweaker.LOG.info("Trying short name for model: " + shortName);
+                if (configModels.containsKey(shortName)) {
+                    BSTweaker.LOG.info("Loading config model (stripped prefix): " + shortName);
+                    return new FileInputStream(configModels.get(shortName));
+                }
             }
         }
 
         // 检查 config 目录中的纹理
         if (path.startsWith("textures/items/") && path.endsWith(".png")) {
             String name = path.replace("textures/items/", "").replace(".png", "");
+            BSTweaker.LOG.info("Looking for texture: " + name);
+            // 直接匹配
             if (configTextures.containsKey(name)) {
+                BSTweaker.LOG.info("Serving texture: " + name);
                 return new FileInputStream(configTextures.get(name));
+            }
+            // 尝试去掉 itembstweaker_ 前缀
+            if (name.startsWith("itembstweaker_")) {
+                String shortName = name.substring(14);
+                if (configTextures.containsKey(shortName)) {
+                    BSTweaker.LOG.info("Serving texture (stripped prefix): " + shortName);
+                    return new FileInputStream(configTextures.get(shortName));
+                }
+            }
+            // 反向匹配：请求不带前缀，但文件带前缀
+            String prefixedName = "itembstweaker_" + name;
+            if (configTextures.containsKey(prefixedName)) {
+                BSTweaker.LOG.info("Serving texture (with prefix): " + prefixedName);
+                return new FileInputStream(configTextures.get(prefixedName));
             }
         }
 
@@ -204,6 +270,11 @@ public class DynamicResourcePack implements IResourcePack {
             String name = path.replace("textures/items/", "").replace(".png.mcmeta", "");
             if (configMcmeta.containsKey(name)) {
                 return new FileInputStream(configMcmeta.get(name));
+            }
+            // 反向匹配
+            String prefixedName = "itembstweaker_" + name;
+            if (configMcmeta.containsKey(prefixedName)) {
+                return new FileInputStream(configMcmeta.get(prefixedName));
             }
         }
 
@@ -223,7 +294,13 @@ public class DynamicResourcePack implements IResourcePack {
         String namespace = location.getNamespace();
         String path = location.getPath();
 
-        if (!Reference.MOD_ID.equals(namespace)) {
+        // 诊断日志 - 追踪所有资源请求
+        if (path.contains("itembstweaker") || path.contains("fiery")) {
+            BSTweaker.LOG.info("[DRP] resourceExists query: " + namespace + ":" + path);
+        }
+
+        // 检查是否是支持的命名空间
+        if (!Reference.MOD_ID.equals(namespace) && !BS_NAMESPACE.equals(namespace)) {
             return false;
         }
 
@@ -233,24 +310,74 @@ public class DynamicResourcePack implements IResourcePack {
             return true;
         }
 
-        // 检查 config 模型
-        if (path.startsWith("models/item/") && path.endsWith(".json")) {
-            String name = path.replace("models/item/", "").replace(".json", "");
+        // 检查 config 模型 - 支持 models/xxx.json 和 models/item/xxx.json 两种格式
+        if (path.endsWith(".json") && (path.startsWith("models/") || path.startsWith("models/item/"))) {
+            String name;
+            if (path.startsWith("models/item/")) {
+                name = path.replace("models/item/", "").replace(".json", "");
+            } else {
+                name = path.replace("models/", "").replace(".json", "");
+            }
+
+            BSTweaker.LOG.info("[DRP] resourceExists model check: " + name + ", configModels=" + configModels.keySet());
             if (configModels.containsKey(name)) {
                 return true;
+            }
+            // 尝试去掉 itembstweaker_ 前缀
+            if (name.startsWith("itembstweaker_")) {
+                String shortName = name.substring(14);
+                BSTweaker.LOG.info("[DRP] Trying short name: " + shortName);
+                if (configModels.containsKey(shortName)) {
+                    return true;
+                }
             }
         }
 
         // 检查 config 纹理
         if (path.startsWith("textures/items/") && path.endsWith(".png")) {
             String name = path.replace("textures/items/", "").replace(".png", "");
-            return configTextures.containsKey(name);
+            BSTweaker.LOG.info(
+                    "[DRP] resourceExists texture check: " + name + ", configTextures=" + configTextures.keySet());
+
+            // 直接匹配
+            if (configTextures.containsKey(name)) {
+                BSTweaker.LOG.info("[DRP] Texture found directly: " + name);
+                return true;
+            }
+            // 尝试去掉 itembstweaker_ 前缀（请求带前缀，文件不带）
+            if (name.startsWith("itembstweaker_")) {
+                String shortName = name.substring(14);
+                BSTweaker.LOG.info("[DRP] Trying short texture name: " + shortName);
+                if (configTextures.containsKey(shortName)) {
+                    return true;
+                }
+            }
+            // 反向匹配：请求不带前缀，但文件带前缀
+            String prefixedName = "itembstweaker_" + name;
+            if (configTextures.containsKey(prefixedName)) {
+                BSTweaker.LOG.info("[DRP] Texture found with prefix: " + prefixedName);
+                return true;
+            }
         }
 
         // 检查 config mcmeta
         if (path.startsWith("textures/items/") && path.endsWith(".png.mcmeta")) {
             String name = path.replace("textures/items/", "").replace(".png.mcmeta", "");
-            return configMcmeta.containsKey(name);
+            if (configMcmeta.containsKey(name)) {
+                return true;
+            }
+            // 尝试去掉 itembstweaker_ 前缀
+            if (name.startsWith("itembstweaker_")) {
+                String shortName = name.substring(14);
+                if (configMcmeta.containsKey(shortName)) {
+                    return true;
+                }
+            }
+            // 反向匹配
+            String prefixedName = "itembstweaker_" + name;
+            if (configMcmeta.containsKey(prefixedName)) {
+                return true;
+            }
         }
 
         // 检查 config 语言文件
@@ -264,7 +391,7 @@ public class DynamicResourcePack implements IResourcePack {
 
     @Override
     public Set<String> getResourceDomains() {
-        return ImmutableSet.of(Reference.MOD_ID);
+        return ImmutableSet.of(Reference.MOD_ID, BS_NAMESPACE);
     }
 
     @Nullable

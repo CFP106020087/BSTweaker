@@ -1,7 +1,7 @@
 ﻿{
   "parent": "item/generated",
   "textures": {
-    "layer0": "mujmajnkraftsbettersurvival:items/itembstweaker_fieryingotnunchaku"
+    "layer0": "mujmajnkraftsbettersurvival:items/fieryingotnunchaku"
   },
   "display": {
 	    "thirdperson_righthand": {

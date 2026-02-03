@@ -17,6 +17,8 @@ public class ClientProxy extends CommonProxy {
     @Override
     public void preInit() {
         super.preInit();
+        // 关键：在资源加载前注册动态资源包
+        com.mujmajnkraft.bstweaker.client.ClientEventHandler.registerDynamicResourcePack();
     }
 
     @Override

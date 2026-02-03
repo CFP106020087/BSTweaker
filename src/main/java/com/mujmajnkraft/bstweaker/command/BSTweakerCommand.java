@@ -76,10 +76,11 @@ public class BSTweakerCommand extends CommandBase {
             sender.sendMessage(new TextComponentString(TextFormatting.GREEN + "  ✓ Re-injected resource files"));
             reloaded++;
 
-            // 3. 触发资源重载 (客户端)
-            if (sender.getEntityWorld().isRemote || isClientSide()) {
-                refreshClientResources();
-                sender.sendMessage(new TextComponentString(TextFormatting.GREEN + "  ✓ Refreshed client resources"));
+            // 3. 触发资源重载 (客户端) - 必须在客户端主线程执行
+            if (isClientSide()) {
+                scheduleClientRefresh();
+                sender.sendMessage(
+                        new TextComponentString(TextFormatting.GREEN + "  ✓ Scheduled client resource refresh"));
                 reloaded++;
             }
 
@@ -101,11 +102,37 @@ public class BSTweakerCommand extends CommandBase {
     }
 
     @SideOnly(Side.CLIENT)
-    private void refreshClientResources() {
-        try {
-            Minecraft.getMinecraft().refreshResources();
-        } catch (Exception e) {
-            BSTweaker.LOG.error("Failed to refresh client resources", e);
-        }
+    private void scheduleClientRefresh() {
+        Minecraft mc = Minecraft.getMinecraft();
+        mc.addScheduledTask(() -> {
+            try {
+                BSTweaker.LOG.info("Starting targeted texture hot-reload...");
+
+                // 1. 重新扫描 DynamicResourcePack 的资源
+                com.mujmajnkraft.bstweaker.client.DynamicResourcePack.rescan();
+
+                // 2. 删除 GPU 缓存的纹理
+                net.minecraft.client.renderer.texture.TextureManager texManager = mc.getTextureManager();
+                for (net.minecraft.util.ResourceLocation loc : com.mujmajnkraft.bstweaker.client.DynamicResourcePack
+                        .getTextureLocations()) {
+                    texManager.deleteTexture(loc);
+                }
+
+                // 3. 只重建物品纹理图集 (比 refreshResources 快很多!)
+                net.minecraft.client.renderer.texture.TextureMap texMap = mc.getTextureMapBlocks();
+                texMap.loadTextureAtlas(mc.getResourceManager());
+                BSTweaker.LOG.info("Rebuilt texture atlas");
+
+                // 4. 重建模型缓存
+                mc.getRenderItem().getItemModelMesher().rebuildCache();
+
+                BSTweaker.LOG.info("Targeted texture hot-reload complete!");
+            } catch (Exception e) {
+                BSTweaker.LOG.error("Texture hot-reload failed: " + e.getMessage());
+                // 如果快速方法失败，回退到完整刷新
+                BSTweaker.LOG.info("Falling back to full resource refresh...");
+                mc.refreshResources();
+            }
+        });
     }
 }
