@@ -1,0 +1,56 @@
+# Special Weapons
+item.deathdagger_death.name=Death
+item.ill battleaxe.name=Plague
+item.warspear.name=War
+item.hungerhammer.name=Famine
+item.sentientnunchaku.name=Sentient Nunchaku
+item.refineobnunchaku.name=Refined Obsidian Nunchaku
+
+# Fire Dragonsteel
+item.firedragonsteel nunchaku.name=Fire Dragonsteel Nunchaku
+item.firedragonsteel battleaxe.name=Fire Dragonsteel Battleaxe
+item.firedragonsteel dagger.name=Fire Dragonsteel Dagger
+item.firedragonsteel hammer.name=Fire Dragonsteel Hammer
+item.firedragonsteel spear.name=Fire Dragonsteel Spear
+
+# Ice Dragonsteel
+item.icedragonsteel nunchaku.name=Ice Dragonsteel Nunchaku
+item.icedragonsteel battleaxe.name=Ice Dragonsteel Battleaxe
+item.icedragonsteel dagger.name=Ice Dragonsteel Dagger
+item.icedragonsteel hammer.name=Ice Dragonsteel Hammer
+item.icedragonsteel spear.name=Ice Dragonsteel Spear
+
+# Lightning Dragonsteel
+item.lightingdragonsteel battleaxe.name=Lightning Dragonsteel Battleaxe
+item.lightingdragonsteel dagger.name=Lightning Dragonsteel Dagger
+item.lightingdragonsteel hammer.name=Lightning Dragonsteel Hammer
+item.lightingdragonsteel nunchaku.name=Lightning Dragonsteel Nunchaku
+item.lightingdragonsteel spear.name=Lightning Dragonsteel Spear
+
+# Obsidian
+item.obsidian hammer.name=Obsidian Hammer
+item.obsidian dagger.name=Obsidian Dagger
+item.obsidian battleaxe.name=Obsidian Battleaxe
+item.obsidian nunchaku.name=Obsidian Nunchaku
+item.obsidian spear.name=Obsidian Spear
+
+# Scarlite
+item.scarlitehammer.name=Scarlite Hammer
+item.scarlitespear.name=Scarlite Spear
+item.scarlitenunchaku.name=Scarlite Nunchaku
+item.scarlitedagger.name=Scarlite Dagger
+item.scarlitebattleaxe.name=Scarlite Battleaxe
+
+# Emerald
+item.emeraldhammer.name=Emerald Hammer
+item.emeralddagger.name=Emerald Dagger
+item.emeraldnunchaku.name=Emerald Nunchaku
+item.emeraldbattleaxe.name=Emerald Battleaxe
+item.emeraldspear.name=Emerald Spear
+
+# Umbrium
+item.umbrium hammer.name=Umbrium Hammer
+item.umbrium dagger.name=Umbrium Dagger
+item.umbrium nunchaku.name=Umbrium Nunchaku
+item.umbrium battleaxe.name=Umbrium Battleaxe
+item.umbrium spear.name=Umbrium Spear
