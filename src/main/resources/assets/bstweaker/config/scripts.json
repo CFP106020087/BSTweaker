@@ -33,50 +33,18 @@
     "",
     "_comment with @ prefix translates from lang file"
   ],
-
-  "scripts": [
-    {
-    "_comment": "火焰锭双截棍效果 / Fiery Ingot Nunchaku Effects",
-    "id": "fieryingotnunchaku",
-      "events": [
-        {
-        "_comment": "@bstweaker.event.fire_on_hit",
-          "event": "onHit",
+  "_example": {
+    "_注释": "这是范本，复制到 scripts 数组中使用 / This is an example, copy into scripts array to use",
+    "id": "example_weapon",
+    "events": [
+      {
+        "_comment": "@bstweaker.event.example_effect",
+        "event": "onHit",
         "actions": [
-            "victim.setFire(3)"
+          "victim.setFire(3)"
         ]
-        },
-        {
-        "_comment": "@bstweaker.event.strength_on_kill",
-          "event": "onKill",
-        "actions": [
-            "self.addPotionEffect('minecraft:strength', 100, 0)"
-        ]
-        },
-        {
-        "_comment": "@bstweaker.event.damage_immunity",
-        "event": "onHurt",
-        "actions": [
-            "event.setAmount(0)"
-        ]
-        },
-        {
-            "_comment": "@bstweaker.event.suppress_poison",
-            "event": "whenHeld",
-            "actions": [
-                "var effects = self.getBadPotionEffects();",
-                "for (var i = 0; i < effects.size(); i++) {",
-                "  var eff = effects.get(i);",
-                "  if (eff.getAmplifier() > 2) {",
-                "    var id = eff.getPotionId();",
-                "    var dur = eff.getDuration();",
-                "    self.removePotionEffect(id);",
-                "    self.addPotionEffect(id, dur, 2);",
-                "  }",
-                "}"
-            ]
-        }
-      ]
-    }
-  ]
+      }
+    ]
+  },
+  "scripts": []
 }

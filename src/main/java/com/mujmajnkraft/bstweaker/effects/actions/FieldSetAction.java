@@ -8,9 +8,7 @@ import net.minecraftforge.event.entity.living.LivingHurtEvent;
 
 import java.lang.reflect.Field;
 
-/**
- * 字段设置动作 - 设置实体或事件的字段值
- */
+/** Field set action - sets entity or event field values. */
 public class FieldSetAction implements EventAction {
     
     private final String target;
@@ -29,7 +27,7 @@ public class FieldSetAction implements EventAction {
         if (targetObj == null) return;
         
         try {
-            // 特殊处理常用字段
+            // Handle common fields directly
             if (targetObj instanceof Entity && "hurtResistantTime".equals(fieldName)) {
                 ((Entity) targetObj).hurtResistantTime = parseIntValue(value);
                 return;
@@ -40,7 +38,7 @@ public class FieldSetAction implements EventAction {
                 return;
             }
             
-            // 通用反射设置
+            // Generic reflection
             Field field = findField(targetObj.getClass(), fieldName);
             if (field != null) {
                 field.setAccessible(true);

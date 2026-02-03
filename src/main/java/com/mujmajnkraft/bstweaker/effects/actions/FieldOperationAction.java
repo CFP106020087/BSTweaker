@@ -5,9 +5,7 @@ import com.mujmajnkraft.bstweaker.effects.EventAction;
 import com.mujmajnkraft.bstweaker.effects.EventContext;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 
-/**
- * 字段运算动作 - 对字段进行运算 (+=, -=, *=, /=)
- */
+/** Field operation action - compound assignments (+=, -=, *=, /=). */
 public class FieldOperationAction implements EventAction {
     
     private final String target;
@@ -24,7 +22,7 @@ public class FieldOperationAction implements EventAction {
     
     @Override
     public void execute(EventContext context) {
-        // 特殊处理 LivingHurtEvent.amount
+        // Special handling for LivingHurtEvent.amount
         if ("event".equals(target) && "amount".equals(fieldName) 
             && context.forgeEvent instanceof LivingHurtEvent) {
             

@@ -53,13 +53,13 @@ public class BSTweakerMixinPlugin implements IFMLLoadingPlugin {
                 File configDir = new File(mcDir, "config/bstweaker");
                 File modsDir = new File(mcDir, "mods");
 
-                // 方案1: 尝试注入到 BS JAR
+                // Method 1: Try injecting into BS JAR
                 File bsJar = findBSJar(modsDir);
                 if (bsJar != null) {
                     injectIntoJar(configDir, bsJar);
                     LOGGER.info("Resources injected into: " + bsJar.getName());
                 } else {
-                    // 方案2: 如果找不到 BS JAR，创建资源包
+                    // Method 2: Fall back to resource pack
                     LOGGER.warn("BetterSurvival JAR not found, falling back to resource pack");
                     createResourcePack(configDir, new File(mcDir, "resourcepacks/bstweaker"));
                 }
@@ -70,9 +70,7 @@ public class BSTweakerMixinPlugin implements IFMLLoadingPlugin {
         }
     }
 
-    /**
-     * 查找 BetterSurvival JAR 文件
-     */
+    /** Find BetterSurvival JAR file. */
     private File findBSJar(File modsDir) {
         if (!modsDir.exists())
             return null;
@@ -85,9 +83,7 @@ public class BSTweakerMixinPlugin implements IFMLLoadingPlugin {
         return null;
     }
 
-    /**
-     * 注入资源到 BetterSurvival JAR
-     */
+    /** Inject resources into BetterSurvival JAR. */
     private void injectIntoJar(File configDir, File jarFile) {
         if (!configDir.exists()) {
             LOGGER.info("Config dir not found, skipping injection");
@@ -100,9 +96,9 @@ public class BSTweakerMixinPlugin implements IFMLLoadingPlugin {
         URI jarUri = URI.create("jar:" + jarFile.toURI());
 
         try (FileSystem jarFs = FileSystems.newFileSystem(jarUri, env)) {
-            // 注入模型
+            // Inject models
             injectModels(configDir, jarFs);
-            // 注入纹理
+            // Inject textures
             injectTextures(configDir, jarFs);
 
             LOGGER.info("JAR injection completed");
@@ -125,14 +121,14 @@ public class BSTweakerMixinPlugin implements IFMLLoadingPlugin {
             String targetName = translateFileName(file.getName());
             Path targetPath = jarFs.getPath("assets/" + BS_NAMESPACE + "/models/item/" + targetName);
 
-            // 确保目录存在
+            // Ensure directory exists
             Files.createDirectories(targetPath.getParent());
 
-            // 读取并翻译模型内容
+            // Read and translate model content
             String content = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
             content = translateModelContent(content);
 
-            // 写入 JAR
+            // Write to JAR
             Files.write(targetPath, content.getBytes(StandardCharsets.UTF_8),
                     StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
 
@@ -156,10 +152,10 @@ public class BSTweakerMixinPlugin implements IFMLLoadingPlugin {
             String targetName = translateFileName(file.getName());
             Path targetPath = jarFs.getPath("assets/" + BS_NAMESPACE + "/textures/items/" + targetName);
 
-            // 确保目录存在
+            // Ensure directory exists
             Files.createDirectories(targetPath.getParent());
 
-            // 复制文件到 JAR
+            // Copy file to JAR
             Files.copy(file.toPath(), targetPath, StandardCopyOption.REPLACE_EXISTING);
 
             LOGGER.info("Injected texture: " + file.getName() + " -> " + targetName);
@@ -167,7 +163,8 @@ public class BSTweakerMixinPlugin implements IFMLLoadingPlugin {
     }
 
     /**
-     * 翻译文件名: fieryingotnunchaku.json -> itembstweaker_fieryingotnunchaku.json
+     * Translate file name: fieryingotnunchaku.json ->
+     * itembstweaker_fieryingotnunchaku.json
      */
     private String translateFileName(String fileName) {
         int dotIndex = fileName.indexOf('.');
@@ -185,18 +182,14 @@ public class BSTweakerMixinPlugin implements IFMLLoadingPlugin {
         return "itembstweaker_" + name + extension;
     }
 
-    /**
-     * 翻译模型内容中的命名空间引用
-     */
+    /** Translate namespace references in model content. */
     private String translateModelContent(String content) {
         return content
                 .replace("bstweaker:items/", BS_NAMESPACE + ":items/itembstweaker_")
                 .replace("bstweaker:item/", BS_NAMESPACE + ":item/itembstweaker_");
     }
 
-    /**
-     * 备用方案：创建资源包
-     */
+    /** Fallback: create resource pack. */
     private void createResourcePack(File configDir, File resourcepackDir) throws IOException {
         if (!configDir.exists())
             return;
@@ -213,7 +206,7 @@ public class BSTweakerMixinPlugin implements IFMLLoadingPlugin {
         String mcmetaContent = "{\n  \"pack\": {\n    \"pack_format\": 3,\n    \"description\": \"BSTweaker Custom Weapons\"\n  }\n}";
         Files.write(packMcmeta.toPath(), mcmetaContent.getBytes(StandardCharsets.UTF_8));
 
-        // 复制资源
+        // Copy resources
         copyResourceFiles(new File(configDir, "models"), modelsDir, ".json", true);
         copyResourceFiles(new File(configDir, "textures"), texturesDir, ".png", false);
         copyResourceFiles(new File(configDir, "textures"), texturesDir, ".png.mcmeta", false);

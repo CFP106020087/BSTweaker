@@ -1,19 +1,12 @@
 package com.mujmajnkraft.bstweaker.effects;
 
-/**
- * 动作接口 - 所有事件动作的基类
- */
+/** Action interface - base for all event actions. */
 public interface EventAction {
     
-    /**
-     * 执行动作
-     * @param context 事件上下文
-     */
+    /** Execute the action. */
     void execute(EventContext context);
     
-    /**
-     * 从字符串解析动作
-     */
+    /** Parse action from string. */
     static EventAction parse(String actionStr) {
         return ActionParser.parse(actionStr);
     }

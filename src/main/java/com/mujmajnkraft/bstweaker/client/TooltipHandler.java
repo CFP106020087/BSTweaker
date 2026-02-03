@@ -16,9 +16,7 @@ import net.minecraftforge.fml.relauncher.Side;
 
 import java.util.List;
 
-/**
- * Tooltip 事件处理器 - 自动添加武器说明
- */
+/** Tooltip event handler - adds weapon descriptions. */
 @Mod.EventBusSubscriber(modid = Reference.MOD_ID, value = Side.CLIENT)
 public class TooltipHandler {
 
@@ -33,30 +31,28 @@ public class TooltipHandler {
         
         List<String> tooltip = event.getToolTip();
         
-        // 添加自定义 tooltip
+        // Add custom tooltip
         if (def.has("tooltip")) {
             JsonElement tooltipElem = def.get("tooltip");
             
             if (tooltipElem.isJsonArray()) {
-                // 多行 tooltip
                 JsonArray lines = tooltipElem.getAsJsonArray();
                 for (JsonElement line : lines) {
                     tooltip.add(formatTooltipLine(line.getAsString()));
                 }
             } else {
-                // 单行 tooltip
                 tooltip.add(formatTooltipLine(tooltipElem.getAsString()));
             }
         }
         
-        // 自动生成效果描述
+        // Auto-generate effect description from events
         if (def.has("events")) {
             JsonArray events = def.getAsJsonArray("events");
             for (JsonElement elem : events) {
                 JsonObject eventDef = elem.getAsJsonObject();
                 if (eventDef.has("_comment")) {
                     String comment = eventDef.get("_comment").getAsString();
-                    // 支持翻译键
+                    // Support translation keys
                     if (comment.startsWith("@")) {
                         comment = I18n.format(comment.substring(1));
                     }
@@ -66,18 +62,15 @@ public class TooltipHandler {
         }
     }
     
-    /**
-     * 格式化 tooltip 行，支持颜色代码和翻译键
-     * 如果以 @ 开头，视为翻译键，使用 I18n 翻译
-     */
+    /** Format tooltip line with color codes and translation keys. */
     private static String formatTooltipLine(String line) {
-        // 支持翻译键: @key.name -> I18n.format("key.name")
+        // Translation key: @key.name -> I18n.format("key.name")
         if (line.startsWith("@")) {
             String key = line.substring(1);
             line = I18n.format(key);
         }
 
-        // 支持 & 颜色代码
+        // Support & color codes
         line = line.replace("&0", TextFormatting.BLACK.toString())
                    .replace("&1", TextFormatting.DARK_BLUE.toString())
                    .replace("&2", TextFormatting.DARK_GREEN.toString())

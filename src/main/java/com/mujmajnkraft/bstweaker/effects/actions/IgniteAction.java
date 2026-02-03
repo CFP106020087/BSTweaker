@@ -4,9 +4,7 @@ import com.mujmajnkraft.bstweaker.effects.EventAction;
 import com.mujmajnkraft.bstweaker.effects.EventContext;
 import net.minecraft.entity.EntityLivingBase;
 
-/**
- * 点燃动作
- */
+/** Ignite action. */
 public class IgniteAction implements EventAction {
     
     private final String target;

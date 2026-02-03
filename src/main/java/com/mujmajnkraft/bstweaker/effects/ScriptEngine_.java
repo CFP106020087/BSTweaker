@@ -12,16 +12,14 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptEngineFactory;
 import java.util.Collection;
 
-/**
- * JavaScript 脚本引擎 - 执行用户编写的脚本
- */
+/** JavaScript script engine - executes user scripts. */
 public class ScriptEngine_ {
     
     private static ScriptEngine engine;
     
     static {
         try {
-            // 方法1: 尝试直接实例化 NashornScriptEngineFactory
+            // Method 1: Direct NashornScriptEngineFactory
             try {
                 Class<?> factoryClass = Class.forName("jdk.nashorn.api.scripting.NashornScriptEngineFactory");
                 ScriptEngineFactory factory = (ScriptEngineFactory) factoryClass.newInstance();
@@ -31,7 +29,7 @@ public class ScriptEngine_ {
             } catch (Exception e1) {
                 BSTweaker.LOG.warn("NashornScriptEngineFactory not available: " + e1.getMessage());
 
-                // 方法2: 尝试使用系统类加载器
+                // Method 2: SystemClassLoader
                 try {
                     ClassLoader systemCL = ClassLoader.getSystemClassLoader();
                     Class<?> factoryClass = Class.forName("jdk.nashorn.api.scripting.NashornScriptEngineFactory", true,
@@ -43,7 +41,7 @@ public class ScriptEngine_ {
                 } catch (Exception e2) {
                     BSTweaker.LOG.warn("SystemClassLoader method failed: " + e2.getMessage());
 
-                    // 方法3: 使用线程上下文类加载器
+                    // Method 3: ContextClassLoader
                     try {
                         ClassLoader contextCL = Thread.currentThread().getContextClassLoader();
                         Thread.currentThread().setContextClassLoader(ClassLoader.getSystemClassLoader());
@@ -74,19 +72,16 @@ public class ScriptEngine_ {
         }
     }
     
-    /**
-     * 执行脚本
-     */
+    /** Execute script. */
     public static void execute(String script, EventContext ctx) {
         if (engine == null) {
-            // 只在第一次打印错误，避免刷屏
             return;
         }
         
         try {
             Bindings bindings = engine.createBindings();
             
-            // 绑定上下文变量
+            // Bind context variables
             bindings.put("self", new EntityWrapper(ctx.self));
             bindings.put("victim", ctx.victim != null ? new EntityWrapper(ctx.victim) : null);
             bindings.put("event", new EventWrapper(ctx.forgeEvent));
@@ -100,9 +95,7 @@ public class ScriptEngine_ {
         }
     }
     
-    /**
-     * 实体包装器 - 暴露给脚本的 API
-     */
+    /** Entity wrapper - API exposed to scripts. */
     public static class EntityWrapper {
         private final EntityLivingBase entity;
         
@@ -110,17 +103,17 @@ public class ScriptEngine_ {
             this.entity = entity;
         }
         
-        // === 基础属性 ===
+        // Health
         public float getHealth() { return entity.getHealth(); }
         public void setHealth(float health) { entity.setHealth(health); }
         public float getMaxHealth() { return entity.getMaxHealth(); }
         public void heal(float amount) { entity.heal(amount); }
         
-        // === 无敌帧 ===
+        // Hurt resistant time
         public int getHurtResistantTime() { return entity.hurtResistantTime; }
         public void setHurtResistantTime(int time) { entity.hurtResistantTime = time; }
         
-        // === 药水效果 ===
+        // Potions
         public PotionEffectWrapper getPotionEffect(String id) {
             Potion potion = Potion.REGISTRY.getObject(new ResourceLocation(id));
             if (potion != null) {
@@ -155,9 +148,7 @@ public class ScriptEngine_ {
             return entity.getActivePotionEffects();
         }
         
-        /**
-         * 获取所有负面药水效果
-         */
+        /** Get all negative potion effects. */
         public java.util.List<PotionEffectWrapper> getBadPotionEffects() {
             java.util.List<PotionEffectWrapper> badEffects = new java.util.ArrayList<>();
             for (PotionEffect effect : entity.getActivePotionEffects()) {
@@ -168,9 +159,7 @@ public class ScriptEngine_ {
             return badEffects;
         }
 
-        /**
-         * 压制所有负面效果到指定等级
-         */
+        /** Suppress all negative effects to max level. */
         public void suppressBadEffects(int maxLevel) {
             java.util.List<PotionEffect> toSuppress = new java.util.ArrayList<>();
             for (PotionEffect effect : entity.getActivePotionEffects()) {
@@ -185,15 +174,13 @@ public class ScriptEngine_ {
             }
         }
 
-        // === 其他 ===
+        // Misc
         public void setFire(int seconds) { entity.setFire(seconds); }
         public boolean isBurning() { return entity.isBurning(); }
         public boolean isInWater() { return entity.isInWater(); }
     }
     
-    /**
-     * 药水效果包装器
-     */
+    /** Potion effect wrapper. */
     public static class PotionEffectWrapper {
         private final PotionEffect effect;
         private final EntityLivingBase entity;
@@ -206,24 +193,19 @@ public class ScriptEngine_ {
         public int getAmplifier() { return effect.getAmplifier(); }
         public int getDuration() { return effect.getDuration(); }
         
-        /**
-         * 获取药水效果的 ID (ResourceLocation 字符串)
-         */
+        /** Get potion ID (ResourceLocation string). */
         public String getPotionId() {
             return effect.getPotion().getRegistryName().toString();
         }
 
         public void setAmplifier(int amplifier) {
-            // 需要移除并重新添加
             Potion potion = effect.getPotion();
             entity.removePotionEffect(potion);
             entity.addPotionEffect(new PotionEffect(potion, effect.getDuration(), amplifier));
         }
     }
     
-    /**
-     * 事件包装器
-     */
+    /** Event wrapper. */
     public static class EventWrapper {
         private final Object event;
         
@@ -251,18 +233,14 @@ public class ScriptEngine_ {
         }
     }
     
-    /**
-     * 药水辅助类
-     */
+    /** Potion helper. */
     public static class PotionHelper {
         public Potion get(String id) {
             return Potion.REGISTRY.getObject(new ResourceLocation(id));
         }
     }
     
-    /**
-     * 日志辅助类
-     */
+    /** Logger helper. */
     public static class Logger {
         public void info(Object msg) { BSTweaker.LOG.info(String.valueOf(msg)); }
         public void debug(Object msg) { BSTweaker.LOG.debug(String.valueOf(msg)); }

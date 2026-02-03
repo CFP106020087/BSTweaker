@@ -13,27 +13,20 @@ import com.mujmajnkraft.bettersurvival.init.ModItems;
 import net.minecraft.item.Item;
 import net.minecraftforge.event.RegistryEvent;
 
-/**
- * 注入 BetterSurvival 的 ModItems.registerItems 方法
- * 在原版武器注册前，将自定义武器添加到 items 列表中
- */
+/** Inject into BetterSurvival ModItems.registerItems to add custom weapons. */
 @Mixin(value = ModItems.class, remap = false)
 public abstract class ModItems_InjectionMixin {
 
     @Shadow
     private static List<Item> items;
 
-    /**
-     * 在 registerItems 方法开始时打印日志
-     */
+    /** Log at registerItems method start. */
     @Inject(method = "registerItems(Lnet/minecraftforge/event/RegistryEvent$Register;)V", at = @At(value = "HEAD"))
     private void bstweaker$injectCustomWeaponsAtHead(RegistryEvent.Register<Item> event, CallbackInfo ci) {
         System.out.println("[BSTweaker] Mixin triggered - registerItems HEAD");
     }
 
-    /**
-     * 在 items.toArray 调用前注入自定义武器
-     */
+    /** Inject custom weapons before items.toArray call. */
     @Inject(method = "registerItems(Lnet/minecraftforge/event/RegistryEvent$Register;)V", at = @At(value = "INVOKE", target = "Ljava/util/List;toArray([Ljava/lang/Object;)[Ljava/lang/Object;", ordinal = 0))
     private void bstweaker$injectCustomWeapons(RegistryEvent.Register<Item> event, CallbackInfo ci) {
         try {
@@ -44,7 +37,7 @@ public abstract class ModItems_InjectionMixin {
                 System.out.println("[BSTweaker] Injected " + customWeapons.size()
                         + " custom weapons into BetterSurvival items list");
 
-                // ** 注册模型 - 在物品注册后立即执行 **
+                // Register models immediately
                 com.mujmajnkraft.bstweaker.client.ClientEventHandler.registerModelsForItems(customWeapons);
             } else {
                 System.out.println("[BSTweaker] No custom weapons to inject");

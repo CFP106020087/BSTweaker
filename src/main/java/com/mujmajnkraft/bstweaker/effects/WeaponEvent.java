@@ -7,15 +7,13 @@ import com.google.gson.JsonObject;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * 武器事件配置 - 从 JSON 解析
- */
+/** Weapon event config - parsed from JSON. */
 public class WeaponEvent {
     
-    public final String eventType;      // Forge 事件类型
-    public final String condition;       // 条件表达式
-    public final List<String> actions;   // 动作列表
-    public final String comment;         // 注释
+    public final String eventType; // Event type
+    public final String condition; // Condition expression
+    public final List<String> actions; // Action list
+    public final String comment; // Comment
     
     public WeaponEvent(String eventType, String condition, List<String> actions, String comment) {
         this.eventType = eventType;
@@ -24,9 +22,7 @@ public class WeaponEvent {
         this.comment = comment;
     }
     
-    /**
-     * 从 JSON 解析事件配置
-     */
+    /** Parse event config from JSON. */
     public static WeaponEvent fromJson(JsonObject json) {
         String eventType = json.has("event") ? json.get("event").getAsString() : "";
         String condition = json.has("when") ? json.get("when").getAsString() : "";
@@ -43,9 +39,7 @@ public class WeaponEvent {
         return new WeaponEvent(eventType, condition, actions, comment);
     }
     
-    /**
-     * 从 JSON 数组解析事件列表
-     */
+    /** Parse event list from JSON array. */
     public static List<WeaponEvent> fromJsonArray(JsonArray array) {
         List<WeaponEvent> events = new ArrayList<>();
         for (JsonElement elem : array) {

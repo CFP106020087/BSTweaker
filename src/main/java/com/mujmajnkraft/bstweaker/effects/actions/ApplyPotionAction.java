@@ -7,9 +7,7 @@ import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.ResourceLocation;
 
-/**
- * 添加药水效果
- */
+/** Apply potion effect. */
 public class ApplyPotionAction implements EventAction {
     
     private final String target;
@@ -39,7 +37,8 @@ public class ApplyPotionAction implements EventAction {
         switch (target) {
             case "self": return context.self;
             case "victim": return context.victim;
-            default: return context.victim; // 默认给受害者
+            default:
+                return context.victim; // Default to victim
         }
     }
 }

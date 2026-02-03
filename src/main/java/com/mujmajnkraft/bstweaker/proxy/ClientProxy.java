@@ -2,17 +2,13 @@ package com.mujmajnkraft.bstweaker.proxy;
 
 import com.mujmajnkraft.bstweaker.BSTweaker;
 import com.mujmajnkraft.bstweaker.util.TweakerWeaponInjector;
-import com.google.gson.JsonObject;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.item.Item;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.client.model.ModelLoader;
 
-/**
- * 客户端代理 - 处理模型和渲染注册
- */
+/** Client-side proxy - handles model and render registration. */
 public class ClientProxy extends CommonProxy {
 
     private static final ResourceLocation ALWAYS_PROPERTY = new ResourceLocation("bstweaker", "always");
@@ -20,7 +16,7 @@ public class ClientProxy extends CommonProxy {
     @Override
     public void preInit() {
         super.preInit();
-        // 关键：在资源加载前注册动态资源包
+        // Register dynamic resource pack before resources load
         com.mujmajnkraft.bstweaker.client.ClientEventHandler.registerDynamicResourcePack();
     }
 
@@ -31,9 +27,7 @@ public class ClientProxy extends CommonProxy {
         registerAlwaysPredicate();
     }
 
-    /**
-     * 注册物品渲染模型
-     */
+    /** Register item render models. */
     private void registerItemRenders() {
         int count = 0;
         for (Item item : TweakerWeaponInjector.getItemDefinitionMap().keySet()) {
@@ -43,9 +37,6 @@ public class ClientProxy extends CommonProxy {
         BSTweaker.LOG.info("Registered renders for " + count + " tweaked weapons.");
     }
 
-    /**
-     * 注册单个物品的渲染模型
-     */
     private void registerItemRender(Item item) {
         Minecraft.getMinecraft().getRenderItem().getItemModelMesher().register(
                 item,
@@ -53,10 +44,7 @@ public class ClientProxy extends CommonProxy {
                 new ModelResourceLocation(item.getRegistryName(), "inventory"));
     }
 
-    /**
-     * 注册 bstweaker:always predicate - 始终返回 1.0
-     * 这允许普通纹理也通过 override 加载，实现热重载
-     */
+    /** Register bstweaker:always predicate (always returns 1.0) for hot-reload. */
     private void registerAlwaysPredicate() {
         int count = 0;
         for (Item item : TweakerWeaponInjector.getItemDefinitionMap().keySet()) {

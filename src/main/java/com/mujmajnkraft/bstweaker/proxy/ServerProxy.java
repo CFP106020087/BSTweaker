@@ -1,8 +1,5 @@
 package com.mujmajnkraft.bstweaker.proxy;
 
-/**
- * 服务端代理
- */
+/** Server-side proxy. */
 public class ServerProxy extends CommonProxy {
-    // 服务端特定初始化
 }

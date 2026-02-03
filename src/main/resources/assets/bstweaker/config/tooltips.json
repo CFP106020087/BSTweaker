@@ -10,9 +10,9 @@
     "  tooltip: 提示信息，以@开头则从lang文件翻译",
     "",
     "颜色代码(直接文本)：",
-    "  &0=黑 &1=深蓝 &2=深绿 &3=深青 &4=深红 &5=紫",
-    "  &6=金 &7=灰 &8=深灰 &9=蓝 &a=绿 &b=青",
-    "  &c=红 &d=粉 &e=黄 &f=白 &l=粗体 &o=斜体"
+    "  §0=黑 §1=深蓝 §2=深绿 §3=深青 §4=深红 §5=紫",
+    "  §6=金 §7=灰 §8=深灰 §9=蓝 §a=绿 §b=青",
+    "  §c=红 §d=粉 §e=黄 §f=白 §l=粗体 §o=斜体"
   ],
   "_tutorial_en": [
     "=== Weapon Tooltip Config ===",
@@ -25,22 +25,17 @@
     "  tooltip: Tooltip text, prefix with @ to translate from lang file",
     "",
     "Color codes (direct text):",
-    "  &0=black &1=dark_blue &2=dark_green &3=dark_aqua &4=dark_red &5=purple",
-    "  &6=gold &7=gray &8=dark_gray &9=blue &a=green &b=aqua &l=bold &o=italic"
+    "  §0=black §1=dark_blue §2=dark_green §3=dark_aqua §4=dark_red §5=purple",
+    "  §6=gold §7=gray §8=dark_gray §9=blue §a=green §b=aqua §l=bold §o=italic"
   ],
-
-  "tooltips": [
-    {
-      "_comment": "火焰锭双截棍 / Fiery Ingot Nunchaku",
-      "id": "fieryingotnunchaku",
-      "displayName": "@bstweaker.weapon.fieryingotnunchaku.name",
-      "tooltip": [
-        "@bstweaker.weapon.fieryingotnunchaku.desc",
-        "@bstweaker.tooltip.fire_on_hit",
-        "@bstweaker.tooltip.strength_on_kill",
-        "@bstweaker.tooltip.damage_immunity",
-        "@bstweaker.tooltip.suppress_poison"
-      ]
-    }
-  ]
+  "_example": {
+    "_注释": "这是范本，复制到 tooltips 数组中使用 / This is an example, copy into tooltips array to use",
+    "id": "example_weapon",
+    "displayName": "@bstweaker.weapon.example.name",
+    "tooltip": [
+      "@bstweaker.weapon.example.desc",
+      "§7直接的文本也可以 / Direct text works too"
+    ]
+  },
+  "tooltips": []
 }

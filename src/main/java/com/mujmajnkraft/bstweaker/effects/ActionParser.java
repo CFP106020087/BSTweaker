@@ -6,33 +6,29 @@ import com.mujmajnkraft.bstweaker.effects.actions.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * 动作解析器 - 将字符串解析为 EventAction
- */
+/** Action parser - parses strings into EventAction. */
 public class ActionParser {
     
-    // 匹配方法调用: target.method(args) 或 self.method(args) 或 victim.method(args)
+    // Match method call: target.method(args)
     private static final Pattern METHOD_PATTERN = Pattern.compile(
         "(\\w+)\\.(\\w+)\\(([^)]*)\\)"
     );
     
-    // 匹配赋值: target.field = value
+    // Match assignment: target.field = value
     private static final Pattern ASSIGN_PATTERN = Pattern.compile(
         "(\\w+)\\.(\\w+)\\s*=\\s*(.+)"
     );
     
-    // 匹配运算赋值: target.field *= value
+    // Match compound assignment: target.field *= value
     private static final Pattern OP_ASSIGN_PATTERN = Pattern.compile(
         "(\\w+)\\.(\\w+)\\s*([+\\-*/])=\\s*(.+)"
     );
     
-    /**
-     * 解析动作字符串
-     */
+    /** Parse action string. */
     public static EventAction parse(String actionStr) {
         actionStr = actionStr.trim();
         
-        // 尝试解析运算赋值
+        // Try compound assignment
         Matcher opAssign = OP_ASSIGN_PATTERN.matcher(actionStr);
         if (opAssign.matches()) {
             String target = opAssign.group(1);
@@ -42,7 +38,7 @@ public class ActionParser {
             return new FieldOperationAction(target, field, op, value);
         }
         
-        // 尝试解析赋值
+        // Try assignment
         Matcher assign = ASSIGN_PATTERN.matcher(actionStr);
         if (assign.matches()) {
             String target = assign.group(1);
@@ -51,7 +47,7 @@ public class ActionParser {
             return new FieldSetAction(target, field, value);
         }
         
-        // 尝试解析方法调用
+        // Try method call
         Matcher method = METHOD_PATTERN.matcher(actionStr);
         if (method.matches()) {
             String target = method.group(1);
@@ -61,12 +57,11 @@ public class ActionParser {
         }
         
         BSTweaker.LOG.warn("Unknown action format: " + actionStr);
-        return ctx -> {}; // 空操作
+        return ctx -> {
+        }; // No-op
     }
     
-    /**
-     * 解析方法调用
-     */
+    /** Parse method call. */
     private static EventAction parseMethodCall(String target, String method, String args) {
         String[] argParts = args.isEmpty() ? new String[0] : args.split(",");
         for (int i = 0; i < argParts.length; i++) {

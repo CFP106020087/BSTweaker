@@ -13,12 +13,7 @@ import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-/**
- * BetterSurvival Tweaker - JSON配置式武器扩展模组
- * 
- * 允许用户通过JSON配置文件添加自定义BetterSurvival武器。
- * 武器通过 Mixin 直接注入到 BetterSurvival 的注册流程中。
- */
+/** BetterSurvival Tweaker - JSON-based weapon extension mod. */
 @Mod(modid = Reference.MOD_ID, name = Reference.MOD_NAME, version = Reference.MOD_VERSION, acceptedMinecraftVersions = Reference.MC_VERSION, dependencies = Reference.DEPENDENCIES)
 public class BSTweaker {
 
@@ -33,7 +28,7 @@ public class BSTweaker {
     @EventHandler
     public void preInit(FMLPreInitializationEvent event) {
         LOG.info("BSTweaker PreInit");
-        // 在模型加载前注入资源文件到 BS 命名空间目录
+        // Inject resources before model loading
         com.mujmajnkraft.bstweaker.util.ResourceInjector.injectResources();
         proxy.preInit();
     }

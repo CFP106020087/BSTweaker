@@ -24,18 +24,16 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.util.EnumHelper;
 import net.minecraftforge.fml.common.Loader;
 
-/**
- * 武器注入器 - 从 JSON 配置创建武器并供 Mixin 使用
- */
+/** Weapon injector - creates weapons from JSON config for Mixin use. */
 public class TweakerWeaponInjector {
 
-    /** 物品到武器定义的映射 (用于模型注册) */
+    /** Item to weapon definition map (for model registration). */
     private static Map<Item, JsonObject> itemDefinitionMap = new HashMap<>();
 
-    /** 材质缓存 */
+    /** Material cache. */
     private static Map<String, ToolMaterial> materialCache = new HashMap<>();
 
-    /** 武器类型到类的映射 */
+    /** Weapon type to class mapping. */
     private static final Map<String, String> WEAPON_CLASSES = new HashMap<>();
 
     static {
@@ -46,9 +44,7 @@ public class TweakerWeaponInjector {
         WEAPON_CLASSES.put("nunchaku", "com.mujmajnkraft.bettersurvival.items.ItemNunchaku");
     }
 
-    /**
-     * 创建所有自定义武器
-     */
+    /** Create all custom weapons from config. */
     public static List<Item> createWeapons() {
         List<Item> weapons = new ArrayList<>();
         itemDefinitionMap.clear();
@@ -56,7 +52,7 @@ public class TweakerWeaponInjector {
         try {
             File configDir = new File(Loader.instance().getConfigDir(), "bstweaker");
 
-            // 确保配置目录存在
+            // Ensure config dir exists
             if (!configDir.exists()) {
                 configDir.mkdirs();
             }
@@ -66,7 +62,7 @@ public class TweakerWeaponInjector {
             File scriptsFile = new File(configDir, "scripts.json");
             File apiFile = new File(configDir, "SCRIPT_API.md");
 
-            // 自动生成默认配置文件
+            // Copy default configs
             copyDefaultConfig("weapons.json", weaponsFile);
             copyDefaultConfig("tooltips.json", tooltipsFile);
             copyDefaultConfig("scripts.json", scriptsFile);
@@ -78,12 +74,12 @@ public class TweakerWeaponInjector {
             }
 
             JsonParser parser = new JsonParser();
-            // 使用 UTF-8 编码读取
+            // Read with UTF-8
             JsonObject root = parser.parse(new java.io.InputStreamReader(
                     new java.io.FileInputStream(weaponsFile), java.nio.charset.StandardCharsets.UTF_8))
                     .getAsJsonObject();
 
-            // 加载 tooltips 配置
+            // Load tooltips
             Map<String, JsonObject> tooltipMap = new HashMap<>();
             if (tooltipsFile.exists()) {
                 JsonObject tooltipsRoot = parser.parse(new java.io.InputStreamReader(
@@ -97,7 +93,7 @@ public class TweakerWeaponInjector {
                 }
             }
 
-            // 加载 scripts 配置
+            // Load scripts
             Map<String, JsonArray> scriptMap = new HashMap<>();
             if (scriptsFile.exists()) {
                 JsonObject scriptsRoot = parser.parse(new java.io.InputStreamReader(
@@ -113,11 +109,11 @@ public class TweakerWeaponInjector {
                 }
             }
 
-            // 加载武器定义
+            // Load weapon definitions
             if (root.has("weapons")) {
                 JsonArray weaponDefs = root.getAsJsonArray("weapons");
 
-                // 第一遍：从每个武器定义中加载材质
+                // Pass 1: load materials
                 for (JsonElement elem : weaponDefs) {
                     JsonObject weaponDef = elem.getAsJsonObject();
                     if (weaponDef.has("material")) {
@@ -126,12 +122,12 @@ public class TweakerWeaponInjector {
                     }
                 }
 
-                // 第二遍：创建武器
+                // Pass 2: create weapons
                 for (JsonElement elem : weaponDefs) {
                     JsonObject weaponDef = elem.getAsJsonObject();
                     String id = weaponDef.get("id").getAsString();
 
-                    // 合并 tooltip 配置
+                    // Merge tooltip config
                     if (tooltipMap.containsKey(id)) {
                         JsonObject tooltip = tooltipMap.get(id);
                         if (tooltip.has("displayName"))
@@ -145,7 +141,7 @@ public class TweakerWeaponInjector {
                         weapons.add(weapon);
                         itemDefinitionMap.put(weapon, weaponDef);
 
-                        // 从 scripts.json 加载事件 (同时匹配 id 和 material.name)
+                        // Load events from scripts.json (matches id or material.name)
                         String materialName = weaponDef.has("material")
                                 && weaponDef.getAsJsonObject("material").has("name")
                                         ? weaponDef.getAsJsonObject("material").get("name").getAsString().toLowerCase()
@@ -161,7 +157,7 @@ public class TweakerWeaponInjector {
                         }
 
                         if (eventsArray != null) {
-                            System.out.println("[BSTweaker] Found " + eventsArray.size() + " events for weapon: " + id);
+                            weaponDef.add("events", eventsArray);
                             List<WeaponEvent> events = WeaponEvent.fromJsonArray(eventsArray);
                             if (!events.isEmpty()) {
                                 EffectEventHandler.registerWeaponEffects(weapon, events);
@@ -184,10 +180,7 @@ public class TweakerWeaponInjector {
         return weapons;
     }
 
-    /**
-     * 热重载配置 - tooltips 和 scripts
-     * 注意：这不会创建新武器，只会更新已有武器的配置
-     */
+    /** Hot-reload configs (tooltips and scripts only, no new weapons). */
     public static void reloadConfigs() {
         System.out.println("[BSTweaker] Reloading configs...");
 
@@ -197,7 +190,7 @@ public class TweakerWeaponInjector {
             File scriptsFile = new File(configDir, "scripts.json");
             JsonParser parser = new JsonParser();
 
-            // 重新加载 tooltips
+            // Reload tooltips
             Map<String, JsonObject> tooltipMap = new HashMap<>();
             if (tooltipsFile.exists()) {
                 JsonObject tooltipsRoot = parser.parse(new java.io.InputStreamReader(
@@ -212,7 +205,7 @@ public class TweakerWeaponInjector {
                 System.out.println("[BSTweaker] Reloaded " + tooltipMap.size() + " tooltip definitions");
             }
 
-            // 重新加载 scripts
+            // Reload scripts
             Map<String, JsonArray> scriptMap = new HashMap<>();
             if (scriptsFile.exists()) {
                 JsonObject scriptsRoot = parser.parse(new java.io.InputStreamReader(
@@ -230,13 +223,13 @@ public class TweakerWeaponInjector {
                 System.out.println("[BSTweaker] Reloaded " + scriptMap.size() + " script definitions");
             }
 
-            // 更新已有武器的配置
+            // Update existing weapons
             for (Map.Entry<Item, JsonObject> entry : itemDefinitionMap.entrySet()) {
                 Item item = entry.getKey();
                 JsonObject weaponDef = entry.getValue();
                 String id = weaponDef.get("id").getAsString();
 
-                // 更新 tooltip
+                // Update tooltip
                 if (tooltipMap.containsKey(id)) {
                     JsonObject tooltip = tooltipMap.get(id);
                     if (tooltip.has("displayName"))
@@ -245,7 +238,7 @@ public class TweakerWeaponInjector {
                         weaponDef.add("tooltip", tooltip.get("tooltip"));
                 }
 
-                // 更新 scripts
+                // Update scripts
                 String materialName = weaponDef.has("material")
                         && weaponDef.getAsJsonObject("material").has("name")
                                 ? weaponDef.getAsJsonObject("material").get("name").getAsString().toLowerCase()
@@ -259,7 +252,7 @@ public class TweakerWeaponInjector {
                 }
 
                 if (eventsArray != null) {
-                    // 重新注册事件
+                    // Re-register events
                     weaponDef.add("events", eventsArray);
                     List<WeaponEvent> events = WeaponEvent.fromJsonArray(eventsArray);
                     if (!events.isEmpty()) {
@@ -276,9 +269,7 @@ public class TweakerWeaponInjector {
         }
     }
 
-    /**
-     * 加载材质定义
-     */
+    /** Load material definition. */
     private static void loadMaterial(JsonObject matDef) {
         try {
             String name = matDef.get("name").getAsString().toUpperCase();
@@ -296,7 +287,7 @@ public class TweakerWeaponInjector {
                     damage,
                     enchantability);
 
-            // 设置修复物品
+            // Set repair item
             if (matDef.has("repairItem")) {
                 String repairItemId = matDef.get("repairItem").getAsString();
                 Item repairItem = Item.getByNameOrId(repairItemId);
@@ -313,38 +304,36 @@ public class TweakerWeaponInjector {
         }
     }
 
-    /**
-     * 创建单个武器
-     */
+    /** Create single weapon. */
     private static Item createWeapon(JsonObject weaponDef) {
         try {
             String id = weaponDef.get("id").getAsString();
             String type = weaponDef.get("type").getAsString().toLowerCase();
             String materialName = weaponDef.get("material").getAsJsonObject().get("name").getAsString().toUpperCase();
 
-            // 获取材质
+            // Get material
             ToolMaterial material = materialCache.get(materialName);
             if (material == null) {
                 System.err.println("[BSTweaker] Unknown material: " + materialName + " for weapon " + id);
                 return null;
             }
 
-            // 获取武器类
+            // Get weapon class
             String className = WEAPON_CLASSES.get(type);
             if (className == null) {
                 System.err.println("[BSTweaker] Unknown weapon type: " + type + " for weapon " + id);
                 return null;
             }
 
-            // 反射创建武器实例 - BS 构造函数会自动设置注册名
+            // Reflect create weapon - BS constructor auto-sets registry name
             Class<?> weaponClass = Class.forName(className);
             Constructor<?> constructor = weaponClass.getConstructor(ToolMaterial.class);
             Item weapon = (Item) constructor.newInstance(material);
 
-            // 不覆盖注册名，使用 BS 生成的原生注册名
-            // 注册名格式: mujmajnkraftsbettersurvival:item<material><type>
+            // Keep BS native registry name
+            // Format: mujmajnkraftsbettersurvival:item<material><type>
 
-            // 修改攻击伤害和速度
+            // Modify attack damage and speed
             if (weaponDef.has("damageModifier") || weaponDef.has("speedModifier")) {
                 modifyWeaponStats(weapon, weaponDef);
             }
@@ -361,12 +350,10 @@ public class TweakerWeaponInjector {
         }
     }
 
-    /**
-     * 修改武器攻击属性
-     */
+    /** Modify weapon attack attributes. */
     private static void modifyWeaponStats(Item weapon, JsonObject weaponDef) {
         try {
-            // 尝试获取父类 ItemCustomWeapon 的字段
+            // Get parent class ItemCustomWeapon fields
             Class<?> customWeaponClass = Class.forName("com.mujmajnkraft.bettersurvival.items.ItemCustomWeapon");
 
             if (weaponDef.has("damageModifier")) {
@@ -390,23 +377,17 @@ public class TweakerWeaponInjector {
         }
     }
 
-    /**
-     * 获取物品对应的武器定义
-     */
+    /** Get weapon definition for item. */
     public static JsonObject getDefinition(Item item) {
         return itemDefinitionMap.get(item);
     }
 
-    /**
-     * 获取所有已创建的物品
-     */
+    /** Get all created items. */
     public static Map<Item, JsonObject> getItemDefinitionMap() {
         return itemDefinitionMap;
     }
 
-    /**
-     * 从 JAR 复制默认配置文件 (UTF-8 编码)
-     */
+    /** Copy default config from JAR (UTF-8). */
     private static void copyDefaultConfig(String resourceName, File targetFile) {
         if (targetFile.exists())
             return;
@@ -419,7 +400,7 @@ public class TweakerWeaponInjector {
                 return;
             }
 
-            // 使用 UTF-8 编码
+            // UTF-8 encoding
             java.io.BufferedReader reader = new java.io.BufferedReader(
                     new java.io.InputStreamReader(in, java.nio.charset.StandardCharsets.UTF_8));
             java.io.BufferedWriter writer = new java.io.BufferedWriter(

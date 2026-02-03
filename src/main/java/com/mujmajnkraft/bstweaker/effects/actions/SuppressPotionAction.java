@@ -7,9 +7,7 @@ import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.ResourceLocation;
 
-/**
- * 压制药水效果 - 限制药水等级上限
- */
+/** Suppress potion effect - caps amplifier to max level. */
 public class SuppressPotionAction implements EventAction {
     
     private final String target;
@@ -32,7 +30,7 @@ public class SuppressPotionAction implements EventAction {
         
         PotionEffect effect = entity.getActivePotionEffect(potion);
         if (effect != null && effect.getAmplifier() > maxLevel) {
-            // 移除旧效果，添加受限等级的效果
+            // Remove old effect, add capped level
             entity.removePotionEffect(potion);
             entity.addPotionEffect(new PotionEffect(potion, effect.getDuration(), maxLevel, 
                 effect.getIsAmbient(), effect.doesShowParticles()));

@@ -21,34 +21,26 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * 效果事件处理器 - 监听 Forge 事件并执行 JavaScript 脚本
- */
+/** Effect event handler - listens to Forge events and executes scripts. */
 @Mod.EventBusSubscriber(modid = Reference.MOD_ID)
 public class EffectEventHandler {
 
-    // 武器注册名 -> 事件列表 (使用注册名作为 key，而不是 Item 对象)
+    // Weapon registry name -> event list
     private static final Map<ResourceLocation, List<WeaponEvent>> weaponEffectsCache = new HashMap<>();
 
-    /**
-     * 注册武器效果
-     */
+    /** Register weapon effects. */
     public static void registerWeaponEffects(Item weapon, List<WeaponEvent> events) {
         ResourceLocation regName = weapon.getRegistryName();
         weaponEffectsCache.put(regName, events);
-        BSTweaker.LOG.info("Registered " + events.size() + " script events for: " + regName);
-        BSTweaker.LOG.info("Cache now contains " + weaponEffectsCache.size() + " weapons");
     }
 
-    /**
-     * LivingHurtEvent - 处理 onHit（攻击别人）和 onHurt（自己被攻击）
-     */
+    /** LivingHurtEvent - handles onHit (attack) and onHurt (being attacked). */
     @SubscribeEvent(priority = EventPriority.NORMAL)
     public static void onLivingHurt(LivingHurtEvent event) {
         EntityLivingBase victim = event.getEntityLiving();
         Entity source = event.getSource().getTrueSource();
 
-        // === onHit: 攻击者手持武器攻击别人 ===
+        // onHit: attacker holds weapon
         if (source instanceof EntityLivingBase) {
             EntityLivingBase attacker = (EntityLivingBase) source;
             ItemStack mainHand = attacker.getHeldItemMainhand();
@@ -68,7 +60,7 @@ public class EffectEventHandler {
             }
         }
 
-        // === onHurt: 被攻击者手持武器被攻击 ===
+        // onHurt: victim holds weapon
         ItemStack victimMainHand = victim.getHeldItemMainhand();
         if (!victimMainHand.isEmpty()) {
             Item weapon = victimMainHand.getItem();
@@ -78,7 +70,7 @@ public class EffectEventHandler {
             if (effects != null) {
                 for (WeaponEvent we : effects) {
                     if ("onHurt".equals(we.eventType)) {
-                        // self = 被攻击者, victim = 攻击者 (如果有)
+                        // self = victim, victim = attacker (if exists)
                         EntityLivingBase attacker = (source instanceof EntityLivingBase) ? (EntityLivingBase) source
                                 : null;
                         EventContext ctx = new EventContext(victim, attacker, weapon, event);
@@ -89,9 +81,7 @@ public class EffectEventHandler {
         }
     }
 
-    /**
-     * LivingDeathEvent - 死亡事件 (击杀)
-     */
+    /** LivingDeathEvent - death event (kill). */
     @SubscribeEvent(priority = EventPriority.NORMAL)
     public static void onLivingDeath(LivingDeathEvent event) {
         Entity source = event.getSource().getTrueSource();
@@ -109,7 +99,6 @@ public class EffectEventHandler {
         if (effects == null)
             return;
 
-        BSTweaker.LOG.info("Executing " + effects.size() + " effects for LivingDeathEvent with weapon: " + regName);
         EntityLivingBase victim = event.getEntityLiving();
 
         for (WeaponEvent we : effects) {
@@ -120,14 +109,12 @@ public class EffectEventHandler {
         }
     }
 
-    /**
-     * LivingUpdateEvent - 实体更新 (tick)
-     */
+    /** LivingUpdateEvent - entity update (tick). */
     @SubscribeEvent(priority = EventPriority.NORMAL)
     public static void onLivingUpdate(LivingEvent.LivingUpdateEvent event) {
         EntityLivingBase entity = event.getEntityLiving();
 
-        // 性能优化：每 5 tick 才检查一次 (原来是10，压制效果需要更快响应)
+        // Throttle: check every 5 ticks
         if (entity.ticksExisted % 5 != 0)
             return;
 
@@ -149,11 +136,9 @@ public class EffectEventHandler {
         }
     }
 
-    /**
-     * 执行脚本 - 合并所有 actions 为一个脚本执行
-     */
+    /** Execute scripts - merge all actions into one script. */
     private static void executeScripts(WeaponEvent we, EventContext ctx) {
-        // 合并所有 actions 为一个完整脚本
+        // Merge all actions into full script
         StringBuilder sb = new StringBuilder();
         for (String action : we.actions) {
             sb.append(action).append("\n");

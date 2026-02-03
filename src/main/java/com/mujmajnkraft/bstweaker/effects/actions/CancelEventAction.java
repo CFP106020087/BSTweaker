@@ -4,9 +4,7 @@ import com.mujmajnkraft.bstweaker.effects.EventAction;
 import com.mujmajnkraft.bstweaker.effects.EventContext;
 import net.minecraftforge.fml.common.eventhandler.Event;
 
-/**
- * 取消事件动作
- */
+/** Cancel event action. */
 public class CancelEventAction implements EventAction {
     
     @Override

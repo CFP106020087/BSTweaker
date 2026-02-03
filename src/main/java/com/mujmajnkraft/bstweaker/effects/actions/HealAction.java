@@ -4,9 +4,7 @@ import com.mujmajnkraft.bstweaker.effects.EventAction;
 import com.mujmajnkraft.bstweaker.effects.EventContext;
 import net.minecraft.entity.EntityLivingBase;
 
-/**
- * 治疗动作
- */
+/** Heal action. */
 public class HealAction implements EventAction {
     
     private final String target;

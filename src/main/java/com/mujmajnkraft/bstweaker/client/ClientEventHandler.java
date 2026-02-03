@@ -23,34 +23,28 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Client event handler - model registration with automatic texture redirection
- * 
- * 功能:
- * 1. 自动纹理重定向 - 模型指向 bstweaker 命名空间
- * 2. 动态模型生成 - 运行时生成模型 JSON，用户只需放纹理 PNG
- * 3. 支持 .mcmeta 动画 - 用户把 .mcmeta 放在纹理同目录即可
+ * Client event handler - model registration with automatic texture redirection.
+ * Features: auto texture redirect, dynamic model generation, .mcmeta animation
+ * support.
  */
 @Mod.EventBusSubscriber(modid = Reference.MOD_ID, value = Side.CLIENT)
 public class ClientEventHandler {
 
     private static boolean resourcePackRegistered = false;
-    // 缓存反射字段，避免重复查找
     private static Field defaultResourcePacksField = null;
 
-    /**
-     * 注册动态资源包（需要在模型注册前调用）
-     */
+    /** Register dynamic resource pack (must call before model registration). */
     public static void registerDynamicResourcePack() {
         if (resourcePackRegistered)
             return;
 
         try {
-            // 先扫描 config 目录中的资源文件
+            // Scan config resources first
             DynamicResourcePack.scanConfigResources();
 
-            // 获取或缓存反射字段
+            // Get or cache reflection field
             if (defaultResourcePacksField == null) {
-                // SRG 名: field_110449_ao = defaultResourcePacks
+                // SRG: field_110449_ao = defaultResourcePacks
                 defaultResourcePacksField = net.minecraftforge.fml.relauncher.ReflectionHelper.findField(
                         Minecraft.class, "defaultResourcePacks", "field_110449_ao");
             }
@@ -58,7 +52,7 @@ public class ClientEventHandler {
             @SuppressWarnings("unchecked")
             List<IResourcePack> packs = (List<IResourcePack>) defaultResourcePacksField.get(Minecraft.getMinecraft());
 
-            // 添加到列表开头获得最高优先级
+            // Add at position 0 for highest priority
             packs.add(0, new DynamicResourcePack());
 
             resourcePackRegistered = true;
@@ -69,10 +63,7 @@ public class ClientEventHandler {
         }
     }
 
-    /**
-     * 从 Mixin 中调用 - 在物品注册后立即注册模型
-     * 模型位置使用武器的注册名（mujmajnkraftsbettersurvival:itembstweaker_xxx）
-     */
+    /** Called from Mixin - register models immediately after item registration. */
     @SideOnly(Side.CLIENT)
     public static void registerModelsForItems(List<Item> items) {
         int count = 0;
@@ -81,9 +72,7 @@ public class ClientEventHandler {
             if (def == null)
                 continue;
 
-            // 使用物品的注册名作为模型位置
-            // 物品注册名: mujmajnkraftsbettersurvival:itembstweaker_fieryingotnunchaku
-            // 模型位置: mujmajnkraftsbettersurvival:itembstweaker_fieryingotnunchaku
+            // Use item registry name as model location
             ResourceLocation regName = item.getRegistryName();
             ModelLoader.setCustomModelResourceLocation(
                     item,
@@ -111,7 +100,7 @@ public class ClientEventHandler {
         for (Map.Entry<Item, JsonObject> entry : itemMap.entrySet()) {
             Item item = entry.getKey();
 
-            // 使用物品的注册名作为模型位置
+            // Use item registry name as model location
             ResourceLocation regName = item.getRegistryName();
             ModelLoader.setCustomModelResourceLocation(
                     item,
@@ -126,25 +115,20 @@ public class ClientEventHandler {
     }
 
     /**
-     * 从武器定义中获取纹理名称
-     * 优先级: texture 字段 > id 字段
+     * Get texture name from weapon definition. Priority: texture field > id field.
      */
     private static String getTextureName(JsonObject def) {
-        // 优先使用 texture 字段
         if (def.has("texture")) {
             String texture = def.get("texture").getAsString();
-            // 如果包含命名空间，提取纹理名
             if (texture.contains(":")) {
                 texture = texture.substring(texture.indexOf(":") + 1);
             }
-            // 如果包含路径，提取文件名
             if (texture.contains("/")) {
                 texture = texture.substring(texture.lastIndexOf("/") + 1);
             }
             return texture;
         }
 
-        // 否则使用 id 字段
         if (def.has("id")) {
             return def.get("id").getAsString();
         }

@@ -14,13 +14,9 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 import javax.annotation.Nullable;
-import java.io.File;
-import java.util.Arrays;
 import java.util.List;
 
-/**
- * /bstweaker reload 命令 - 热重载配置文件
- */
+/** /bstweaker reload command - hot-reload config files. */
 public class BSTweakerCommand extends CommandBase {
 
     @Override
@@ -66,17 +62,17 @@ public class BSTweakerCommand extends CommandBase {
         int reloaded = 0;
 
         try {
-            // 1. 重新加载 tooltips 和 scripts
+            // 1. Reload tooltips and scripts
             TweakerWeaponInjector.reloadConfigs();
             sender.sendMessage(new TextComponentString(TextFormatting.GREEN + "  ✓ Reloaded tooltips.json and scripts.json"));
             reloaded++;
 
-            // 2. 重新复制资源文件 (models, textures, lang)
+            // 2. Re-inject resource files
             com.mujmajnkraft.bstweaker.util.ResourceInjector.injectResources();
             sender.sendMessage(new TextComponentString(TextFormatting.GREEN + "  ✓ Re-injected resource files"));
             reloaded++;
 
-            // 3. 触发资源重载 (客户端) - 必须在客户端主线程执行
+            // 3. Trigger resource reload (client)
             if (isClientSide()) {
                 scheduleClientRefresh();
                 sender.sendMessage(
@@ -84,8 +80,8 @@ public class BSTweakerCommand extends CommandBase {
                 reloaded++;
             }
 
-            sender.sendMessage(new TextComponentString(TextFormatting.GREEN + "[BSTweaker] Reload complete! (" + reloaded + " tasks)"));
-            BSTweaker.LOG.info("Hot reload completed successfully");
+            sender.sendMessage(new TextComponentString(
+                    TextFormatting.GREEN + "[BSTweaker] Reload complete! (" + reloaded + " tasks)"));
 
         } catch (Exception e) {
             sender.sendMessage(new TextComponentString(TextFormatting.RED + "[BSTweaker] Reload failed: " + e.getMessage()));
@@ -106,31 +102,26 @@ public class BSTweakerCommand extends CommandBase {
         Minecraft mc = Minecraft.getMinecraft();
         mc.addScheduledTask(() -> {
             try {
-                BSTweaker.LOG.info("Starting targeted texture hot-reload...");
-
-                // 1. 重新扫描 DynamicResourcePack 的资源
+                // 1. Rescan DynamicResourcePack resources
                 com.mujmajnkraft.bstweaker.client.DynamicResourcePack.rescan();
 
-                // 2. 删除 GPU 缓存的纹理
+                // 2. Delete cached GPU textures
                 net.minecraft.client.renderer.texture.TextureManager texManager = mc.getTextureManager();
                 for (net.minecraft.util.ResourceLocation loc : com.mujmajnkraft.bstweaker.client.DynamicResourcePack
                         .getTextureLocations()) {
                     texManager.deleteTexture(loc);
                 }
 
-                // 3. 只重建物品纹理图集 (比 refreshResources 快很多!)
+                // 3. Rebuild item texture atlas (faster than refreshResources!)
                 net.minecraft.client.renderer.texture.TextureMap texMap = mc.getTextureMapBlocks();
                 texMap.loadTextureAtlas(mc.getResourceManager());
-                BSTweaker.LOG.info("Rebuilt texture atlas");
 
-                // 4. 重建模型缓存
+                // 4. Rebuild model cache
                 mc.getRenderItem().getItemModelMesher().rebuildCache();
 
-                BSTweaker.LOG.info("Targeted texture hot-reload complete!");
             } catch (Exception e) {
                 BSTweaker.LOG.error("Texture hot-reload failed: " + e.getMessage());
-                // 如果快速方法失败，回退到完整刷新
-                BSTweaker.LOG.info("Falling back to full resource refresh...");
+                // Fallback to full refresh
                 mc.refreshResources();
             }
         });

@@ -6,9 +6,7 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.potion.Potion;
 import net.minecraft.util.ResourceLocation;
 
-/**
- * 移除药水效果
- */
+/** Remove potion effect. */
 public class RemovePotionAction implements EventAction {
     
     private final String target;

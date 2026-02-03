@@ -35,22 +35,21 @@
     "  speedModifier: Extra attack speed bonus (optional)",
     "  texture: Texture name (optional, defaults to id)"
   ],
-  "weapons": [
-    {
-      "_comment": "火焰锭双截棍 / Fiery Ingot Nunchaku",
-      "id": "fieryingotnunchaku",
-      "type": "nunchaku",
-      "texture": "fieryingotnunchaku",
-      "material": {
-        "name": "fieryingot",
-        "harvestLevel": 3,
-        "durability": 1200,
-        "efficiency": 7.0,
-        "damage": 7.0,
-        "enchantability": 12
-      },
-      "damageModifier": 1.5,
-      "speedModifier": 0.3
-    }
-  ]
+  "_example": {
+    "_注释": "这是范本，复制到 weapons 数组中使用 / This is an example, copy into weapons array to use",
+    "id": "example_weapon",
+    "type": "dagger",
+    "texture": "example_weapon",
+    "material": {
+      "name": "example",
+      "harvestLevel": 2,
+      "durability": 500,
+      "efficiency": 6.0,
+      "damage": 5.0,
+      "enchantability": 10
+    },
+    "damageModifier": 0.0,
+    "speedModifier": 0.0
+  },
+  "weapons": []
 }

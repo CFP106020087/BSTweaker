@@ -5,9 +5,7 @@ import com.mujmajnkraft.bstweaker.effects.EventContext;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.DamageSource;
 
-/**
- * 造成伤害动作
- */
+/** Deal damage action. */
 public class DamageAction implements EventAction {
     
     private final String target;
