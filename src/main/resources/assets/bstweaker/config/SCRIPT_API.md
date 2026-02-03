@@ -1,48 +1,49 @@
-# BSTweaker 脚本 API 参考
+# BSTweaker Script API Reference / 脚本 API 参考
 
-## 事件类型
+## Event Types / 事件类型
 
-| 事件 | 触发时机 | 可用变量 |
-|------|---------|---------|
-| `onHit` | 攻击命中 | self, victim, event |
-| `onKill` | 击杀敌人 | self, victim |
-| `whenHeld` | 主手持有 | self |
+| Event / 事件 | Trigger / 触发时机 | Variables / 可用变量 |
+|--------------|-------------------|---------------------|
+| `onHit` | Attack hits / 攻击命中 | self, victim, event |
+| `onKill` | Kill enemy / 击杀敌人 | self, victim |
+| `onHurt` | Taking damage / 受到伤害 | self, victim (attacker), event |
+| `whenHeld` | Holding weapon / 主手持有 | self |
 
 ---
 
 ## self / victim API
 
 ```javascript
-// 血量
+// Health / 血量
 self.getHealth()
 self.setHealth(10)
 self.heal(2)
 self.getMaxHealth()
 
-// 无敌帧
+// Invincibility frames / 无敌帧
 victim.getHurtResistantTime()
-victim.setHurtResistantTime(0)  // 清空
+victim.setHurtResistantTime(0)  // Reset / 清空
 
-// 药水效果
-self.getPotionEffect('poison')      // 返回 PotionEffect 或 null
-self.addPotionEffect('speed', 200, 1)  // id, 时长, 等级
+// Potion effects / 药水效果
+self.getPotionEffect('poison')         // Returns PotionEffect or null / 返回 PotionEffect 或 null
+self.addPotionEffect('speed', 200, 1)  // id, duration, amplifier / id, 时长, 等级
 self.removePotionEffect('poison')
-self.hasPotionEffect('wither')      // 返回 true/false
+self.hasPotionEffect('wither')         // Returns true/false / 返回 true/false
 
-// 其他
-self.setFire(5)     // 点燃5秒
+// Other / 其他
+self.setFire(5)     // Ignite for 5 seconds / 点燃5秒
 self.isBurning()
 self.isInWater()
 ```
 
 ---
 
-## event API (onHit)
+## event API (onHit / onHurt)
 
 ```javascript
-event.getAmount()           // 获取伤害值
-event.setAmount(10)         // 设置伤害值
-event.cancel()              // 取消事件
+event.getAmount()           // Get damage value / 获取伤害值
+event.setAmount(10)         // Set damage value / 设置伤害值
+event.cancel()              // Cancel event / 取消事件
 ```
 
 ---
@@ -52,27 +53,27 @@ event.cancel()              // 取消事件
 ```javascript
 var eff = self.getPotionEffect('poison');
 if (eff != null) {
-    eff.getAmplifier()      // 获取等级
-    eff.getDuration()       // 获取持续时间
-    eff.setAmplifier(2)     // 设置等级
+    eff.getAmplifier()      // Get amplifier level / 获取等级
+    eff.getDuration()       // Get remaining duration / 获取持续时间
+    eff.setAmplifier(2)     // Set amplifier level / 设置等级
 }
 ```
 
 ---
 
-## 示例
+## Examples / 示例
 
-### 清空无敌帧
+### Reset invincibility frames / 清空无敌帧
 ```json
 "actions": ["victim.setHurtResistantTime(0)"]
 ```
 
-### 伤害翻倍
+### Double damage / 伤害翻倍
 ```json
 "actions": ["event.setAmount(event.getAmount() * 2)"]
 ```
 
-### 压制药水效果到指定等级
+### Cap potion effect level / 压制药水效果到指定等级
 ```json
 "actions": [
   "var eff = self.getPotionEffect('poison');",
@@ -80,7 +81,17 @@ if (eff != null) {
 ]
 ```
 
-### 击杀回血
+### Heal on kill / 击杀回血
 ```json
 "actions": ["self.heal(2)"]
+```
+
+### Ignite on hit / 命中点燃
+```json
+"actions": ["victim.setFire(3)"]
+```
+
+### Lifesteal / 吸血
+```json
+"actions": ["self.heal(event.getAmount() * 0.1)"]
 ```

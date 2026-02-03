@@ -14,7 +14,7 @@
     "    damage: 基础伤害",
     "    enchantability: 附魔能力",
     "  damageModifier: 额外伤害加成 (可选)",
-    "  speedModifier: 额外攻速加成 (可选)",
+    "  speedModifier: 攻速修正值 (可选，负数=更快，正数=更慢。注意：这是内部值，不是UI显示值！)",
     "  texture: 纹理名称 (可选，默认使用id)"
   ],
   "_tutorial_en": [
@@ -32,7 +32,7 @@
     "    damage: Base damage",
     "    enchantability: Enchantability",
     "  damageModifier: Extra damage bonus (optional)",
-    "  speedModifier: Extra attack speed bonus (optional)",
+    "  speedModifier: Attack speed modifier (optional, negative=faster, positive=slower. Note: this is internal value, not UI display!)",
     "  texture: Texture name (optional, defaults to id)"
   ],
   "_example": {
