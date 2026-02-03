@@ -1,0 +1,16 @@
+{
+  "parent": "item/handheld",
+  "textures": {
+    "layer0": "minecraft:items/stick"
+  },
+  "overrides": [
+    {
+      "predicate": {"bstweaker:always": 1},
+      "model": "mujmajnkraftsbettersurvival:itembstweaker_fieryingotnunchaku_normal"
+    },
+    {
+      "predicate": {"spinning": 1},
+      "model": "mujmajnkraftsbettersurvival:itembstweaker_fieryingotnunchakuspinning"
+    }
+  ]
+}
