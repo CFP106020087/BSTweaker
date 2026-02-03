@@ -7,12 +7,15 @@ import com.google.gson.JsonObject;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.item.Item;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.model.ModelLoader;
 
 /**
  * 客户端代理 - 处理模型和渲染注册
  */
 public class ClientProxy extends CommonProxy {
+
+    private static final ResourceLocation ALWAYS_PROPERTY = new ResourceLocation("bstweaker", "always");
 
     @Override
     public void preInit() {
@@ -25,6 +28,7 @@ public class ClientProxy extends CommonProxy {
     public void init() {
         super.init();
         registerItemRenders();
+        registerAlwaysPredicate();
     }
 
     /**
@@ -47,5 +51,18 @@ public class ClientProxy extends CommonProxy {
                 item,
                 0,
                 new ModelResourceLocation(item.getRegistryName(), "inventory"));
+    }
+
+    /**
+     * 注册 bstweaker:always predicate - 始终返回 1.0
+     * 这允许普通纹理也通过 override 加载，实现热重载
+     */
+    private void registerAlwaysPredicate() {
+        int count = 0;
+        for (Item item : TweakerWeaponInjector.getItemDefinitionMap().keySet()) {
+            item.addPropertyOverride(ALWAYS_PROPERTY, (stack, world, entity) -> 1.0f);
+            count++;
+        }
+        BSTweaker.LOG.info("Registered 'always' predicate for " + count + " weapons for hot-reload support.");
     }
 }
