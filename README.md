@@ -1,6 +1,8 @@
 # BSTweaker
 
 > **My first mod uploaded to CurseForge!** 🎉
+>
+> ⚠️ **Disclaimer:** I'm still learning mod development. If you encounter any bugs or issues, please feel free to report them on the [Issues page](https://github.com/CFP106020087/BSTweaker/issues). All feedback is appreciated!
 
 A lightweight addon for [BetterSurvival](https://www.curseforge.com/minecraft/mc-mods/bettersurvival) that enables **JSON-based custom weapons** with hot-reload support.
 
