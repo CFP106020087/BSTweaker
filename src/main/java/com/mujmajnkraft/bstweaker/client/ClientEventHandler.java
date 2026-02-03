@@ -22,6 +22,9 @@ import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
 
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraftforge.event.entity.EntityJoinWorldEvent;
+
 /**
  * Client event handler - model registration with automatic texture redirection.
  * Features: auto texture redirect, dynamic model generation, .mcmeta animation
@@ -31,6 +34,7 @@ import java.util.Map;
 public class ClientEventHandler {
 
     private static boolean resourcePackRegistered = false;
+    private static boolean hasRefreshedThisSession = false;
     private static Field defaultResourcePacksField = null;
 
     /** Register dynamic resource pack (must call before model registration). */
@@ -134,5 +138,25 @@ public class ClientEventHandler {
         }
 
         return "missing";
+    }
+
+    /** Auto-refresh resources on first world join (fixes texture loading). */
+    @SubscribeEvent
+    public static void onPlayerJoinWorld(EntityJoinWorldEvent event) {
+        if (hasRefreshedThisSession)
+            return;
+        if (!(event.getEntity() instanceof EntityPlayer))
+            return;
+        if (!event.getWorld().isRemote)
+            return; // Client only
+
+        hasRefreshedThisSession = true;
+        BSTweaker.LOG.info("First world join - scheduling resource refresh...");
+
+        Minecraft mc = Minecraft.getMinecraft();
+        mc.addScheduledTask(() -> {
+            mc.refreshResources();
+            BSTweaker.LOG.info("Resource refresh complete.");
+        });
     }
 }
