@@ -14,9 +14,13 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 import javax.annotation.Nullable;
+import java.io.File;
+import java.util.Arrays;
 import java.util.List;
 
-/** /bstweaker reload command - hot-reload config files. */
+/**
+ * /bstweaker reload 命令 - 热重载配置文件
+ */
 public class BSTweakerCommand extends CommandBase {
 
     @Override
@@ -59,20 +63,28 @@ public class BSTweakerCommand extends CommandBase {
     private void executeReload(ICommandSender sender) {
         sender.sendMessage(new TextComponentString(TextFormatting.YELLOW + "[BSTweaker] Reloading configs..."));
 
-        try {
-            // 1. Reload tooltips and scripts
-            TweakerWeaponInjector.reloadConfigs();
-            sender.sendMessage(
-                    new TextComponentString(TextFormatting.GREEN + "  ✓ Reloaded tooltips.json and scripts.json"));
+        int reloaded = 0;
 
-            // 2. Rescan resource files (textures/models/lang in config dir)
-            if (isClientSide()) {
-                com.mujmajnkraft.bstweaker.client.DynamicResourcePack.rescan();
-                sender.sendMessage(new TextComponentString(TextFormatting.GREEN + "  ✓ Rescanned config resources"));
+        try {
+            // 1. 重新加载 tooltips 和 scripts
+            TweakerWeaponInjector.reloadConfigs();
+            sender.sendMessage(new TextComponentString(TextFormatting.GREEN + "  ✓ Reloaded tooltips.json and scripts.json"));
+            reloaded++;
+
+            // 2. 重新复制资源文件 (models, textures, lang)
+            com.mujmajnkraft.bstweaker.util.ResourceInjector.injectResources();
+            sender.sendMessage(new TextComponentString(TextFormatting.GREEN + "  ✓ Re-injected resource files"));
+            reloaded++;
+
+            // 3. 触发资源重载 (客户端)
+            if (sender.getEntityWorld().isRemote || isClientSide()) {
+                refreshClientResources();
+                sender.sendMessage(new TextComponentString(TextFormatting.GREEN + "  ✓ Refreshed client resources"));
+                reloaded++;
             }
 
-            sender.sendMessage(new TextComponentString(
-                    TextFormatting.GREEN + "[BSTweaker] Reload complete! Use F3+T if textures need refresh."));
+            sender.sendMessage(new TextComponentString(TextFormatting.GREEN + "[BSTweaker] Reload complete! (" + reloaded + " tasks)"));
+            BSTweaker.LOG.info("Hot reload completed successfully");
 
         } catch (Exception e) {
             sender.sendMessage(new TextComponentString(TextFormatting.RED + "[BSTweaker] Reload failed: " + e.getMessage()));
@@ -85,6 +97,15 @@ public class BSTweakerCommand extends CommandBase {
             return net.minecraftforge.fml.common.FMLCommonHandler.instance().getSide() == Side.CLIENT;
         } catch (Exception e) {
             return false;
+        }
+    }
+
+    @SideOnly(Side.CLIENT)
+    private void refreshClientResources() {
+        try {
+            Minecraft.getMinecraft().refreshResources();
+        } catch (Exception e) {
+            BSTweaker.LOG.error("Failed to refresh client resources", e);
         }
     }
 }
