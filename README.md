@@ -172,7 +172,7 @@ config/bstweaker/
 
 **Requirements:**
 - Minecraft 1.12.2
-- Forge 14.23.5+
+- Forge 
 - [BetterSurvival](https://www.curseforge.com/minecraft/mc-mods/bettersurvival)
 
 **Steps:**
@@ -207,7 +207,7 @@ config/bstweaker/
 
 ## 📄 License
 
-**Public Domain (CC0)** - Do whatever you want with this code. No attribution required.
+**Public Domain (CC0)** - Do whatever you want with this code and artwork source. No attribution required.
 
 ---
 
