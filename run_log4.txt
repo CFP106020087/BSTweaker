@@ -1,0 +1,664 @@
+Initialized native services in: C:\Users\jason\.gradle\native
+To honour the JVM settings for this build a new JVM will be forked. Please consider using the daemon: https://docs.gradle.org/4.10.3/userguide/gradle_daemon.html.
+Starting process 'Gradle build daemon'. Working directory: C:\Users\jason\.gradle\daemon\4.10.3 Command: C:\Program Files\Eclipse Adoptium\jdk-8.0.472.8-hotspot\bin\java.exe -Xmx3G -Dfile.encoding=x-windows-950 -Duser.country=TW -Duser.language=zh -Duser.variant -cp C:\Users\jason\.gradle\wrapper\dists\gradle-4.10.3-bin\31t79e2qsceia4mkbojplrgx\gradle-4.10.3\lib\gradle-launcher-4.10.3.jar org.gradle.launcher.daemon.bootstrap.GradleDaemon 4.10.3
+Successfully started process 'Gradle build daemon'
+An attempt to start the daemon took 0.902 secs.
+The client will now receive all logging from the daemon (pid: 21336). The daemon log file: C:\Users\jason\.gradle\daemon\4.10.3\daemon-21336.out.log
+Daemon will be stopped at the end of the build stopping after processing
+Using 20 worker leases.
+Starting Build
+Settings evaluated using settings file 'C:\mywork\BSTweaker\settings.gradle'.
+Projects loaded. Root project using build file 'C:\mywork\BSTweaker\build.gradle'.
+Included projects: [root project 'bstweaker']
+
+> Configure project :
+Evaluating root project 'bstweaker' using build file 'C:\mywork\BSTweaker\build.gradle'.
+This mapping 'stable_39' was designed for MC 1.12! Use at your own peril.
+WARNING: You are using an unsupported version of ForgeGradle.
+Please consider upgrading to ForgeGradle 5 and helping in the efforts to get old versions working on the modern toolchain.
+See https://gist.github.com/TheCurle/fe7ad3ede188cbdd15c235cc75d52d4a for more info on contributing.
+#################################################
+         ForgeGradle 2.3.4-gfc67182        
+  https://github.com/MinecraftForge/ForgeGradle  
+#################################################
+                 Powered by MCP                  
+             http://modcoderpack.com             
+     by: Searge, ProfMobius, R4wk, ZeuX          
+     Fesh0r, IngisKahn, bspkrs, LexManos         
+#################################################
+file or directory 'C:\mywork\BSTweaker\src\api\resources', not found
+Adding source set 'main' to mixin processor
+Adding source set 'main' to mixin processor
+All projects evaluated.
+Selected primary task 'runClient' from project :
+Tasks to be executed: [task ':deobfCompileDummyTask', task ':deobfProvidedDummyTask', task ':sourceApiJava', task ':compileApiJava', task ':processApiResources', task ':apiClasses', task ':sourceMainJava', task ':compileJava', task ':processResources', task ':classes', task ':jar', task ':getVersionJson', task ':extractNatives', task ':extractUserdev', task ':getAssetIndex', task ':getAssets', task ':makeStart', task ':runClient']
+:deobfCompileDummyTask (Thread[Task worker for ':' Thread 6,5,main]) started.
+
+> Task :deobfCompileDummyTask
+Task ':deobfCompileDummyTask' is not up-to-date because:
+  Task has not declared any outputs despite executing actions.
+:deobfCompileDummyTask (Thread[Task worker for ':' Thread 6,5,main]) completed. Took 0.024 secs.
+:deobfProvidedDummyTask (Thread[Task worker for ':' Thread 6,5,main]) started.
+
+> Task :deobfProvidedDummyTask
+Task ':deobfProvidedDummyTask' is not up-to-date because:
+  Task has not declared any outputs despite executing actions.
+:deobfProvidedDummyTask (Thread[Task worker for ':' Thread 6,5,main]) completed. Took 0.001 secs.
+:sourceApiJava (Thread[Task worker for ':' Thread 6,5,main]) started.
+
+> Task :sourceApiJava UP-TO-DATE
+Skipping task ':sourceApiJava' as it is up-to-date.
+:sourceApiJava (Thread[Task worker for ':' Thread 6,5,main]) completed. Took 0.013 secs.
+:compileApiJava (Thread[Task worker for ':' Thread 6,5,main]) started.
+
+> Task :compileApiJava NO-SOURCE
+Skipping task ':compileApiJava' as it has no source files and no previous output files.
+:compileApiJava (Thread[Task worker for ':' Thread 6,5,main]) completed. Took 0.001 secs.
+:processApiResources (Thread[Task worker for ':' Thread 6,5,main]) started.
+
+> Task :processApiResources NO-SOURCE
+file or directory 'C:\mywork\BSTweaker\src\api\resources', not found
+Skipping task ':processApiResources' as it has no source files and no previous output files.
+:processApiResources (Thread[Task worker for ':' Thread 6,5,main]) completed. Took 0.0 secs.
+:apiClasses (Thread[Task worker for ':' Thread 6,5,main]) started.
+
+> Task :apiClasses UP-TO-DATE
+Skipping task ':apiClasses' as it has no actions.
+:apiClasses (Thread[Task worker for ':' Thread 6,5,main]) completed. Took 0.0 secs.
+:sourceMainJava (Thread[Task worker for ':' Thread 6,5,main]) started.
+
+> Task :sourceMainJava UP-TO-DATE
+Skipping task ':sourceMainJava' as it is up-to-date.
+:sourceMainJava (Thread[Task worker for ':' Thread 6,5,main]) completed. Took 0.016 secs.
+:compileJava (Thread[Task worker for ':' Thread 6,5,main]) started.
+
+> Task :compileJava
+Task ':compileJava' is not up-to-date because:
+  Output property 'destinationDir' file C:\mywork\BSTweaker\build\classes\java\main has been removed.
+  Output property 'destinationDir' file C:\mywork\BSTweaker\build\classes\java\main\com has been removed.
+  Output property 'destinationDir' file C:\mywork\BSTweaker\build\classes\java\main\com\mujmajnkraft has been removed.
+Potential refmap conflict. Duplicate refmap name mixins.bstweaker.refmap.json specified for sourceSet main, already defined for sourceSet main
+All input files are considered out-of-date for incremental task ':compileJava'.
+Full recompilation is required because no incremental change information is available. This is usually caused by clean builds or changing compiler arguments.
+Compiling with JDK Java compiler API.
+Note: SpongePowered MIXIN Annotation Processor Version=0.8.5
+Note: Supported obfuscation types: ObfuscationServiceMCP supports [searge,notch]
+C:\mywork\BSTweaker\build\sources\main\java\com\mujmajnkraft\bstweaker\mixin\weapons\MixinItemDagger.java:18: warning: Mixin target com.mujmajnkraft.bettersurvival.items.ItemDagger is public and should be specified in value
+@Mixin(targets = "com.mujmajnkraft.bettersurvival.items.ItemDagger", remap = false)
+^
+Note: Loading searge mappings from C:\Users\jason\.gradle\caches\minecraft\de\oceanlabs\mcp\mcp_stable\39\1.12.2\srgs\mcp-srg.srg
+Note: Loading notch mappings from C:\Users\jason\.gradle\caches\minecraft\de\oceanlabs\mcp\mcp_stable\39\1.12.2\srgs\mcp-notch.srg
+Note: Writing refmap to C:\mywork\BSTweaker\build\tmp\compileJava\compileJava-refmap.json
+Note: Writing refmap to C:\mywork\BSTweaker\build\tmp\compileJava\compileJava-refmap.json
+Note: Writing searge output SRGs to C:\mywork\BSTweaker\build\tmp\compileJava\mcp-srg.srg
+Note: Writing notch output SRGs to C:\mywork\BSTweaker\build\tmp\compileJava\mcp-notch.srg
+Note: Writing refmap to C:\mywork\BSTweaker\build\tmp\compileJava\compileJava-refmap.json
+Note: Writing refmap to C:\mywork\BSTweaker\build\tmp\compileJava\compileJava-refmap.json
+Note: Writing searge output SRGs to C:\mywork\BSTweaker\build\tmp\compileJava\mcp-srg.srg
+Note: Writing notch output SRGs to C:\mywork\BSTweaker\build\tmp\compileJava\mcp-notch.srg
+Created classpath snapshot for incremental compilation in 0.077 secs. 606 duplicate classes found in classpath (see all with --debug).
+:compileJava (Thread[Task worker for ':' Thread 6,5,main]) completed. Took 1.117 secs.
+:processResources (Thread[Task worker for ':' Thread 6,5,main]) started.
+Note: Some input files use or override a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+1 warning
+
+> Task :processResources
+Task ':processResources' is not up-to-date because:
+  Task has failed previously.
+:processResources (Thread[Task worker for ':' Thread 6,5,main]) completed. Took 0.429 secs.
+:classes (Thread[Task worker for ':' Thread 6,5,main]) started.
+
+> Task :classes
+Skipping task ':classes' as it has no actions.
+:classes (Thread[Task worker for ':' Thread 6,5,main]) completed. Took 0.0 secs.
+:jar (Thread[Task worker for ':' Thread 6,5,main]) started.
+
+> Task :jar
+Task ':jar' is not up-to-date because:
+  No history is available.
+:jar (Thread[Task worker for ':' Thread 6,5,main]) completed. Took 0.082 secs.
+:getVersionJson (Thread[Task worker for ':' Thread 6,5,main]) started.
+
+> Task :getVersionJson
+Task ':getVersionJson' is not up-to-date because:
+  Task.upToDateWhen is false.
+:getVersionJson (Thread[Task worker for ':' Thread 6,5,main]) completed. Took 0.058 secs.
+:extractNatives (Thread[Task worker for ':' Thread 6,5,main]) started.
+
+> Task :extractNatives SKIPPED
+Skipping task ':extractNatives' as task onlyIf is false.
+:extractNatives (Thread[Task worker for ':' Thread 6,5,main]) completed. Took 0.234 secs.
+:extractUserdev (Thread[Task worker for ':' Thread 6,5,main]) started.
+
+> Task :extractUserdev UP-TO-DATE
+Skipping task ':extractUserdev' as it is up-to-date.
+:extractUserdev (Thread[Task worker for ':' Thread 6,5,main]) completed. Took 0.003 secs.
+:getAssetIndex (Thread[Task worker for ':' Thread 6,5,main]) started.
+
+> Task :getAssetIndex UP-TO-DATE
+Task ':getAssetIndex' is not up-to-date because:
+  Task.upToDateWhen is false.
+:getAssetIndex (Thread[Task worker for ':' Thread 6,5,main]) completed. Took 0.011 secs.
+:getAssets (Thread[Task worker for ':' Thread 6,5,main]) started.
+
+> Task :getAssets
+Task ':getAssets' is not up-to-date because:
+  Task has not declared any outputs despite executing actions.
+:getAssets (Thread[Task worker for ':' Thread 6,5,main]) completed. Took 0.289 secs.
+:makeStart (Thread[Task worker for ':' Thread 6,5,main]) started.
+
+> Task :makeStart
+ Corrupted Cache!
+Checksums found: 553bebabfd0a8074df84514d49a9e813
+624ff7e28c6c90ba5d70f33cbec9ce41
+a9e6befca83e906439322298986d6930
+d4a3b91d95497c2d2b3cf386c793383c
+a8d009d9fd47e15b8f253a29669d492e
+587c6d71faf72b4c3416caeb925d0817
+55d9abd7f0709216724a8885b70da345
+2837513aca8220c2252ad99c18051485
+555b17b292d9dc798141aa0a64f8363a
+7ff5caf73255ace88de45095cd402405
+edabe2e2ed84c5b66c200b1b2e3822fb
+33c988b98da807810c0501981b1ab445
+801275945a60fecb7fca4a4e54dcb60c
+ba21d81bc7bd6e9ae42faf6f3ca46947
+f7447a98e1e857c8ccfe56966a36a746
+55f920406cb1ab20e76bdaa98663e361
+97d5fc58c47fa1d69434fcdde8e6835d
+4513835928e5ad3e43cb32959a46485c
+Checksums calculated: 553bebabfd0a8074df84514d49a9e813
+624ff7e28c6c90ba5d70f33cbec9ce41
+a9e6befca83e906439322298986d6930
+d4a3b91d95497c2d2b3cf386c793383c
+a8d009d9fd47e15b8f253a29669d492e
+587c6d71faf72b4c3416caeb925d0817
+55d9abd7f0709216724a8885b70da345
+2837513aca8220c2252ad99c18051485
+555b17b292d9dc798141aa0a64f8363a
+7ff5caf73255ace88de45095cd402405
+edabe2e2ed84c5b66c200b1b2e3822fb
+33c988b98da807810c0501981b1ab445
+801275945a60fecb7fca4a4e54dcb60c
+ba21d81bc7bd6e9ae42faf6f3ca46947
+f7447a98e1e857c8ccfe56966a36a746
+55f920406cb1ab20e76bdaa98663e361
+168dee9b7f2651df344e5ea4ef4c1e2a
+4513835928e5ad3e43cb32959a46485c
+Task ':makeStart' is not up-to-date because:
+  Output property 'startOut' file C:\Users\jason\.gradle\caches\minecraft\net\minecraftforge\forge\1.12.2-14.23.5.2847\start\.cache has been removed.
+[ant:javac] Compiling 6 source files to C:\Users\jason\.gradle\caches\minecraft\net\minecraftforge\forge\1.12.2-14.23.5.2847\start
+:makeStart (Thread[Task worker for ':' Thread 6,5,main]) completed. Took 0.392 secs.
+:runClient (Thread[Task worker for ':' Thread 6,5,main]) started.
+
+> Task :runClient
+Task ':runClient' is not up-to-date because:
+  No history is available.
+Starting process 'command 'C:\Program Files\Eclipse Adoptium\jdk-8.0.472.8-hotspot\bin\java.exe''. Working directory: C:\mywork\BSTweaker\run Command: C:\Program Files\Eclipse Adoptium\jdk-8.0.472.8-hotspot\bin\java.exe -Dfile.encoding=x-windows-950 -Duser.country=TW -Duser.language=zh -Duser.variant -cp C:\mywork\BSTweaker\libs\better_survival.jar;C:\mywork\BSTweaker\libs\README.md;C:\mywork\BSTweaker\libs\`FermiumBooter-1.2.0.jar;C:\Users\jason\.gradle\caches\minecraft\deobfedDeps\compileDummy.jar;C:\Users\jason\.gradle\caches\minecraft\deobfedDeps\providedDummy.jar;C:\Users\jason\.gradle\caches\minecraft\net\minecraftforge\forge\1.12.2-14.23.5.2847\stable\39\forgeSrc-1.12.2-14.23.5.2847.jar;C:\Users\jason\.gradle\caches\modules-2\files-2.1\com.mojang\authlib\1.5.25\9834cdf236c22e84b946bba989e2f94ef5897c3c\authlib-1.5.25.jar;C:\Users\jason\.gradle\caches\modules-2\files-2.1\com.google.code.findbugs\jsr305\3.0.1\f7be08ec23c21485b9b5a1cf1654c2ec8c58168d\jsr305-3.0.1.jar;C:\Users\jason\.gradle\caches\modules-2\files-2.1\com.mojang\patchy\1.3.9\eb8bb7b66fa0e2152b1b40b3856e82f7619439ee\patchy-1.3.9.jar;C:\Users\jason\.gradle\caches\modules-2\files-2.1\oshi-project\oshi-core\1.1\9ddf7b048a8d701be231c0f4f95fd986198fd2d8\oshi-core-1.1.jar;C:\Users\jason\.gradle\caches\modules-2\files-2.1\com.mojang\text2speech\1.10.3\48fd510879dff266c3815947de66e3d4809f8668\text2speech-1.10.3.jar;C:\Users\jason\.gradle\caches\modules-2\files-2.1\ca.weblite\java-objc-bridge\1.0.0\6ef160c3133a78de015830860197602ca1c855d3\java-objc-bridge-1.0.0.jar;C:\Users\jason\.gradle\caches\modules-2\files-2.1\net.java.dev.jna\jna\4.4.0\cb208278274bf12ebdb56c61bd7407e6f774d65a\jna-4.4.0.jar;C:\Users\jason\.gradle\caches\modules-2\files-2.1\net.java.dev.jna\platform\3.4.0\e3f70017be8100d3d6923f50b3d2ee17714e9c13\platform-3.4.0.jar;C:\Users\jason\.gradle\caches\modules-2\files-2.1\com.ibm.icu\icu4j-core-mojang\51.2\63d216a9311cca6be337c1e458e587f99d382b84\icu4j-core-mojang-51.2.jar;C:\Users\jason\.gradle\caches\modules-2\files-2.1\net.minecraft\launchwrapper\1.12\111e7bea9c968cdb3d06ef4632bf7ff0824d0f36\launchwrapper-1.12.jar;C:\Users\jason\.gradle\caches\modules-2\files-2.1\net.sf.jopt-simple\jopt-simple\5.0.3\cdd846cfc4e0f7eefafc02c0f5dce32b9303aa2a\jopt-simple-5.0.3.jar;C:\Users\jason\.gradle\caches\modules-2\files-2.1\io.netty\netty-all\4.1.9.Final\97860965d6a0a6b98e7f569f3f966727b8db75\netty-all-4.1.9.Final.jar;C:\Users\jason\.gradle\caches\modules-2\files-2.1\com.google.guava\guava\21.0\3a3d111be1be1b745edfa7d91678a12d7ed38709\guava-21.0.jar;C:\Users\jason\.gradle\caches\modules-2\files-2.1\org.apache.maven\maven-artifact\3.5.3\7dc72b6d6d8a6dced3d294ed54c2cc3515ade9f4\maven-artifact-3.5.3.jar;C:\Users\jason\.gradle\caches\modules-2\files-2.1\org.apache.commons\commons-lang3\3.5\6c6c702c89bfff3cd9e80b04d668c5e190d588c6\commons-lang3-3.5.jar;C:\Users\jason\.gradle\caches\modules-2\files-2.1\commons-io\commons-io\2.5\2852e6e05fbb95076fc091f6d1780f1f8fe35e0f\commons-io-2.5.jar;C:\Users\jason\.gradle\caches\modules-2\files-2.1\com.mojang\realms\1.10.22\bd0dccebdf3744c75f1ca20063f16e8f7d5e663f\realms-1.10.22.jar;C:\Users\jason\.gradle\caches\modules-2\files-2.1\org.apache.httpcomponents\httpclient\4.3.3\18f4247ff4572a074444572cee34647c43e7c9c7\httpclient-4.3.3.jar;C:\Users\jason\.gradle\caches\modules-2\files-2.1\commons-codec\commons-codec\1.10\4b95f4897fa13f2cd904aee711aeafc0c5295cd8\commons-codec-1.10.jar;C:\Users\jason\.gradle\caches\modules-2\files-2.1\com.paulscode\librarylwjglopenal\20100824\73e80d0794c39665aec3f62eee88ca91676674ef\librarylwjglopenal-20100824.jar;C:\Users\jason\.gradle\caches\modules-2\files-2.1\org.lwjgl.lwjgl\lwjgl_util\2.9.4-nightly-20150209\d51a7c040a721d13efdfbd34f8b257b2df882ad0\lwjgl_util-2.9.4-nightly-20150209.jar;C:\Users\jason\.gradle\caches\modules-2\files-2.1\org.lwjgl.lwjgl\lwjgl\2.9.4-nightly-20150209\697517568c68e78ae0b4544145af031c81082dfe\lwjgl-2.9.4-nightly-20150209.jar;C:\Users\jason\.gradle\caches\modules-2\files-2.1\net.java.jinput\jinput\2.0.5\39c7796b469a600f72380316f6b1f11db6c2c7c4\jinput-2.0.5.jar;C:\Users\jason\.gradle\caches\modules-2\files-2.1\net.java.jutils\jutils\1.0.0\e12fe1fda814bd348c1579329c86943d2cd3c6a6\jutils-1.0.0.jar;C:\Users\jason\.gradle\caches\modules-2\files-2.1\com.google.code.gson\gson\2.8.0\c4ba5371a29ac9b2ad6129b1d39ea38750043eff\gson-2.8.0.jar;C:\Users\jason\.gradle\caches\modules-2\files-2.1\org.apache.commons\commons-compress\1.8.1\a698750c16740fd5b3871425f4cb3bbaa87f529d\commons-compress-1.8.1.jar;C:\Users\jason\.gradle\caches\modules-2\files-2.1\commons-logging\commons-logging\1.1.3\f6f66e966c70a83ffbdb6f17a0919eaf7c8aca7f\commons-logging-1.1.3.jar;C:\Users\jason\.gradle\caches\modules-2\files-2.1\org.apache.httpcomponents\httpcore\4.3.2\31fbbff1ddbf98f3aa7377c94d33b0447c646b6e\httpcore-4.3.2.jar;C:\Users\jason\.gradle\caches\modules-2\files-2.1\it.unimi.dsi\fastutil\7.1.0\9835253257524c1be7ab50c057aa2d418fb72082\fastutil-7.1.0.jar;C:\Users\jason\.gradle\caches\modules-2\files-2.1\org.apache.logging.log4j\log4j-core\2.8.1\4ac28ff2f1ddf05dae3043a190451e8c46b73c31\log4j-core-2.8.1.jar;C:\Users\jason\.gradle\caches\modules-2\files-2.1\org.apache.logging.log4j\log4j-api\2.8.1\e801d13612e22cad62a3f4f3fe7fdbe6334a8e72\log4j-api-2.8.1.jar;C:\Users\jason\.gradle\caches\modules-2\files-2.1\org.jline\jline\3.5.1\51800e9d7a13608894a5a28eed0f5c7fa2f300fb\jline-3.5.1.jar;C:\Users\jason\.gradle\caches\modules-2\files-2.1\org.ow2.asm\asm-debug-all\5.2\3354e11e2b34215f06dab629ab88e06aca477c19\asm-debug-all-5.2.jar;C:\Users\jason\.gradle\caches\modules-2\files-2.1\com.typesafe.akka\akka-actor_2.11\2.3.3\ed62e9fc709ca0f2ff1a3220daa8b70a2870078e\akka-actor_2.11-2.3.3.jar;C:\Users\jason\.gradle\caches\modules-2\files-2.1\com.typesafe\config\1.2.1\f771f71fdae3df231bcd54d5ca2d57f0bf93f467\config-1.2.1.jar;C:\Users\jason\.gradle\caches\modules-2\files-2.1\org.scala-lang\scala-actors-migration_2.11\1.1.0\dfa8bc42b181d5b9f1a5dd147f8ae308b893eb6f\scala-actors-migration_2.11-1.1.0.jar;C:\Users\jason\.gradle\caches\modules-2\files-2.1\org.scala-lang.plugins\scala-continuations-plugin_2.11.1\1.0.2\f361a3283452c57fa30c1ee69448995de23c60f7\scala-continuations-plugin_2.11.1-1.0.2.jar;C:\Users\jason\.gradle\caches\modules-2\files-2.1\org.scala-lang\scala-compiler\2.11.1\56ea2e6c025e0821f28d73ca271218b8dd04926a\scala-compiler-2.11.1.jar;C:\Users\jason\.gradle\caches\modules-2\files-2.1\org.scala-lang.plugins\scala-continuations-library_2.11\1.0.2\e517c53a7e9acd6b1668c5a35eccbaa3bab9aac\scala-continuations-library_2.11-1.0.2.jar;C:\Users\jason\.gradle\caches\modules-2\files-2.1\org.scala-lang.modules\scala-parser-combinators_2.11\1.0.1\f05d7345bf5a58924f2837c6c1f4d73a938e1ff0\scala-parser-combinators_2.11-1.0.1.jar;C:\Users\jason\.gradle\caches\modules-2\files-2.1\org.scala-lang\scala-reflect\2.11.1\6580347e61cc7f8e802941e7fde40fa83b8badeb\scala-reflect-2.11.1.jar;C:\Users\jason\.gradle\caches\modules-2\files-2.1\org.scala-lang.modules\scala-swing_2.11\1.0.1\b1cdd92bd47b1e1837139c1c53020e86bb9112ae\scala-swing_2.11-1.0.1.jar;C:\Users\jason\.gradle\caches\modules-2\files-2.1\org.scala-lang.modules\scala-xml_2.11\1.0.2\820fbca7e524b530fdadc594c39d49a21ea0337e\scala-xml_2.11-1.0.2.jar;C:\Users\jason\.gradle\caches\modules-2\files-2.1\org.scala-lang\scala-actors\2.11.0\8ccfb6541de179bb1c4d45cf414acee069b7f78b\scala-actors-2.11.0.jar;C:\Users\jason\.gradle\caches\modules-2\files-2.1\org.scala-lang\scala-library\2.11.1\e11da23da3eabab9f4777b9220e60d44c1aab6a\scala-library-2.11.1.jar;C:\Users\jason\.gradle\caches\modules-2\files-2.1\lzma\lzma\0.0.1\521616dc7487b42bef0e803bd2fa3faf668101d7\lzma-0.0.1.jar;C:\Users\jason\.gradle\caches\modules-2\files-2.1\net.sf.trove4j\trove4j\3.0.3\42ccaf4761f0dfdfa805c9e340d99a755907e2dd\trove4j-3.0.3.jar;C:\Users\jason\.gradle\caches\modules-2\files-2.1\com.paulscode\codecjorbis\20101023\c73b5636faf089d9f00e8732a829577de25237ee\codecjorbis-20101023.jar;C:\Users\jason\.gradle\caches\modules-2\files-2.1\com.paulscode\codecwav\20101023\12f031cfe88fef5c1dd36c563c0a3a69bd7261da\codecwav-20101023.jar;C:\Users\jason\.gradle\caches\modules-2\files-2.1\com.paulscode\libraryjavasound\20101123\5c5e304366f75f9eaa2e8cca546a1fb6109348b3\libraryjavasound-20101123.jar;C:\Users\jason\.gradle\caches\modules-2\files-2.1\com.paulscode\soundsystem\20120107\419c05fe9be71f792b2d76cfc9b67f1ed0fec7f6\soundsystem-20120107.jar;C:\Users\jason\.gradle\caches\modules-2\files-2.1\java3d\vecmath\1.5.2\79846ba34cbd89e2422d74d53752f993dcc2ccaf\vecmath-1.5.2.jar;C:\Users\jason\.gradle\caches\modules-2\files-2.1\org.codehaus.plexus\plexus-utils\3.1.0\60eecb6f15abdb1c653ad80abaac6fe188b3feaa\plexus-utils-3.1.0.jar;C:\Users\jason\.gradle\caches\modules-2\files-2.1\net.java.jinput\jinput-platform\2.0.5\7ff832a6eb9ab6a767f1ade2b548092d0fa64795\jinput-platform-2.0.5-natives-linux.jar;C:\Users\jason\.gradle\caches\modules-2\files-2.1\net.java.jinput\jinput-platform\2.0.5\385ee093e01f587f30ee1c8a2ee7d408fd732e16\jinput-platform-2.0.5-natives-windows.jar;C:\Users\jason\.gradle\caches\modules-2\files-2.1\net.java.jinput\jinput-platform\2.0.5\53f9c919f34d2ca9de8c51fc4e1e8282029a9232\jinput-platform-2.0.5-natives-osx.jar;C:\Users\jason\.gradle\caches\modules-2\files-2.1\org.lwjgl.lwjgl\lwjgl-platform\2.9.4-nightly-20150209\b84d5102b9dbfabfeb5e43c7e2828d98a7fc80e0\lwjgl-platform-2.9.4-nightly-20150209-natives-windows.jar;C:\Users\jason\.gradle\caches\modules-2\files-2.1\org.lwjgl.lwjgl\lwjgl-platform\2.9.4-nightly-20150209\931074f46c795d2f7b30ed6395df5715cfd7675b\lwjgl-platform-2.9.4-nightly-20150209-natives-linux.jar;C:\Users\jason\.gradle\caches\modules-2\files-2.1\org.lwjgl.lwjgl\lwjgl-platform\2.9.4-nightly-20150209\bcab850f8f487c3f4c4dbabde778bb82bd1a40ed\lwjgl-platform-2.9.4-nightly-20150209-natives-osx.jar;C:\Users\jason\.gradle\caches\minecraft\net\minecraftforge\forge\1.12.2-14.23.5.2847\start;C:\mywork\BSTweaker\build\libs\bstweaker-1.0.1.jar GradleStart
+Successfully started process 'command 'C:\Program Files\Eclipse Adoptium\jdk-8.0.472.8-hotspot\bin\java.exe''
+[18:11:17] [main/INFO] [GradleStart]: Extra: []
+[18:11:17] [main/INFO] [GradleStart]: Found and added coremod: fermiumbooter.FermiumPlugin
+[18:11:17] [main/INFO] [GradleStart]: Found and added coremod: com.mujmajnkraft.bstweaker.core.BSTweakerMixinPlugin
+[18:11:17] [main/INFO] [GradleStart]: Running with arguments: [--userProperties, {}, --assetsDir, C:/Users/jason/.gradle/caches/minecraft/assets, --assetIndex, 1.12, --accessToken{REDACTED}, --version, 1.12.2, --tweakClass, net.minecraftforge.fml.common.launcher.FMLTweaker, --tweakClass, net.minecraftforge.gradle.tweakers.CoremodTweaker]
+[18:11:17] [main/INFO] [LaunchWrapper]: Loading tweak class name net.minecraftforge.fml.common.launcher.FMLTweaker
+[18:11:17] [main/INFO] [LaunchWrapper]: Using primary tweak class name net.minecraftforge.fml.common.launcher.FMLTweaker
+[18:11:17] [main/INFO] [LaunchWrapper]: Loading tweak class name net.minecraftforge.gradle.tweakers.CoremodTweaker
+[18:11:17] [main/INFO] [LaunchWrapper]: Calling tweak class net.minecraftforge.fml.common.launcher.FMLTweaker
+[18:11:17] [main/INFO] [FML]: Forge Mod Loader version 14.23.5.2847 for Minecraft 1.12.2 loading
+[18:11:17] [main/INFO] [FML]: Java is OpenJDK 64-Bit Server VM, version 1.8.0_472, running on Windows 11:amd64:10.0, installed at C:\Program Files\Eclipse Adoptium\jdk-8.0.472.8-hotspot\jre
+[18:11:17] [main/ERROR] [FML]: Apache Maven library folder was not in the format expected. Using default libraries directory.
+[18:11:17] [main/ERROR] [FML]: Full: C:\Users\jason\.gradle\caches\modules-2\files-2.1\org.apache.maven\maven-artifact\3.5.3\7dc72b6d6d8a6dced3d294ed54c2cc3515ade9f4\maven-artifact-3.5.3.jar
+[18:11:17] [main/ERROR] [FML]: Trimmed: c:/users/jason/.gradle/caches/modules-2/files-2.1/org.apache.maven/maven-artifact/3.5.3/
+[18:11:17] [main/INFO] [FML]: Managed to load a deobfuscated Minecraft name- we are in a deobfuscated environment. Skipping runtime deobfuscation
+[18:11:17] [main/INFO] [FML]: Detected deobfuscated environment, loading log configs for colored console logs.
+2026-02-04 18:11:18,367 main WARN Disabling terminal, you're running in an unsupported environment.
+[18:11:18] [main/INFO] [FML]: Ignoring missing certificate for coremod FMLCorePlugin (net.minecraftforge.fml.relauncher.FMLCorePlugin), we are in deobf and it's a forge core plugin
+[18:11:18] [main/INFO] [FML]: Ignoring missing certificate for coremod FMLForgePlugin (net.minecraftforge.classloading.FMLForgePlugin), we are in deobf and it's a forge core plugin
+[18:11:18] [main/INFO] [FML]: Found a command line coremod : com.mujmajnkraft.bstweaker.core.BSTweakerMixinPlugin
+[18:11:18] [main/INFO] [FermiumRegistryAPI]: FermiumRegistryAPI supplied "mixins.bstweaker.json" for late mixin enqueue, adding.
+[18:11:18] [main/INFO] [BSTweaker]: Mixin queued via FermiumBooter
+[18:11:18] [main/INFO] [FML]: Ignoring missing certificate for coremod BSTweakerCore (com.mujmajnkraft.bstweaker.core.BSTweakerMixinPlugin), as this is probably a dev workspace
+[18:11:18] [main/INFO] [FML]: Found a command line coremod : fermiumbooter.FermiumPlugin
+[18:11:18] [main/INFO] [FML]: Ignoring missing certificate for coremod FermiumBooter (fermiumbooter.FermiumPlugin), as this is probably a dev workspace
+[18:11:18] [main/INFO] [mixin]: SpongePowered MIXIN Subsystem Version=0.8.7 Source=file:/C:/mywork/BSTweaker/libs/%60FermiumBooter-1.2.0.jar Service=LaunchWrapper Env=CLIENT
+[18:11:18] [main/INFO] [mixin]: Initialised Mixin FML Remapper Adapter with net.minecraftforge.fml.common.asm.transformers.deobf.FMLDeobfuscatingRemapper@600b90df
+[18:11:18] [main/INFO] [mixin]: Compatibility level set to JAVA_8
+[18:11:18] [main/INFO] [FML]: Searching C:\mywork\BSTweaker\run\.\mods for mods
+[18:11:18] [main/INFO] [FML]: Loading tweaker org.spongepowered.asm.launch.MixinTweaker from `FermiumBooter-1.2.0.jar
+[18:11:18] [main/WARN] [FML]: Found FMLCorePluginContainsFMLMod marker in ReachFix-1.12.2-1.1.3.jar. This is not recommended, @Mods should be in a separate jar from the coremod.
+[18:11:18] [main/WARN] [FML]: The coremod ReachFixPlugin (meldexun.reachfix.asm.ReachFixPlugin) is not signed!
+[18:11:18] [main/INFO] [LaunchWrapper]: Calling tweak class net.minecraftforge.gradle.tweakers.CoremodTweaker
+[18:11:18] [main/INFO] [GradleStart]: Injecting location in coremod net.minecraftforge.fml.relauncher.FMLCorePlugin
+[18:11:18] [main/INFO] [GradleStart]: Injecting location in coremod net.minecraftforge.classloading.FMLForgePlugin
+[18:11:18] [main/INFO] [GradleStart]: Injecting location in coremod com.mujmajnkraft.bstweaker.core.BSTweakerMixinPlugin
+[18:11:18] [main/INFO] [GradleStart]: Injecting location in coremod fermiumbooter.FermiumPlugin
+[18:11:18] [main/INFO] [GradleStart]: Injecting location in coremod meldexun.reachfix.asm.ReachFixPlugin
+[18:11:18] [main/INFO] [LaunchWrapper]: Loading tweak class name net.minecraftforge.fml.common.launcher.FMLInjectionAndSortingTweaker
+[18:11:18] [main/INFO] [LaunchWrapper]: Loading tweak class name org.spongepowered.asm.mixin.EnvironmentStateTweaker
+[18:11:18] [main/INFO] [LaunchWrapper]: Loading tweak class name org.spongepowered.asm.launch.MixinTweaker
+[18:11:18] [main/INFO] [LaunchWrapper]: Loading tweak class name net.minecraftforge.fml.common.launcher.FMLDeobfTweaker
+[18:11:18] [main/INFO] [LaunchWrapper]: Loading tweak class name net.minecraftforge.gradle.tweakers.AccessTransformerTweaker
+[18:11:18] [main/INFO] [LaunchWrapper]: Calling tweak class net.minecraftforge.fml.common.launcher.FMLInjectionAndSortingTweaker
+[18:11:18] [main/INFO] [LaunchWrapper]: Calling tweak class net.minecraftforge.fml.common.launcher.FMLInjectionAndSortingTweaker
+[18:11:18] [main/INFO] [LaunchWrapper]: Calling tweak class net.minecraftforge.fml.relauncher.CoreModManager$FMLPluginWrapper
+[18:11:18] [main/ERROR] [FML]: FML appears to be missing any signature data. This is not a good thing
+[18:11:18] [main/INFO] [LaunchWrapper]: Calling tweak class net.minecraftforge.fml.relauncher.CoreModManager$FMLPluginWrapper
+[18:11:18] [main/INFO] [LaunchWrapper]: Calling tweak class org.spongepowered.asm.mixin.EnvironmentStateTweaker
+[18:11:18] [main/INFO] [LaunchWrapper]: Calling tweak class org.spongepowered.asm.launch.MixinTweaker
+[18:11:18] [main/WARN] [mixin]: Multiple Mixin containers present, init suppressed for 0.8.7
+[18:11:18] [main/INFO] [LaunchWrapper]: Calling tweak class net.minecraftforge.fml.relauncher.CoreModManager$FMLPluginWrapper
+[18:11:18] [main/INFO] [LaunchWrapper]: Calling tweak class net.minecraftforge.fml.common.launcher.FMLDeobfTweaker
+[18:11:18] [main/INFO] [mixin]: Remapping refMap mixins.fermiumbooter.refmap.json using C:\Users\jason\.gradle\caches\minecraft\de\oceanlabs\mcp\mcp_stable\39\1.12.2\srgs\srg-mcp.srg
+[18:11:18] [main/INFO] [MixinExtras|Service]: Initializing MixinExtras via com.llamalad7.mixinextras.service.MixinExtrasServiceImpl(version=0.4.1).
+[18:11:19] [main/INFO] [LaunchWrapper]: Calling tweak class net.minecraftforge.fml.relauncher.CoreModManager$FMLPluginWrapper
+[18:11:19] [main/INFO] [LaunchWrapper]: Calling tweak class net.minecraftforge.gradle.tweakers.AccessTransformerTweaker
+[18:11:19] [main/INFO] [GradleStart]: Remapping AccessTransformer rules...
+[18:11:19] [main/INFO] [LaunchWrapper]: Calling tweak class net.minecraftforge.fml.relauncher.CoreModManager$FMLPluginWrapper
+[18:11:19] [main/WARN] [BSTweaker]: BetterSurvival JAR not found, falling back to resource pack
+[18:11:19] [main/INFO] [LaunchWrapper]: Loading tweak class name net.minecraftforge.fml.common.launcher.TerminalTweaker
+[18:11:19] [main/INFO] [LaunchWrapper]: Calling tweak class net.minecraftforge.fml.common.launcher.TerminalTweaker
+[18:11:19] [main/INFO] [LaunchWrapper]: Launching wrapped minecraft {net.minecraft.client.main.Main}
+[18:11:19] [Client thread/INFO] [minecraft/Minecraft]: Setting user: Player984
+[18:11:20] [Client thread/INFO] [minecraft/Minecraft]: LWJGL Version: 2.9.4
+[18:11:20] [Client thread/INFO] [FML]: -- System Details --
+Details:
+	Minecraft Version: 1.12.2
+	Operating System: Windows 11 (amd64) version 10.0
+	Java Version: 1.8.0_472, Temurin
+	Java VM Version: OpenJDK 64-Bit Server VM (mixed mode), Temurin
+	Memory: 1257003480 bytes (1198 MB) / 1418199040 bytes (1352 MB) up to 15176040448 bytes (14473 MB)
+	JVM Flags: 0 total; 
+	IntCache: cache: 0, tcache: 0, allocated: 0, tallocated: 0
+	FML: 
+	Loaded coremods (and transformers): 
+ReachFixPlugin (ReachFix-1.12.2-1.1.3.jar)
+  meldexun.reachfix.asm.ReachFixClassTransformer
+BSTweakerCore (bstweaker-1.0.1.jar)
+  
+FermiumBooter (`FermiumBooter-1.2.0.jar)
+  
+	GL info: ' Vendor: 'NVIDIA Corporation' Version: '4.6.0 NVIDIA 591.44' Renderer: 'NVIDIA GeForce RTX 5070/PCIe/SSE2'
+[18:11:20] [Client thread/INFO] [FML]: MinecraftForge v14.23.5.2847 Initialized
+[18:11:20] [Client thread/INFO] [FML]: Starts to replace vanilla recipe ingredients with ore ingredients.
+[18:11:20] [Client thread/INFO] [FML]: Invalid recipe found with multiple oredict ingredients in the same ingredient...
+[18:11:20] [Client thread/INFO] [FML]: Replaced 1227 ore ingredients
+[18:11:20] [Client thread/INFO] [FML]: Searching C:\mywork\BSTweaker\run\.\mods for mods
+[18:11:20] [Client thread/WARN] [FML]: Zip file README.md failed to read properly, it will be ignored
+java.util.zip.ZipException: error in opening zip file
+	at java.util.zip.ZipFile.open(Native Method) ~[?:1.8.0_472]
+	at java.util.zip.ZipFile.<init>(ZipFile.java:231) ~[?:1.8.0_472]
+	at java.util.zip.ZipFile.<init>(ZipFile.java:157) ~[?:1.8.0_472]
+	at java.util.jar.JarFile.<init>(JarFile.java:169) ~[?:1.8.0_472]
+	at java.util.jar.JarFile.<init>(JarFile.java:133) ~[?:1.8.0_472]
+	at net.minecraftforge.fml.common.discovery.JarDiscoverer.discover(JarDiscoverer.java:56) [JarDiscoverer.class:?]
+	at net.minecraftforge.fml.common.discovery.ContainerType.findMods(ContainerType.java:47) [ContainerType.class:?]
+	at net.minecraftforge.fml.common.discovery.ModCandidate.explore(ModCandidate.java:74) [ModCandidate.class:?]
+	at net.minecraftforge.fml.common.discovery.ModDiscoverer.identifyMods(ModDiscoverer.java:93) [ModDiscoverer.class:?]
+	at net.minecraftforge.fml.common.Loader.identifyMods(Loader.java:427) [Loader.class:?]
+	at net.minecraftforge.fml.common.Loader.loadMods(Loader.java:568) [Loader.class:?]
+	at net.minecraftforge.fml.client.FMLClientHandler.beginMinecraftLoading(FMLClientHandler.java:232) [FMLClientHandler.class:?]
+	at net.minecraft.client.Minecraft.init(Minecraft.java:514) [Minecraft.class:?]
+	at net.minecraft.client.Minecraft.run(Minecraft.java:422) [Minecraft.class:?]
+	at net.minecraft.client.main.Main.main(Main.java:118) [Main.class:?]
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[?:1.8.0_472]
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62) ~[?:1.8.0_472]
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[?:1.8.0_472]
+	at java.lang.reflect.Method.invoke(Method.java:498) ~[?:1.8.0_472]
+	at net.minecraft.launchwrapper.Launch.launch(Launch.java:135) [launchwrapper-1.12.jar:?]
+	at net.minecraft.launchwrapper.Launch.main(Launch.java:28) [launchwrapper-1.12.jar:?]
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[?:1.8.0_472]
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62) ~[?:1.8.0_472]
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[?:1.8.0_472]
+	at java.lang.reflect.Method.invoke(Method.java:498) ~[?:1.8.0_472]
+	at net.minecraftforge.gradle.GradleStartCommon.launch(GradleStartCommon.java:97) [start/:?]
+	at GradleStart.main(GradleStart.java:25) [start/:?]
+[18:11:21] [Client thread/WARN] [FML]: Mod reachfix is missing the required element 'version' and a version.properties file could not be found. Falling back to metadata version 1.1.3
+[18:11:21] [Client thread/INFO] [FML]: Forge Mod Loader has identified 8 mods to load
+[18:11:21] [Client thread/INFO] [FermiumBooter]: FermiumBooter adding "mixins.bstweaker.json" for late mixin application.
+[18:11:21] [Client thread/INFO] [mixin]: Remapping refMap mixins.bstweaker.refmap.json using C:\Users\jason\.gradle\caches\minecraft\de\oceanlabs\mcp\mcp_stable\39\1.12.2\srgs\srg-mcp.srg
+[18:11:21] [Client thread/INFO] [FML]: Attempting connection with missing mods [minecraft, mcp, FML, forge, mujmajnkraftsbettersurvival, bstweaker, fermiumbooter, reachfix] at CLIENT
+[18:11:21] [Client thread/INFO] [FML]: Attempting connection with missing mods [minecraft, mcp, FML, forge, mujmajnkraftsbettersurvival, bstweaker, fermiumbooter, reachfix] at SERVER
+[18:11:21] [Client thread/INFO] [minecraft/SimpleReloadableResourceManager]: Reloading ResourceManager: Default, FMLFileResourcePack:Forge Mod Loader, FMLFileResourcePack:Minecraft Forge, FMLFileResourcePack:Better Survival, FMLFileResourcePack:BetterSurvival Tweaker, FMLFileResourcePack:FermiumBooter, FMLFileResourcePack:Reach Fix
+[18:11:21] [Client thread/INFO] [ASMUtil]: Transforming class net/minecraft/client/renderer/EntityRenderer
+[18:11:21] [Client thread/INFO] [ASMUtil]: Transforming method net/minecraft/client/renderer/EntityRenderer.getMouseOver(F)V
+[18:11:21] [Client thread/INFO] [FML]: Processing ObjectHolder annotations
+[18:11:21] [Client thread/INFO] [FML]: Found 1168 ObjectHolder annotations
+[18:11:21] [Client thread/INFO] [FML]: Identifying ItemStackHolder annotations
+[18:11:21] [Client thread/INFO] [FML]: Found 0 ItemStackHolder annotations
+[18:11:21] [Client thread/INFO] [FML]: Configured a dormant chunk cache size of 0
+[18:11:21] [Forge Version Check/INFO] [forge.VersionCheck]: [forge] Starting version check at http://files.minecraftforge.net/maven/net/minecraftforge/forge/promotions_slim.json
+[18:11:21] [Client thread/INFO] [bstweaker]: BSTweaker PreInit
+[18:11:21] [Client thread/INFO] [bstweaker]: Config dir: C:\mywork\BSTweaker\run\config\bstweaker
+[18:11:21] [Client thread/INFO] [bstweaker]: Assets dir: C:\mywork\BSTweaker\run\assets\mujmajnkraftsbettersurvival
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemwarspear.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemumbrium spear.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemumbrium nunchakuspinning.png.mcmeta
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemumbrium nunchakuspinning.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemumbrium nunchaku.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemumbrium hammer.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemumbrium dagger.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemumbrium battleaxe.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemsentientnunchakuspinning.png.mcmeta
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemsentientnunchakuspinning.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemsentientnunchaku.png.mcmeta
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemsentientnunchaku.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemscarlitespear.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemscarlitenunchakuspinning.png.mcmeta
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemscarlitenunchakuspinning.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemscarlitenunchaku.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemscarlitehammer.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemscarlitedagger.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemscarlitebattleaxe.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemrefineobnunchakuspinning.png.mcmeta
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemrefineobnunchakuspinning.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemrefineobnunchaku.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemobsidian spear.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemobsidian nunchakuspinning.png.mcmeta
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemobsidian nunchakuspinning.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemobsidian nunchaku.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemobsidian hammer.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemobsidian dagger.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemobsidian battleaxe.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemlightingdragonsteel spear.png.mcmeta
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemlightingdragonsteel spear.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemlightingdragonsteel nunchakuspinning.png.mcmeta
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemlightingdragonsteel nunchakuspinning.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemlightingdragonsteel nunchaku.png.mcmeta
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemlightingdragonsteel nunchaku.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemlightingdragonsteel hammer.png.mcmeta
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemlightingdragonsteel hammer.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemlightingdragonsteel dagger.png.mcmeta
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemlightingdragonsteel dagger.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemlightingdragonsteel battleaxe.png.mcmeta
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemlightingdragonsteel battleaxe.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemill battleaxe.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemicedragonsteel spear.png.mcmeta
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemicedragonsteel spear.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemicedragonsteel nunchakuspinning.png.mcmeta
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemicedragonsteel nunchakuspinning.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemicedragonsteel nunchaku.png.mcmeta
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemicedragonsteel nunchaku.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemicedragonsteel hammer.png.mcmeta
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemicedragonsteel hammer.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemicedragonsteel dagger.png.mcmeta
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemicedragonsteel dagger.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemicedragonsteel battleaxe.png.mcmeta
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemicedragonsteel battleaxe.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemfiredragonsteelbattleaxe.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemfiredragonsteel spear.png.mcmeta
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemfiredragonsteel spear.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemfiredragonsteel nunchakuspinning.png.mcmeta
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemfiredragonsteel nunchakuspinning.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemfiredragonsteel nunchaku.png.mcmeta
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemfiredragonsteel nunchaku.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemfiredragonsteel hammer.png.mcmeta
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemfiredragonsteel hammer.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemfiredragonsteel dagger.png.mcmeta
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemfiredragonsteel dagger.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemfiredragonsteel battleaxe.png.mcmeta
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itemfiredragonsteel battleaxe.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itememeraldspear.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itememeraldnunchakuspinning.png.mcmeta
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itememeraldnunchakuspinning.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itememeraldnunchaku.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itememeraldhammer.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itememeralddagger.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: itememeraldbattleaxe.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: hunger_hammer.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Extracted texture: deathdagger_death.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected model: fieryingotnunchaku.json -> itembstweaker_fieryingotnunchaku.json
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected model: fieryingotnunchakuspinning.json -> itembstweaker_fieryingotnunchakuspinning.json
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected model: fieryingotnunchaku_normal.json -> itembstweaker_fieryingotnunchaku_normal.json
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected texture: deathdagger_death.png -> itembstweaker_deathdagger_death.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected texture: hunger_hammer.png -> itembstweaker_hunger_hammer.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected texture: itememeraldbattleaxe.png -> itembstweaker_itememeraldbattleaxe.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected texture: itememeralddagger.png -> itembstweaker_itememeralddagger.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected texture: itememeraldhammer.png -> itembstweaker_itememeraldhammer.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected texture: itememeraldnunchaku.png -> itembstweaker_itememeraldnunchaku.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected texture: itememeraldnunchakuspinning.png -> itembstweaker_itememeraldnunchakuspinning.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected texture: itememeraldspear.png -> itembstweaker_itememeraldspear.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected texture: itemfiredragonsteel battleaxe.png -> itembstweaker_itemfiredragonsteel battleaxe.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected texture: itemfiredragonsteel dagger.png -> itembstweaker_itemfiredragonsteel dagger.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected texture: itemfiredragonsteel hammer.png -> itembstweaker_itemfiredragonsteel hammer.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected texture: itemfiredragonsteel nunchaku.png -> itembstweaker_itemfiredragonsteel nunchaku.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected texture: itemfiredragonsteel nunchakuspinning.png -> itembstweaker_itemfiredragonsteel nunchakuspinning.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected texture: itemfiredragonsteel spear.png -> itembstweaker_itemfiredragonsteel spear.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected texture: itemfiredragonsteelbattleaxe.png -> itembstweaker_itemfiredragonsteelbattleaxe.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected texture: itemicedragonsteel battleaxe.png -> itembstweaker_itemicedragonsteel battleaxe.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected texture: itemicedragonsteel dagger.png -> itembstweaker_itemicedragonsteel dagger.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected texture: itemicedragonsteel hammer.png -> itembstweaker_itemicedragonsteel hammer.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected texture: itemicedragonsteel nunchaku.png -> itembstweaker_itemicedragonsteel nunchaku.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected texture: itemicedragonsteel nunchakuspinning.png -> itembstweaker_itemicedragonsteel nunchakuspinning.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected texture: itemicedragonsteel spear.png -> itembstweaker_itemicedragonsteel spear.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected texture: itemill battleaxe.png -> itembstweaker_itemill battleaxe.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected texture: itemlightingdragonsteel battleaxe.png -> itembstweaker_itemlightingdragonsteel battleaxe.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected texture: itemlightingdragonsteel dagger.png -> itembstweaker_itemlightingdragonsteel dagger.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected texture: itemlightingdragonsteel hammer.png -> itembstweaker_itemlightingdragonsteel hammer.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected texture: itemlightingdragonsteel nunchaku.png -> itembstweaker_itemlightingdragonsteel nunchaku.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected texture: itemlightingdragonsteel nunchakuspinning.png -> itembstweaker_itemlightingdragonsteel nunchakuspinning.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected texture: itemlightingdragonsteel spear.png -> itembstweaker_itemlightingdragonsteel spear.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected texture: itemobsidian battleaxe.png -> itembstweaker_itemobsidian battleaxe.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected texture: itemobsidian dagger.png -> itembstweaker_itemobsidian dagger.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected texture: itemobsidian hammer.png -> itembstweaker_itemobsidian hammer.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected texture: itemobsidian nunchaku.png -> itembstweaker_itemobsidian nunchaku.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected texture: itemobsidian nunchakuspinning.png -> itembstweaker_itemobsidian nunchakuspinning.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected texture: itemobsidian spear.png -> itembstweaker_itemobsidian spear.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected texture: itemrefineobnunchaku.png -> itembstweaker_itemrefineobnunchaku.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected texture: itemrefineobnunchakuspinning.png -> itembstweaker_itemrefineobnunchakuspinning.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected texture: itemscarlitebattleaxe.png -> itembstweaker_itemscarlitebattleaxe.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected texture: itemscarlitedagger.png -> itembstweaker_itemscarlitedagger.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected texture: itemscarlitehammer.png -> itembstweaker_itemscarlitehammer.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected texture: itemscarlitenunchaku.png -> itembstweaker_itemscarlitenunchaku.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected texture: itemscarlitenunchakuspinning.png -> itembstweaker_itemscarlitenunchakuspinning.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected texture: itemscarlitespear.png -> itembstweaker_itemscarlitespear.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected texture: itemsentientnunchaku.png -> itembstweaker_itemsentientnunchaku.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected texture: itemsentientnunchakuspinning.png -> itembstweaker_itemsentientnunchakuspinning.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected texture: itemumbrium battleaxe.png -> itembstweaker_itemumbrium battleaxe.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected texture: itemumbrium dagger.png -> itembstweaker_itemumbrium dagger.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected texture: itemumbrium hammer.png -> itembstweaker_itemumbrium hammer.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected texture: itemumbrium nunchaku.png -> itembstweaker_itemumbrium nunchaku.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected texture: itemumbrium nunchakuspinning.png -> itembstweaker_itemumbrium nunchakuspinning.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected texture: itemumbrium spear.png -> itembstweaker_itemumbrium spear.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected texture: itemwarspear.png -> itembstweaker_itemwarspear.png
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected mcmeta: itememeraldnunchakuspinning.png.mcmeta -> itembstweaker_itememeraldnunchakuspinning.png.mcmeta
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected mcmeta: itemfiredragonsteel battleaxe.png.mcmeta -> itembstweaker_itemfiredragonsteel battleaxe.png.mcmeta
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected mcmeta: itemfiredragonsteel dagger.png.mcmeta -> itembstweaker_itemfiredragonsteel dagger.png.mcmeta
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected mcmeta: itemfiredragonsteel hammer.png.mcmeta -> itembstweaker_itemfiredragonsteel hammer.png.mcmeta
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected mcmeta: itemfiredragonsteel nunchaku.png.mcmeta -> itembstweaker_itemfiredragonsteel nunchaku.png.mcmeta
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected mcmeta: itemfiredragonsteel nunchakuspinning.png.mcmeta -> itembstweaker_itemfiredragonsteel nunchakuspinning.png.mcmeta
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected mcmeta: itemfiredragonsteel spear.png.mcmeta -> itembstweaker_itemfiredragonsteel spear.png.mcmeta
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected mcmeta: itemicedragonsteel battleaxe.png.mcmeta -> itembstweaker_itemicedragonsteel battleaxe.png.mcmeta
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected mcmeta: itemicedragonsteel dagger.png.mcmeta -> itembstweaker_itemicedragonsteel dagger.png.mcmeta
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected mcmeta: itemicedragonsteel hammer.png.mcmeta -> itembstweaker_itemicedragonsteel hammer.png.mcmeta
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected mcmeta: itemicedragonsteel nunchaku.png.mcmeta -> itembstweaker_itemicedragonsteel nunchaku.png.mcmeta
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected mcmeta: itemicedragonsteel nunchakuspinning.png.mcmeta -> itembstweaker_itemicedragonsteel nunchakuspinning.png.mcmeta
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected mcmeta: itemicedragonsteel spear.png.mcmeta -> itembstweaker_itemicedragonsteel spear.png.mcmeta
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected mcmeta: itemlightingdragonsteel battleaxe.png.mcmeta -> itembstweaker_itemlightingdragonsteel battleaxe.png.mcmeta
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected mcmeta: itemlightingdragonsteel dagger.png.mcmeta -> itembstweaker_itemlightingdragonsteel dagger.png.mcmeta
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected mcmeta: itemlightingdragonsteel hammer.png.mcmeta -> itembstweaker_itemlightingdragonsteel hammer.png.mcmeta
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected mcmeta: itemlightingdragonsteel nunchaku.png.mcmeta -> itembstweaker_itemlightingdragonsteel nunchaku.png.mcmeta
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected mcmeta: itemlightingdragonsteel nunchakuspinning.png.mcmeta -> itembstweaker_itemlightingdragonsteel nunchakuspinning.png.mcmeta
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected mcmeta: itemlightingdragonsteel spear.png.mcmeta -> itembstweaker_itemlightingdragonsteel spear.png.mcmeta
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected mcmeta: itemobsidian nunchakuspinning.png.mcmeta -> itembstweaker_itemobsidian nunchakuspinning.png.mcmeta
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected mcmeta: itemrefineobnunchakuspinning.png.mcmeta -> itembstweaker_itemrefineobnunchakuspinning.png.mcmeta
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected mcmeta: itemscarlitenunchakuspinning.png.mcmeta -> itembstweaker_itemscarlitenunchakuspinning.png.mcmeta
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected mcmeta: itemsentientnunchaku.png.mcmeta -> itembstweaker_itemsentientnunchaku.png.mcmeta
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected mcmeta: itemsentientnunchakuspinning.png.mcmeta -> itembstweaker_itemsentientnunchakuspinning.png.mcmeta
+[18:11:21] [Client thread/INFO] [bstweaker]: Injected mcmeta: itemumbrium nunchakuspinning.png.mcmeta -> itembstweaker_itemumbrium nunchakuspinning.png.mcmeta
+[18:11:21] [Client thread/INFO] [bstweaker]: Resource injection completed
+[18:11:21] [Client thread/INFO] [bstweaker]: Dynamic resource pack registered at position 0 (highest priority)
+[18:11:21] [Client thread/INFO] [FML]: Applying holder lookups
+[18:11:21] [Client thread/INFO] [FML]: Holder lookups applied
+[18:11:21] [Client thread/INFO] [STDOUT]: [com.mujmajnkraft.bettersurvival.init.ModItems:handler$zzb000$bstweaker$injectCustomWeaponsAtHead:526]: [BSTweaker] Mixin triggered - registerItems HEAD
+[18:11:22] [Client thread/INFO] [STDOUT]: [com.mujmajnkraft.bettersurvival.init.ModItems:handler$zzb000$bstweaker$injectCustomWeapons:533]: [BSTweaker] Attempting to inject custom weapons...
+[18:11:22] [Client thread/INFO] [STDOUT]: [com.mujmajnkraft.bstweaker.util.TweakerWeaponInjector:copyDefaultConfig:429]: [BSTweaker] Generated default config: scripts.json
+[18:11:22] [Client thread/INFO] [STDOUT]: [com.mujmajnkraft.bstweaker.util.TweakerWeaponInjector:copyDefaultConfig:429]: [BSTweaker] Generated default config: SCRIPT_API.md
+[18:11:22] [Client thread/INFO] [STDOUT]: [com.mujmajnkraft.bstweaker.util.TweakerWeaponInjector:loadMaterial:311]: [BSTweaker] Loaded material: FIERYINGOT
+[18:11:22] [Client thread/INFO] [STDOUT]: [com.mujmajnkraft.bstweaker.util.TweakerWeaponInjector:createWeapon:352]: [BSTweaker] Created weapon: mujmajnkraftsbettersurvival:itembstweaker_fieryingotnunchaku (type=nunchaku, material=FIERYINGOT)
+[18:11:22] [Client thread/INFO] [STDOUT]: [com.mujmajnkraft.bstweaker.util.TweakerWeaponInjector:createWeapons:177]: [BSTweaker] No scripts found for weapon: fieryingotnunchaku (material: fieryingot)
+[18:11:22] [Client thread/INFO] [STDOUT]: [com.mujmajnkraft.bstweaker.util.TweakerWeaponInjector:createWeapons:184]: [BSTweaker] Created 1 custom weapons
+[18:11:22] [Client thread/INFO] [STDOUT]: [com.mujmajnkraft.bettersurvival.init.ModItems:handler$zzb000$bstweaker$injectCustomWeapons:537]: [BSTweaker] Injected 1 custom weapons into BetterSurvival items list
+[18:11:22] [Client thread/INFO] [bstweaker]: Registered model: mujmajnkraftsbettersurvival:itembstweaker_fieryingotnunchaku
+[18:11:22] [Client thread/INFO] [bstweaker]: Registered 1 models for custom weapons.
+[18:11:22] [Client thread/INFO] [FML]: Applying holder lookups
+[18:11:22] [Client thread/INFO] [FML]: Holder lookups applied
+[18:11:22] [Client thread/INFO] [FML]: Applying holder lookups
+[18:11:22] [Client thread/INFO] [FML]: Holder lookups applied
+[18:11:22] [Client thread/INFO] [bstweaker]: onModelRegistry: itemDefinitionMap size = 1
+[18:11:22] [Client thread/INFO] [bstweaker]: Registered model: mujmajnkraftsbettersurvival:itembstweaker_fieryingotnunchaku
+[18:11:22] [Client thread/INFO] [bstweaker]: Registered 1 models.
+[18:11:22] [Client thread/INFO] [FML]: Applying holder lookups
+[18:11:22] [Client thread/INFO] [FML]: Holder lookups applied
+[18:11:22] [Client thread/INFO] [FML]: Injecting itemstacks
+[18:11:22] [Client thread/INFO] [FML]: Itemstack injection complete
+[18:11:22] [Forge Version Check/INFO] [forge.VersionCheck]: [forge] Found status: OUTDATED Target: 14.23.5.2859
+[18:11:22] [Sound Library Loader/INFO] [minecraft/SoundManager]: Starting up SoundSystem...
+[18:11:22] [Thread-3/INFO] [FML]: Using sync timing. 200 frames of Display.update took 197499000 nanos
+[18:11:23] [Thread-5/INFO] [minecraft/SoundManager]: Initializing LWJGL OpenAL
+[18:11:23] [Thread-5/INFO] [minecraft/SoundManager]: (The LWJGL binding of OpenAL.  For more information, see http://www.lwjgl.org)
+[18:11:23] [Thread-5/INFO] [minecraft/SoundManager]: OpenAL initialized.
+[18:11:23] [Sound Library Loader/INFO] [minecraft/SoundManager]: Sound engine started
+[18:11:24] [Client thread/INFO] [FML]: Max texture size: 16384
+[18:11:24] [Client thread/INFO] [minecraft/TextureMap]: Created: 1024x512 textures-atlas
+[18:11:24] [Client thread/ERROR] [FML]: Exception loading model for variant mujmajnkraftsbettersurvival:itembstweaker_fieryingotnunchaku#inventory for item "mujmajnkraftsbettersurvival:itembstweaker_fieryingotnunchaku", normal location exception: 
+net.minecraftforge.client.model.ModelLoaderRegistry$LoaderException: Exception loading model mujmajnkraftsbettersurvival:item/itembstweaker_fieryingotnunchaku with loader VanillaLoader.INSTANCE, skipping
+	at net.minecraftforge.client.model.ModelLoaderRegistry.getModel(ModelLoaderRegistry.java:161) ~[ModelLoaderRegistry.class:?]
+	at net.minecraftforge.client.model.ModelLoader.loadItemModels(ModelLoader.java:302) ~[ModelLoader.class:?]
+	at net.minecraft.client.renderer.block.model.ModelBakery.loadVariantItemModels(ModelBakery.java:175) ~[ModelBakery.class:?]
+	at net.minecraftforge.client.model.ModelLoader.setupModelRegistry(ModelLoader.java:151) ~[ModelLoader.class:?]
+	at net.minecraft.client.renderer.block.model.ModelManager.onResourceManagerReload(ModelManager.java:28) [ModelManager.class:?]
+	at net.minecraft.client.resources.SimpleReloadableResourceManager.registerReloadListener(SimpleReloadableResourceManager.java:132) [SimpleReloadableResourceManager.class:?]
+	at net.minecraft.client.Minecraft.init(Minecraft.java:560) [Minecraft.class:?]
+	at net.minecraft.client.Minecraft.run(Minecraft.java:422) [Minecraft.class:?]
+	at net.minecraft.client.main.Main.main(Main.java:118) [Main.class:?]
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[?:1.8.0_472]
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62) ~[?:1.8.0_472]
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[?:1.8.0_472]
+	at java.lang.reflect.Method.invoke(Method.java:498) ~[?:1.8.0_472]
+	at net.minecraft.launchwrapper.Launch.launch(Launch.java:135) [launchwrapper-1.12.jar:?]
+	at net.minecraft.launchwrapper.Launch.main(Launch.java:28) [launchwrapper-1.12.jar:?]
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[?:1.8.0_472]
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62) ~[?:1.8.0_472]
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[?:1.8.0_472]
+	at java.lang.reflect.Method.invoke(Method.java:498) ~[?:1.8.0_472]
+	at net.minecraftforge.gradle.GradleStartCommon.launch(GradleStartCommon.java:97) [start/:?]
+	at GradleStart.main(GradleStart.java:25) [start/:?]
+Caused by: java.io.FileNotFoundException: mujmajnkraftsbettersurvival:models/item/itembstweaker_fieryingotnunchaku.json
+	at net.minecraft.client.resources.FallbackResourceManager.getResource(FallbackResourceManager.java:73) ~[FallbackResourceManager.class:?]
+	at net.minecraft.client.resources.SimpleReloadableResourceManager.getResource(SimpleReloadableResourceManager.java:65) ~[SimpleReloadableResourceManager.class:?]
+	at net.minecraft.client.renderer.block.model.ModelBakery.loadModel(ModelBakery.java:334) ~[ModelBakery.class:?]
+	at net.minecraftforge.client.model.ModelLoader.access$1400(ModelLoader.java:115) ~[ModelLoader.class:?]
+	at net.minecraftforge.client.model.ModelLoader$VanillaLoader.loadModel(ModelLoader.java:861) ~[ModelLoader$VanillaLoader.class:?]
+	at net.minecraftforge.client.model.ModelLoaderRegistry.getModel(ModelLoaderRegistry.java:157) ~[ModelLoaderRegistry.class:?]
+	... 20 more
+[18:11:24] [Client thread/ERROR] [FML]: Exception loading model for variant mujmajnkraftsbettersurvival:itembstweaker_fieryingotnunchaku#inventory for item "mujmajnkraftsbettersurvival:itembstweaker_fieryingotnunchaku", blockstate location exception: 
+net.minecraftforge.client.model.ModelLoaderRegistry$LoaderException: Exception loading model mujmajnkraftsbettersurvival:itembstweaker_fieryingotnunchaku#inventory with loader VariantLoader.INSTANCE, skipping
+	at net.minecraftforge.client.model.ModelLoaderRegistry.getModel(ModelLoaderRegistry.java:161) ~[ModelLoaderRegistry.class:?]
+	at net.minecraftforge.client.model.ModelLoader.loadItemModels(ModelLoader.java:296) ~[ModelLoader.class:?]
+	at net.minecraft.client.renderer.block.model.ModelBakery.loadVariantItemModels(ModelBakery.java:175) ~[ModelBakery.class:?]
+	at net.minecraftforge.client.model.ModelLoader.setupModelRegistry(ModelLoader.java:151) ~[ModelLoader.class:?]
+	at net.minecraft.client.renderer.block.model.ModelManager.onResourceManagerReload(ModelManager.java:28) [ModelManager.class:?]
+	at net.minecraft.client.resources.SimpleReloadableResourceManager.registerReloadListener(SimpleReloadableResourceManager.java:132) [SimpleReloadableResourceManager.class:?]
+	at net.minecraft.client.Minecraft.init(Minecraft.java:560) [Minecraft.class:?]
+	at net.minecraft.client.Minecraft.run(Minecraft.java:422) [Minecraft.class:?]
+	at net.minecraft.client.main.Main.main(Main.java:118) [Main.class:?]
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[?:1.8.0_472]
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62) ~[?:1.8.0_472]
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[?:1.8.0_472]
+	at java.lang.reflect.Method.invoke(Method.java:498) ~[?:1.8.0_472]
+	at net.minecraft.launchwrapper.Launch.launch(Launch.java:135) [launchwrapper-1.12.jar:?]
+	at net.minecraft.launchwrapper.Launch.main(Launch.java:28) [launchwrapper-1.12.jar:?]
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[?:1.8.0_472]
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62) ~[?:1.8.0_472]
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[?:1.8.0_472]
+	at java.lang.reflect.Method.invoke(Method.java:498) ~[?:1.8.0_472]
+	at net.minecraftforge.gradle.GradleStartCommon.launch(GradleStartCommon.java:97) [start/:?]
+	at GradleStart.main(GradleStart.java:25) [start/:?]
+Caused by: net.minecraft.client.renderer.block.model.ModelBlockDefinition$MissingVariantException
+	at net.minecraft.client.renderer.block.model.ModelBlockDefinition.getVariant(ModelBlockDefinition.java:83) ~[ModelBlockDefinition.class:?]
+	at net.minecraftforge.client.model.ModelLoader$VariantLoader.loadModel(ModelLoader.java:1175) ~[ModelLoader$VariantLoader.class:?]
+	at net.minecraftforge.client.model.ModelLoaderRegistry.getModel(ModelLoaderRegistry.java:157) ~[ModelLoaderRegistry.class:?]
+	... 20 more
+[18:11:24] [Client thread/INFO] [FML]: Applying holder lookups
+[18:11:24] [Client thread/INFO] [FML]: Holder lookups applied
+[18:11:24] [Client thread/INFO] [bstweaker]: BSTweaker Init
+[18:11:24] [Client thread/INFO] [bstweaker]: Registered renders for 1 tweaked weapons.
+[18:11:24] [Client thread/INFO] [bstweaker]: Registered 'always' predicate for 1 weapons for hot-reload support.
+[18:11:24] [Client thread/INFO] [FML]: Injecting itemstacks
+[18:11:24] [Client thread/INFO] [FML]: Itemstack injection complete
+[18:11:24] [Client thread/INFO] [bstweaker]: BSTweaker PostInit - Loaded 1 custom weapons
+[18:11:25] [Client thread/INFO] [FML]: Forge Mod Loader has successfully loaded 8 mods
+[18:11:25] [Client thread/INFO] [mojang/NarratorWindows]: Narrator library for x64 successfully loaded
+[18:11:25] [Realms Notification Availability checker #1/INFO] [mojang/RealmsClient]: Could not authorize you against Realms server: java.lang.RuntimeException: Failed to parse into SignedJWT: FML
+[18:11:44] [Client thread/INFO] [ASMUtil]: Transforming class net/minecraft/server/management/PlayerInteractionManager
+[18:11:44] [Client thread/INFO] [ASMUtil]: Transforming method net/minecraft/server/management/PlayerInteractionManager.setGameType(Lnet/minecraft/world/GameType;)V
+[18:11:44] [Server thread/INFO] [minecraft/IntegratedServer]: Starting integrated minecraft server version 1.12.2
+[18:11:44] [Server thread/INFO] [minecraft/IntegratedServer]: Generating keypair
+[18:11:44] [Server thread/INFO] [FML]: Injecting existing registry data into this server instance
+[18:11:44] [Server thread/INFO] [FML]: Applying holder lookups
+[18:11:44] [Server thread/INFO] [FML]: Holder lookups applied
+[18:11:44] [Server thread/INFO] [FML]: Loading dimension 0 (New World) (net.minecraft.server.integrated.IntegratedServer@4de75a1c)
+[18:11:44] [Server thread/INFO] [minecraft/AdvancementList]: Loaded 514 advancements
+[18:11:44] [Server thread/INFO] [FML]: Loading dimension -1 (New World) (net.minecraft.server.integrated.IntegratedServer@4de75a1c)
+[18:11:44] [Server thread/INFO] [FML]: Loading dimension 1 (New World) (net.minecraft.server.integrated.IntegratedServer@4de75a1c)
+[18:11:44] [Server thread/INFO] [minecraft/MinecraftServer]: Preparing start region for level 0
+[18:11:45] [Server thread/INFO] [minecraft/MinecraftServer]: Preparing spawn area: 27%
+[18:11:46] [Server thread/INFO] [minecraft/MinecraftServer]: Preparing spawn area: 57%
+[18:11:47] [Server thread/INFO] [minecraft/MinecraftServer]: Preparing spawn area: 87%
+[18:11:48] [Server thread/INFO] [bstweaker]: BSTweaker command registered
+[18:11:48] [Server thread/INFO] [FML]: Unloading dimension -1
+[18:11:48] [Server thread/INFO] [FML]: Unloading dimension 1
+[18:11:48] [Server thread/INFO] [minecraft/IntegratedServer]: Changing view distance to 12, from 10
+[18:11:49] [Netty Local Client IO #0/INFO] [ASMUtil]: Transforming class net/minecraft/network/NetHandlerPlayServer
+[18:11:49] [Netty Local Client IO #0/INFO] [ASMUtil]: Transforming method net/minecraft/network/NetHandlerPlayServer.processUseEntity(Lnet/minecraft/network/play/client/CPacketUseEntity;)V
+[18:11:49] [Netty Local Client IO #0/INFO] [ASMUtil]: Transforming class net/minecraft/network/NetHandlerPlayServer
+[18:11:49] [Netty Local Client IO #0/INFO] [ASMUtil]: Transforming method net/minecraft/network/NetHandlerPlayServer.processPlayerDigging(Lnet/minecraft/network/play/client/CPacketPlayerDigging;)V
+[18:11:49] [Netty Local Client IO #0/INFO] [FML]: Server protocol version 2
+[18:11:49] [Netty Server IO #1/INFO] [FML]: Client protocol version 2
+[18:11:49] [Netty Server IO #1/INFO] [FML]: Client attempting to join with 8 mods : minecraft@1.12.2,bstweaker@1.0.1,fermiumbooter@1.2.0,FML@8.0.99.99,forge@14.23.5.2847,reachfix@1.1.3,mujmajnkraftsbettersurvival@1.5.4,mcp@9.42
+[18:11:49] [Netty Local Client IO #0/INFO] [FML]: [Netty Local Client IO #0] Client side modded connection established
+[18:11:49] [Server thread/INFO] [FML]: [Server thread] Server side modded connection established
+[18:11:49] [Server thread/INFO] [minecraft/PlayerList]: Player984[local:E:dcd73423] logged in with entity id 1763 at (106.5, 65.0, 249.5)
+[18:11:49] [Server thread/INFO] [minecraft/MinecraftServer]: Player984 joined the game
+[18:11:50] [Client thread/INFO] [bstweaker]: First world join - scheduling resource refresh...
+[18:11:50] [Client thread/INFO] [minecraft/SimpleReloadableResourceManager]: Reloading ResourceManager: bstweaker_dynamic, Default, FMLFileResourcePack:Forge Mod Loader, FMLFileResourcePack:Minecraft Forge, FMLFileResourcePack:Better Survival, FMLFileResourcePack:BetterSurvival Tweaker, FMLFileResourcePack:FermiumBooter, FMLFileResourcePack:Reach Fix
+[18:11:50] [Server thread/INFO] [minecraft/IntegratedServer]: Saving and pausing game...
+[18:11:50] [Server thread/INFO] [minecraft/MinecraftServer]: Saving chunks for level 'New World'/overworld
+[18:11:50] [Server thread/INFO] [minecraft/AdvancementList]: Loaded 514 advancements
+[18:11:50] [Client thread/INFO] [minecraft/SoundManager]: SoundSystem shutting down...
+[18:11:51] [Client thread/WARN] [minecraft/SoundManager]: Author: Paul Lamb, www.paulscode.com
+[18:11:51] [Sound Library Loader/INFO] [minecraft/SoundManager]: Starting up SoundSystem...
+[18:11:51] [Thread-12/INFO] [minecraft/SoundManager]: Initializing LWJGL OpenAL
+[18:11:51] [Thread-12/INFO] [minecraft/SoundManager]: (The LWJGL binding of OpenAL.  For more information, see http://www.lwjgl.org)
+[18:11:51] [Thread-12/INFO] [minecraft/SoundManager]: OpenAL initialized.
+[18:11:51] [Sound Library Loader/INFO] [minecraft/SoundManager]: Sound engine started
+[18:11:52] [Client thread/INFO] [FML]: Max texture size: 16384
+[18:11:52] [Client thread/INFO] [minecraft/TextureMap]: Created: 512x512 textures-atlas
+[18:11:52] [Client thread/INFO] [bstweaker]: Resource refresh complete.
+[18:11:52] [Client thread/INFO] [ASMUtil]: Transforming class net/minecraft/client/network/NetworkPlayerInfo
+[18:11:52] [Client thread/INFO] [ASMUtil]: Transforming method net/minecraft/client/network/NetworkPlayerInfo.setGameType(Lnet/minecraft/world/GameType;)V
+[18:12:23] [Client thread/INFO] [minecraft/AdvancementList]: Loaded 9 advancements
+[18:12:28] [Server thread/INFO] [minecraft/IntegratedServer]: Saving and pausing game...
+[18:12:28] [Server thread/INFO] [minecraft/MinecraftServer]: Saving chunks for level 'New World'/overworld
+[18:12:29] [Server thread/INFO] [minecraft/MinecraftServer]: Stopping server
+[18:12:29] [Server thread/INFO] [minecraft/MinecraftServer]: Saving players
+[18:12:29] [Server thread/INFO] [minecraft/NetHandlerPlayServer]: Player984 lost connection: Disconnected
+[18:12:29] [Server thread/INFO] [minecraft/MinecraftServer]: Player984 left the game
+[18:12:29] [Server thread/INFO] [minecraft/NetHandlerPlayServer]: Stopping singleplayer server as player logged out
+[18:12:29] [Server thread/INFO] [minecraft/MinecraftServer]: Saving worlds
+[18:12:29] [Server thread/INFO] [minecraft/MinecraftServer]: Saving chunks for level 'New World'/overworld
+[18:12:29] [Server thread/INFO] [FML]: Unloading dimension 0
+[18:12:29] [Server thread/INFO] [FML]: Applying holder lookups
+[18:12:29] [Server thread/INFO] [FML]: Holder lookups applied
+[18:12:30] [Client thread/INFO] [minecraft/Minecraft]: Stopping!
+[18:12:30] [Client thread/INFO] [minecraft/SoundManager]: SoundSystem shutting down...
+[18:12:31] [Client thread/WARN] [minecraft/SoundManager]: Author: Paul Lamb, www.paulscode.com
+:runClient (Thread[Task worker for ':' Thread 6,5,main]) completed. Took 1 mins 14.884 secs.
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 5.0.
+Use '--warning-mode all' to show the individual deprecation warnings.
+See https://docs.gradle.org/4.10.3/userguide/command_line_interface.html#sec:command_line_warnings
+
+BUILD SUCCESSFUL in 1m 22s
+13 actionable tasks: 9 executed, 4 up-to-date
