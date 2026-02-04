@@ -16,6 +16,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mujmajnkraft.bstweaker.effects.EffectEventHandler;
 import com.mujmajnkraft.bstweaker.effects.WeaponEvent;
+import com.mujmajnkraft.bstweaker.validation.ConfigValidationErrors;
+import com.mujmajnkraft.bstweaker.validation.WeaponAttributeValidator;
 
 import net.minecraft.item.Item;
 import net.minecraft.item.Item.ToolMaterial;
@@ -48,6 +50,9 @@ public class TweakerWeaponInjector {
     public static List<Item> createWeapons() {
         List<Item> weapons = new ArrayList<>();
         itemDefinitionMap.clear();
+
+        // 清除旧的验证错误（支持热重载）
+        ConfigValidationErrors.getInstance().clear();
 
         try {
             File configDir = new File(Loader.instance().getConfigDir(), "bstweaker");
@@ -125,7 +130,13 @@ public class TweakerWeaponInjector {
                 // Pass 2: create weapons
                 for (JsonElement elem : weaponDefs) {
                     JsonObject weaponDef = elem.getAsJsonObject();
-                    String id = weaponDef.get("id").getAsString();
+                    String id = weaponDef.has("id") ? weaponDef.get("id").getAsString() : "<unknown>";
+
+                    // === 验证武器配置 ===
+                    if (!WeaponAttributeValidator.validateWeapon(weaponDef)) {
+                        System.err.println("[BSTweaker] Skipping weapon '" + id + "' due to validation errors");
+                        continue; // 跳过注册
+                    }
 
                     // Merge tooltip config
                     if (tooltipMap.containsKey(id)) {

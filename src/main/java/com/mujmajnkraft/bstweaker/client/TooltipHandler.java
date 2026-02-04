@@ -31,6 +31,19 @@ public class TooltipHandler {
         
         List<String> tooltip = event.getToolTip();
         
+        // Replace item name with displayName (first line of tooltip)
+        if (def.has("displayName") && !tooltip.isEmpty()) {
+            String displayName = def.get("displayName").getAsString();
+            // Support translation keys: @key.name -> I18n.format("key.name")
+            if (displayName.startsWith("@")) {
+                displayName = I18n.format(displayName.substring(1));
+            }
+            // Support color codes
+            displayName = formatTooltipLine(displayName);
+            // Replace first line (original item name)
+            tooltip.set(0, displayName);
+        }
+
         // Add custom tooltip
         if (def.has("tooltip")) {
             JsonElement tooltipElem = def.get("tooltip");

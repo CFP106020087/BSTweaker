@@ -6,6 +6,7 @@
     "target": "@env(DEFAULT)",
     "compatibilityLevel": "JAVA_8",
     "mixins": [
-        "ModItems_InjectionMixin"
+        "ModItems_InjectionMixin",
+        "weapons.MixinItemDagger"
     ]
 }

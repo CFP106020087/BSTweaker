@@ -77,7 +77,8 @@ public class BSTweakerCommand extends CommandBase {
             reloaded++;
 
             // 3. 触发资源重载 (客户端)
-            if (sender.getEntityWorld().isRemote || isClientSide()) {
+            // 始终在客户端触发刷新，不管命令发送者的上下文
+            if (isClientSide()) {
                 refreshClientResources();
                 sender.sendMessage(new TextComponentString(TextFormatting.GREEN + "  ✓ Refreshed client resources"));
                 reloaded++;
