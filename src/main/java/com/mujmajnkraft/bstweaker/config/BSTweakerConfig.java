@@ -12,12 +12,13 @@ import com.mujmajnkraft.bstweaker.Reference;
 public class BSTweakerConfig {
 
     @Config.Comment({
-            "Auto-generate weapon models from weapons.json",
-            "Set to false if you want to use custom models",
-            "自动生成武器模型，如需使用自定义模型请关闭"
+            "Blacklist of weapon IDs to skip model auto-generation",
+            "Weapons in this list will NOT have models auto-generated",
+            "模型生成黑名单，列表中的武器ID不会自动生成模型",
+            "Example: [\"my_custom_sword\", \"special_dagger\"]"
     })
-    @Config.LangKey("bstweaker.config.autoGenerateModels")
-    public static boolean autoGenerateModels = true;
+    @Config.LangKey("bstweaker.config.modelBlacklist")
+    public static String[] modelBlacklist = new String[] {};
 
     @Config.Comment({
             "Auto-generate tooltips.json entries for new weapons",

@@ -55,10 +55,8 @@ public class ResourceInjector {
         // 1. 从 JAR 解压默认纹理到 cfg/textures（首次运行）
         extractDefaultTextures(cfgTexturesDir);
 
-        // 2. 根据 weapons.json 自动生成模型到 cfg/models (可在配置中关闭)
-        if (com.mujmajnkraft.bstweaker.config.BSTweakerConfig.autoGenerateModels) {
-            generateWeaponModels(cfgModelsDir, cfgTexturesDir);
-        }
+        // 2. 根据 weapons.json 自动生成模型到 cfg/models (黑名单内的 ID 跳过)
+        generateWeaponModels(cfgModelsDir, cfgTexturesDir);
 
         // 3. 自动生成 tooltips.json 和 lang 文件 (可在配置中关闭)
         if (com.mujmajnkraft.bstweaker.config.BSTweakerConfig.autoGenerateTooltips) {
@@ -172,17 +170,40 @@ public class ResourceInjector {
                     continue;
                 }
 
+                // 检查黑名单 - 在配置中指定的 ID 不会自动生成模型
+                // Check blacklist - IDs in config will NOT have models auto-generated
+                String weaponId = weapon.has("id") ? weapon.get("id").getAsString() : texture;
+                if (isInModelBlacklist(weaponId)) {
+                    BSTweaker.LOG.info("Skipping blacklisted weapon ID: " + weaponId);
+                    continue;
+                }
+
                 // 1. 生成 _normal.json
                 File normalModel = new File(modelsDir, texture + "_normal.json");
                 if (!normalModel.exists()) {
                     String parent = "nunchaku".equals(type) ? "item/generated" : "item/handheld";
-                    String normalJson = "{\n" +
-                            "  \"parent\": \"" + parent + "\",\n" +
-                            "  \"textures\": {\n" +
-                            "    \"layer0\": \"bstweaker:items/" + texture + "\"\n" +
-                            "  }\n" +
-                            "}";
-                    Files.write(normalModel.toPath(), normalJson.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                    StringBuilder normalSb = new StringBuilder();
+                    normalSb.append("{\n");
+                    normalSb.append("  \"parent\": \"").append(parent).append("\",\n");
+                    normalSb.append("  \"textures\": {\n");
+                    normalSb.append("    \"layer0\": \"bstweaker:items/").append(texture).append("\"\n");
+                    normalSb.append("  }");
+                    // nunchaku 需要特殊的 display 属性
+                    if ("nunchaku".equals(type)) {
+                        normalSb.append(",\n  \"display\": {\n");
+                        normalSb.append(
+                                "    \"thirdperson_righthand\": { \"rotation\": [75, 90, 0], \"translation\": [0, 4, 2.5], \"scale\": [0.85, 0.85, 0.85] },\n");
+                        normalSb.append(
+                                "    \"thirdperson_lefthand\": { \"rotation\": [75, -90, 0], \"translation\": [0, 4, 2.5], \"scale\": [0.85, 0.85, 0.85] },\n");
+                        normalSb.append(
+                                "    \"firstperson_righthand\": { \"rotation\": [15, 90, 0], \"translation\": [-0.5, 2.85, 0.8], \"scale\": [0.68, 0.68, 0.68] },\n");
+                        normalSb.append(
+                                "    \"firstperson_lefthand\": { \"rotation\": [15, -90, 0], \"translation\": [-0.5, 2.85, 0.8], \"scale\": [0.68, 0.68, 0.68] }\n");
+                        normalSb.append("  }");
+                    }
+                    normalSb.append("\n}");
+                    Files.write(normalModel.toPath(),
+                            normalSb.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));
                     BSTweaker.LOG.info("Generated: " + normalModel.getName());
                 }
 
@@ -193,14 +214,28 @@ public class ResourceInjector {
                 if (hasSpinning) {
                     File spinningModel = new File(modelsDir, texture + "spinning.json");
                     if (!spinningModel.exists()) {
-                        String spinningJson = "{\n" +
-                                "  \"parent\": \"item/generated\",\n" +
-                                "  \"textures\": {\n" +
-                                "    \"layer0\": \"bstweaker:items/" + texture + "spinning\"\n" +
-                                "  }\n" +
-                                "}";
+                        StringBuilder spinningSb = new StringBuilder();
+                        spinningSb.append("{\n");
+                        spinningSb.append("  \"parent\": \"item/generated\",\n");
+                        spinningSb.append("  \"textures\": {\n");
+                        spinningSb.append("    \"layer0\": \"bstweaker:items/").append(texture).append("spinning\"\n");
+                        spinningSb.append("  }");
+                        // nunchaku spinning 需要特殊的 display 属性（更大的 scale）
+                        if ("nunchaku".equals(type)) {
+                            spinningSb.append(",\n  \"display\": {\n");
+                            spinningSb.append(
+                                    "    \"thirdperson_righthand\": { \"rotation\": [75, 90, 0], \"translation\": [0, 9.75, 8], \"scale\": [1.7, 1.7, 0.85] },\n");
+                            spinningSb.append(
+                                    "    \"thirdperson_lefthand\": { \"rotation\": [75, -90, 0], \"translation\": [0, 9.75, 8], \"scale\": [1.7, 1.7, 0.85] },\n");
+                            spinningSb.append(
+                                    "    \"firstperson_righthand\": { \"rotation\": [15, 90, 0], \"translation\": [0, 9.35, -2.2], \"scale\": [1.36, 1.36, 0.68] },\n");
+                            spinningSb.append(
+                                    "    \"firstperson_lefthand\": { \"rotation\": [15, -90, 0], \"translation\": [0, 9.35, -2.2], \"scale\": [1.36, 1.36, 0.68] }\n");
+                            spinningSb.append("  }");
+                        }
+                        spinningSb.append("\n}");
                         Files.write(spinningModel.toPath(),
-                                spinningJson.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                                spinningSb.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));
                         BSTweaker.LOG.info("Generated: " + spinningModel.getName());
                     }
                 }
@@ -415,6 +450,26 @@ public class ResourceInjector {
 
     private static boolean isSupportedWeaponType(String type) {
         return SUPPORTED_TYPES.contains(type.toLowerCase());
+    }
+
+    /**
+     * 检查武器 ID 是否在模型生成黑名单中
+     * Check if weapon ID is in the model generation blacklist
+     * 
+     * @param weaponId 武器 ID / weapon ID
+     * @return true 如果在黑名单中 / if in blacklist
+     */
+    private static boolean isInModelBlacklist(String weaponId) {
+        String[] blacklist = com.mujmajnkraft.bstweaker.config.BSTweakerConfig.modelBlacklist;
+        if (blacklist == null || blacklist.length == 0) {
+            return false;
+        }
+        for (String id : blacklist) {
+            if (id != null && id.equalsIgnoreCase(weaponId)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static String getWeaponTypeNameZh(String type) {

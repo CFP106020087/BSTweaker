@@ -30,4 +30,13 @@ Thumbs.db
 # Temp
 *.tmp
 *.bak
+
+# Third-party source / reference
 BetterSurvival-master/
+
+# Workspace temp files
+temp_*.java
+todo.txt
+TODO.md
+task.md
+bstweaker/

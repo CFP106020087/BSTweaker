@@ -104,7 +104,12 @@ public class BSTweakerCommand extends CommandBase {
     @SideOnly(Side.CLIENT)
     private void refreshClientResources() {
         try {
-            Minecraft.getMinecraft().refreshResources();
+            // 确保在客户端主线程执行
+            net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getMinecraft();
+            mc.addScheduledTask(() -> {
+                mc.refreshResources();
+                BSTweaker.LOG.info("Client resources refreshed via scheduled task");
+            });
         } catch (Exception e) {
             BSTweaker.LOG.error("Failed to refresh client resources", e);
         }

@@ -37,8 +37,10 @@ public abstract class ModItems_InjectionMixin {
                 System.out.println("[BSTweaker] Injected " + customWeapons.size()
                         + " custom weapons into BetterSurvival items list");
 
-                // Register models immediately
-                com.mujmajnkraft.bstweaker.client.ClientEventHandler.registerModelsForItems(customWeapons);
+                // Register models only on client side
+                if (net.minecraftforge.fml.common.FMLCommonHandler.instance().getSide().isClient()) {
+                    com.mujmajnkraft.bstweaker.client.ClientEventHandler.registerModelsForItems(customWeapons);
+                }
             } else {
                 System.out.println("[BSTweaker] No custom weapons to inject");
             }
