@@ -43,25 +43,184 @@ public class ResourceInjector {
         File modelsDir = new File(assetsDir, "models/item");
         File texturesDir = new File(assetsDir, "textures/items");
         File langDir = new File(assetsDir, "lang");
+        File cfgModelsDir = new File(configDir, "models");
+        File cfgTexturesDir = new File(configDir, "textures");
 
         modelsDir.mkdirs();
         texturesDir.mkdirs();
         langDir.mkdirs();
+        cfgModelsDir.mkdirs();
+        cfgTexturesDir.mkdirs();
 
-        // 复制模型文件
-        copyResources(new File(configDir, "models"), modelsDir, ".json", "model");
+        // 1. 从 JAR 解压默认纹理到 cfg/textures（首次运行）
+        extractDefaultTextures(cfgTexturesDir);
 
-        // 自动生成带 overrides 的 base model（三层结构）
-        generateBaseModels(new File(configDir, "models"), modelsDir);
+        // 2. 根据 weapons.json 自动生成模型到 cfg/models
+        generateWeaponModels(cfgModelsDir, cfgTexturesDir);
 
-        // 复制纹理文件
-        copyResources(new File(configDir, "textures"), texturesDir, ".png", "texture");
-        copyResources(new File(configDir, "textures"), texturesDir, ".png.mcmeta", "mcmeta");
+        // 3. 复制模型文件到 assets
+        copyResources(cfgModelsDir, modelsDir, ".json", "model");
 
-        // 复制语言文件
+        // 4. 复制纹理文件到 assets
+        copyResources(cfgTexturesDir, texturesDir, ".png", "texture");
+        copyResources(cfgTexturesDir, texturesDir, ".png.mcmeta", "mcmeta");
+
+        // 5. 复制语言文件到 assets
         copyResources(new File(configDir, "lang"), langDir, ".lang", "lang");
 
         BSTweaker.LOG.info("Resource injection completed");
+    }
+
+    /**
+     * 从 JAR 解压默认纹理到 cfg/textures（仅在目录为空时）
+     */
+    private static void extractDefaultTextures(File targetDir) {
+        // 如果目录已有文件，跳过
+        File[] existing = targetDir.listFiles((dir, name) -> name.endsWith(".png"));
+        if (existing != null && existing.length > 0) {
+            return;
+        }
+
+        String resourcePath = "/assets/bstweaker/config/textures";
+        try {
+            java.net.URL url = ResourceInjector.class.getResource(resourcePath);
+            if (url == null) {
+                BSTweaker.LOG.info("No default textures in JAR");
+                return;
+            }
+
+            java.net.URI uri = url.toURI();
+            java.nio.file.Path path;
+
+            if (uri.getScheme().equals("jar")) {
+                java.nio.file.FileSystem fs;
+                try {
+                    fs = java.nio.file.FileSystems.getFileSystem(uri);
+                } catch (java.nio.file.FileSystemNotFoundException e) {
+                    fs = java.nio.file.FileSystems.newFileSystem(uri, java.util.Collections.emptyMap());
+                }
+                path = fs.getPath(resourcePath);
+            } else {
+                path = java.nio.file.Paths.get(uri);
+            }
+
+            java.nio.file.Files.walk(path, 1).forEach(source -> {
+                if (java.nio.file.Files.isRegularFile(source)) {
+                    try {
+                        String fileName = source.getFileName().toString();
+                        File targetFile = new File(targetDir, fileName);
+                        if (!targetFile.exists()) {
+                            java.nio.file.Files.copy(source, targetFile.toPath());
+                            BSTweaker.LOG.info("Extracted texture: " + fileName);
+                        }
+                    } catch (IOException e) {
+                        BSTweaker.LOG.error("Failed to extract: " + source.getFileName());
+                    }
+                }
+            });
+        } catch (Exception e) {
+            BSTweaker.LOG.error("Failed to extract default textures: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 根据 weapons.json 自动生成模型到 cfg/models
+     * 生成: <texture>_normal.json, <texture>.json (base model),
+     * <texture>spinning.json (如果有)
+     */
+    private static void generateWeaponModels(File modelsDir, File texturesDir) {
+        File weaponsFile = new File(configDir, "weapons.json");
+        if (!weaponsFile.exists())
+            return;
+
+        try {
+            String content = new String(Files.readAllBytes(weaponsFile.toPath()),
+                    java.nio.charset.StandardCharsets.UTF_8);
+            com.google.gson.JsonObject root = new com.google.gson.JsonParser()
+                    .parse(content).getAsJsonObject();
+
+            if (!root.has("weapons"))
+                return;
+
+            com.google.gson.JsonArray weapons = root.getAsJsonArray("weapons");
+            for (com.google.gson.JsonElement elem : weapons) {
+                com.google.gson.JsonObject weapon = elem.getAsJsonObject();
+
+                // 获取纹理名（优先使用 texture 字段，否则使用 id）
+                String texture;
+                if (weapon.has("texture")) {
+                    texture = weapon.get("texture").getAsString();
+                } else if (weapon.has("id")) {
+                    texture = weapon.get("id").getAsString();
+                } else {
+                    continue;
+                }
+
+                // 获取武器类型（用于决定 parent）
+                String type = weapon.has("type") ? weapon.get("type").getAsString().toLowerCase() : "dagger";
+
+                // 1. 生成 _normal.json
+                File normalModel = new File(modelsDir, texture + "_normal.json");
+                if (!normalModel.exists()) {
+                    String parent = "nunchaku".equals(type) ? "item/generated" : "item/handheld";
+                    String normalJson = "{\n" +
+                            "  \"parent\": \"" + parent + "\",\n" +
+                            "  \"textures\": {\n" +
+                            "    \"layer0\": \"bstweaker:items/" + texture + "\"\n" +
+                            "  }\n" +
+                            "}";
+                    Files.write(normalModel.toPath(), normalJson.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                    BSTweaker.LOG.info("Generated: " + normalModel.getName());
+                }
+
+                // 2. 检查是否有 spinning 纹理
+                boolean hasSpinning = new File(texturesDir, texture + "spinning.png").exists();
+
+                // 3. 生成 spinning.json（如果有 spinning 纹理）
+                if (hasSpinning) {
+                    File spinningModel = new File(modelsDir, texture + "spinning.json");
+                    if (!spinningModel.exists()) {
+                        String spinningJson = "{\n" +
+                                "  \"parent\": \"item/generated\",\n" +
+                                "  \"textures\": {\n" +
+                                "    \"layer0\": \"bstweaker:items/" + texture + "spinning\"\n" +
+                                "  }\n" +
+                                "}";
+                        Files.write(spinningModel.toPath(),
+                                spinningJson.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                        BSTweaker.LOG.info("Generated: " + spinningModel.getName());
+                    }
+                }
+
+                // 4. 生成 base model（带 overrides）
+                File baseModel = new File(modelsDir, texture + ".json");
+                if (!baseModel.exists()) {
+                    StringBuilder sb = new StringBuilder();
+                    sb.append("{\n");
+                    sb.append("  \"parent\": \"item/handheld\",\n");
+                    sb.append("  \"textures\": {\n");
+                    sb.append("    \"layer0\": \"minecraft:items/stick\"\n");
+                    sb.append("  },\n");
+                    sb.append("  \"overrides\": [\n");
+                    sb.append("    {\n");
+                    sb.append("      \"predicate\": {\"bstweaker:always\": 1},\n");
+                    sb.append("      \"model\": \"bstweaker:item/" + texture + "_normal\"\n");
+                    sb.append("    }");
+                    if (hasSpinning) {
+                        sb.append(",\n    {\n");
+                        sb.append("      \"predicate\": {\"spinning\": 1},\n");
+                        sb.append("      \"model\": \"bstweaker:item/" + texture + "spinning\"\n");
+                        sb.append("    }");
+                    }
+                    sb.append("\n  ]\n");
+                    sb.append("}");
+                    Files.write(baseModel.toPath(), sb.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                    BSTweaker.LOG.info("Generated base model: " + baseModel.getName());
+                }
+            }
+        } catch (Exception e) {
+            BSTweaker.LOG.error("Failed to generate weapon models: " + e.getMessage());
+        }
     }
 
     /**
@@ -123,95 +282,13 @@ public class ResourceInjector {
 
     /**
      * 转换模型文件内容中的命名空间引用
-     * bstweaker:items/ -> mujmajnkraftsbettersurvival:items/
-     * bstweaker:item/ -> mujmajnkraftsbettersurvival:item/
+     * bstweaker:items/xxx -> mujmajnkraftsbettersurvival:items/itembstweaker_xxx
+     * bstweaker:item/xxx -> mujmajnkraftsbettersurvival:item/itembstweaker_xxx
      */
     public static String translateModelContent(String content) {
         return content
-                .replace("bstweaker:items/", BS_NAMESPACE + ":items/item")
-                .replace("bstweaker:item/", BS_NAMESPACE + ":item/item");
-    }
-
-    /**
-     * 自动生成带 overrides 的 base model（三层结构）
-     * 检测 xxx_normal.json，自动生成 xxx.json (base model)
-     * 
-     * Base model 结构:
-     * - layer0: minecraft:items/stick (占位符)
-     * - override: bstweaker:always=1 -> xxx_normal
-     * - override: spinning=1 -> xxxspinning
-     */
-    public static void generateBaseModels(File sourceDir, File targetDir) {
-        if (!sourceDir.exists() || !sourceDir.isDirectory()) {
-            return;
-        }
-
-        File[] files = sourceDir.listFiles((dir, name) -> name.endsWith("_normal.json"));
-        if (files == null || files.length == 0) {
-            return;
-        }
-
-        for (File normalFile : files) {
-            String normalName = normalFile.getName();
-            // xxx_normal.json -> xxx
-            String baseName = normalName.replace("_normal.json", "");
-
-            // 检查是否有对应的 spinning 模型
-            File spinningFile = new File(sourceDir, baseName + "spinning.json");
-            boolean hasSpinning = spinningFile.exists();
-
-            // 生成 base model JSON
-            String baseModelJson = generateBaseModelJson(baseName, hasSpinning);
-
-            // 写入目标目录 (使用 itembstweaker_ 前缀)
-            String targetFileName = "itembstweaker_" + baseName + ".json";
-            File targetFile = new File(targetDir, targetFileName);
-
-            try {
-                Files.write(targetFile.toPath(),
-                        baseModelJson.getBytes(java.nio.charset.StandardCharsets.UTF_8));
-                BSTweaker.LOG.info("Generated base model with overrides: " + targetFileName);
-            } catch (IOException e) {
-                BSTweaker.LOG.error("Failed to generate base model: " + e.getMessage());
-            }
-        }
-    }
-
-    /**
-     * 生成 base model JSON 内容
-     */
-    private static String generateBaseModelJson(String baseName, boolean hasSpinning) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("{\n");
-        sb.append("  \"parent\": \"item/handheld\",\n");
-        sb.append("  \"textures\": {\n");
-        sb.append("    \"layer0\": \"minecraft:items/stick\"\n");
-        sb.append("  },\n");
-        sb.append("  \"overrides\": [\n");
-
-        // Always override -> normal model
-        // 格式: mujmajnkraftsbettersurvival:item/itembstweaker_<baseName>_normal
-        sb.append("    {\n");
-        sb.append("      \"predicate\": {\"bstweaker:always\": 1},\n");
-        sb.append("      \"model\": \"").append(BS_NAMESPACE).append(":item/itembstweaker_").append(baseName)
-                .append("_normal\"\n");
-        sb.append("    }");
-
-        // Spinning override (if exists)
-        // 格式: mujmajnkraftsbettersurvival:item/itembstweaker_<baseName>spinning
-        if (hasSpinning) {
-            sb.append(",\n");
-            sb.append("    {\n");
-            sb.append("      \"predicate\": {\"spinning\": 1},\n");
-            sb.append("      \"model\": \"").append(BS_NAMESPACE).append(":item/itembstweaker_").append(baseName)
-                    .append("spinning\"\n");
-            sb.append("    }");
-        }
-
-        sb.append("\n  ]\n");
-        sb.append("}");
-
-        return sb.toString();
+                .replace("bstweaker:items/", BS_NAMESPACE + ":items/itembstweaker_")
+                .replace("bstweaker:item/", BS_NAMESPACE + ":item/itembstweaker_");
     }
 
     // ========== 目录管理方法 ==========

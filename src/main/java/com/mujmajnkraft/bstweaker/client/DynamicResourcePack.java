@@ -96,11 +96,6 @@ public class DynamicResourcePack implements IResourcePack {
             }
         }
 
-        // Auto-convert BS model format if enabled
-        if (com.mujmajnkraft.bstweaker.config.BSTweakerConfig.enableModelAutoConvert) {
-            convertBSModels(modelsDir);
-        }
-
         if (modelsDir.exists() && modelsDir.listFiles() != null) {
             for (File file : modelsDir.listFiles()) {
                 if (file.getName().endsWith(".json")) {
@@ -132,74 +127,6 @@ public class DynamicResourcePack implements IResourcePack {
             }
         } catch (IOException e) {
             BSTweaker.LOG.error("Failed to create README: " + e.getMessage());
-        }
-    }
-
-    /**
-     * Convert BetterSurvival model format to BSTweaker format.
-     * - Detect *_normal.json and *_spinning.json
-     * - Replace mujmajnkraftsbettersurvival: -> bstweaker:
-     * - Rename: xxx_normal.json -> xxx.json, xxx_spinning.json -> xxxspinning.json
-     * - Backup originals to model backup directory
-     */
-    private static void convertBSModels(File modelsDir) {
-        if (!modelsDir.exists())
-            return;
-
-        File backupDir = new File(modelsDir, "model backup");
-        File[] files = modelsDir.listFiles();
-        if (files == null)
-            return;
-
-        for (File file : files) {
-            String name = file.getName();
-            if (!name.endsWith(".json"))
-                continue;
-
-            // Detect BS format: xxx_normal.json or xxx_spinning.json
-            String newName = null;
-            if (name.endsWith("_normal.json")) {
-                // xxx_normal.json -> xxx.json
-                newName = name.replace("_normal.json", ".json");
-            } else if (name.endsWith("_spinning.json")) {
-                // xxx_spinning.json -> xxxspinning.json
-                newName = name.replace("_spinning.json", "spinning.json");
-            }
-
-            if (newName == null)
-                continue;
-
-            try {
-                // Read content
-                String content = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
-
-                // Check for BS path format
-                if (!content.contains("mujmajnkraftsbettersurvival:")) {
-                    continue; // Not BS format, skip
-                }
-
-                // Replace path
-                String newContent = content.replace("mujmajnkraftsbettersurvival:", Reference.MOD_ID + ":");
-
-                // Create backup directory
-                if (!backupDir.exists()) {
-                    backupDir.mkdirs();
-                }
-
-                // Backup original file
-                File backupFile = new File(backupDir, name);
-                Files.copy(file.toPath(), backupFile.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-
-                // Write new content to new filename
-                File newFile = new File(modelsDir, newName);
-                Files.write(newFile.toPath(), newContent.getBytes(StandardCharsets.UTF_8));
-
-                // Delete original file
-                file.delete();
-
-            } catch (IOException e) {
-                BSTweaker.LOG.error("Failed to convert BS model " + name + ": " + e.getMessage());
-            }
         }
     }
 

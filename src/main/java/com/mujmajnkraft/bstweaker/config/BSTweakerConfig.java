@@ -11,13 +11,6 @@ import com.mujmajnkraft.bstweaker.Reference;
 @Config.LangKey("bstweaker.config.title")
 public class BSTweakerConfig {
 
-    @Config.Comment({
-            "Enable auto-conversion of BetterSurvival models to BSTweaker format.",
-            "Converts *_normal.json and *_spinning.json files, backs up originals."
-    })
-    @Config.LangKey("bstweaker.config.enableModelAutoConvert")
-    public static boolean enableModelAutoConvert = true;
-
     @Mod.EventBusSubscriber(modid = Reference.MOD_ID)
     private static class EventHandler {
         @SubscribeEvent
