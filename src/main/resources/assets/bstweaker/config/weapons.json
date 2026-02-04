@@ -1,55 +1,128 @@
 {
   "_tutorial_zh": [
     "=== 武器注册配置 ===",
-    "此文件定义新武器的基础属性：类型、材质、伤害、耐久等",
+    "此文件定义新武器的基础属性",
+    "武器在游戏启动时自动注册，tooltips和lang自动生成",
     "",
     "字段说明：",
-    "  id: 武器ID，必须唯一",
+    "  id: 武器ID，注册为 bstweaker_<id>，同时作为默认显示名称",
     "  type: 武器类型 (dagger/hammer/spear/battleaxe/nunchaku)",
-    "  material: 材质定义",
-    "    name: 材质名称",
-    "    harvestLevel: 挖掘等级 (0-4)",
+    "  texture: 纹理ID，对应 cfg/textures/item<texture>.png",
+    "  material: 材质属性",
+    "    harvestLevel: 挖掘等级 (0=木,1=石,2=铁,3=钻石)",
     "    durability: 耐久度",
-    "    efficiency: 挖掘效率",
     "    damage: 基础伤害",
     "    enchantability: 附魔能力",
-    "  damageModifier: 额外伤害加成 (可选)",
-    "  speedModifier: 攻速修正值 (可选，负数=更快，正数=更慢。注意：这是内部值，不是UI显示值！)",
-    "  texture: 纹理名称 (可选，默认使用id)"
+    "  damageModifier: 额外伤害 (可选)",
+    "  speedModifier: 攻速修正 (可选)",
+    "",
+    "自动生成 (可在mod配置中关闭)：",
+    "  - tooltips.json 条目",
+    "  - lang 翻译 (追加模式)",
+    "  - 模型 (关闭后可使用自定义模型)"
   ],
   "_tutorial_en": [
     "=== Weapon Registration Config ===",
-    "This file defines new weapon properties: type, material, damage, durability, etc.",
+    "This file defines new weapon properties",
+    "Weapons auto-register on startup, tooltips and lang auto-generated",
     "",
     "Fields:",
-    "  id: Unique weapon ID",
+    "  id: Weapon ID, registers as bstweaker_<id>, used as default name",
     "  type: Weapon type (dagger/hammer/spear/battleaxe/nunchaku)",
-    "  material: Material definition",
-    "    name: Material name",
-    "    harvestLevel: Mining level (0-4)",
+    "  texture: Texture ID, maps to cfg/textures/item<texture>.png",
+    "  material: Material properties",
+    "    harvestLevel: Mining level (0=wood,1=stone,2=iron,3=diamond)",
     "    durability: Durability",
-    "    efficiency: Mining speed",
     "    damage: Base damage",
     "    enchantability: Enchantability",
-    "  damageModifier: Extra damage bonus (optional)",
-    "  speedModifier: Attack speed modifier (optional, negative=faster, positive=slower. Note: this is internal value, not UI display!)",
-    "  texture: Texture name (optional, defaults to id)"
+    "  damageModifier: Extra damage (optional)",
+    "  speedModifier: Speed modifier (optional)",
+    "",
+    "Auto-generated (toggle in mod config):",
+    "  - tooltips.json entries",
+    "  - lang translations (append mode)",
+    "  - models (disable to use custom models)"
   ],
-  "_example": {
-    "_注释": "这是范本，复制到 weapons 数组中使用 / This is an example, copy into weapons array to use",
-    "id": "example_weapon",
-    "type": "dagger",
-    "texture": "example_weapon",
-    "material": {
-      "name": "example",
-      "harvestLevel": 2,
-      "durability": 500,
-      "efficiency": 6.0,
-      "damage": 5.0,
-      "enchantability": 10
+  "weapons": [
+    {
+      "_comment": "绿宝石匕首 / Emerald Dagger - 范本",
+      "id": "emeralddagger",
+      "type": "dagger",
+      "texture": "emeralddagger",
+      "material": {
+        "name": "emerald",
+        "harvestLevel": 2,
+        "durability": 800,
+        "efficiency": 7.0,
+        "damage": 4.0,
+        "enchantability": 18
+      },
+      "damageModifier": 0.0,
+      "speedModifier": 0.0
     },
-    "damageModifier": 0.0,
-    "speedModifier": 0.0
-  },
-  "weapons": []
+    {
+      "_comment": "绿宝石战锤 / Emerald Hammer - 范本",
+      "id": "emeraldhammer",
+      "type": "hammer",
+      "texture": "emeraldhammer",
+      "material": {
+        "name": "emerald",
+        "harvestLevel": 2,
+        "durability": 800,
+        "efficiency": 7.0,
+        "damage": 6.0,
+        "enchantability": 18
+      },
+      "damageModifier": 0.0,
+      "speedModifier": 0.0
+    },
+    {
+      "_comment": "绿宝石长矛 / Emerald Spear - 范本",
+      "id": "emeraldspear",
+      "type": "spear",
+      "texture": "emeraldspear",
+      "material": {
+        "name": "emerald",
+        "harvestLevel": 2,
+        "durability": 800,
+        "efficiency": 7.0,
+        "damage": 5.0,
+        "enchantability": 18
+      },
+      "damageModifier": 0.0,
+      "speedModifier": 0.0
+    },
+    {
+      "_comment": "绿宝石战斧 / Emerald Battleaxe - 范本",
+      "id": "emeraldbattleaxe",
+      "type": "battleaxe",
+      "texture": "emeraldbattleaxe",
+      "material": {
+        "name": "emerald",
+        "harvestLevel": 2,
+        "durability": 800,
+        "efficiency": 7.0,
+        "damage": 7.0,
+        "enchantability": 18
+      },
+      "damageModifier": 0.0,
+      "speedModifier": 0.0
+    },
+    {
+      "_comment": "绿宝石双截棍 / Emerald Nunchaku - 范本",
+      "id": "emeraldnunchaku",
+      "type": "nunchaku",
+      "texture": "emeraldnunchaku",
+      "material": {
+        "name": "emerald",
+        "harvestLevel": 2,
+        "durability": 800,
+        "efficiency": 7.0,
+        "damage": 5.0,
+        "enchantability": 18
+      },
+      "damageModifier": 0.0,
+      "speedModifier": 0.0
+    }
+  ]
 }

@@ -11,6 +11,21 @@ import com.mujmajnkraft.bstweaker.Reference;
 @Config.LangKey("bstweaker.config.title")
 public class BSTweakerConfig {
 
+    @Config.Comment({
+            "Auto-generate weapon models from weapons.json",
+            "Set to false if you want to use custom models",
+            "自动生成武器模型，如需使用自定义模型请关闭"
+    })
+    @Config.LangKey("bstweaker.config.autoGenerateModels")
+    public static boolean autoGenerateModels = true;
+
+    @Config.Comment({
+            "Auto-generate tooltips.json entries for new weapons",
+            "自动为新武器生成 tooltips.json 条目"
+    })
+    @Config.LangKey("bstweaker.config.autoGenerateTooltips")
+    public static boolean autoGenerateTooltips = true;
+
     @Mod.EventBusSubscriber(modid = Reference.MOD_ID)
     private static class EventHandler {
         @SubscribeEvent

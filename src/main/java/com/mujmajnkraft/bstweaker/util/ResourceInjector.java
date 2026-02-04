@@ -55,17 +55,24 @@ public class ResourceInjector {
         // 1. 从 JAR 解压默认纹理到 cfg/textures（首次运行）
         extractDefaultTextures(cfgTexturesDir);
 
-        // 2. 根据 weapons.json 自动生成模型到 cfg/models
-        generateWeaponModels(cfgModelsDir, cfgTexturesDir);
+        // 2. 根据 weapons.json 自动生成模型到 cfg/models (可在配置中关闭)
+        if (com.mujmajnkraft.bstweaker.config.BSTweakerConfig.autoGenerateModels) {
+            generateWeaponModels(cfgModelsDir, cfgTexturesDir);
+        }
 
-        // 3. 复制模型文件到 assets
+        // 3. 自动生成 tooltips.json 和 lang 文件 (可在配置中关闭)
+        if (com.mujmajnkraft.bstweaker.config.BSTweakerConfig.autoGenerateTooltips) {
+            generateWeaponTooltipsAndLang();
+        }
+
+        // 4. 复制模型文件到 assets
         copyResources(cfgModelsDir, modelsDir, ".json", "model");
 
-        // 4. 复制纹理文件到 assets
+        // 5. 复制纹理文件到 assets
         copyResources(cfgTexturesDir, texturesDir, ".png", "texture");
         copyResources(cfgTexturesDir, texturesDir, ".png.mcmeta", "mcmeta");
 
-        // 5. 复制语言文件到 assets
+        // 6. 复制语言文件到 assets
         copyResources(new File(configDir, "lang"), langDir, ".lang", "lang");
 
         BSTweaker.LOG.info("Resource injection completed");
@@ -159,6 +166,12 @@ public class ResourceInjector {
                 // 获取武器类型（用于决定 parent）
                 String type = weapon.has("type") ? weapon.get("type").getAsString().toLowerCase() : "dagger";
 
+                // 只为支持的武器类型生成模型
+                if (!isSupportedWeaponType(type)) {
+                    BSTweaker.LOG.warn("Skipping unsupported weapon type: " + type + " for " + texture);
+                    continue;
+                }
+
                 // 1. 生成 _normal.json
                 File normalModel = new File(modelsDir, texture + "_normal.json");
                 if (!normalModel.exists()) {
@@ -220,6 +233,221 @@ public class ResourceInjector {
             }
         } catch (Exception e) {
             BSTweaker.LOG.error("Failed to generate weapon models: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 自动为 weapons.json 中的武器生成 tooltips.json 条目和 lang 文件
+     * - 如果 tooltips.json 中没有该武器，自动添加
+     * - 自动生成/更新 lang 文件中的翻译键
+     */
+    private static void generateWeaponTooltipsAndLang() {
+        File weaponsFile = new File(configDir, "weapons.json");
+        File tooltipsFile = new File(configDir, "tooltips.json");
+        File langDir = new File(configDir, "lang");
+        langDir.mkdirs();
+
+        if (!weaponsFile.exists())
+            return;
+
+        try {
+            // 读取 weapons.json
+            String weaponsContent = new String(Files.readAllBytes(weaponsFile.toPath()),
+                    java.nio.charset.StandardCharsets.UTF_8);
+            com.google.gson.JsonObject weaponsRoot = new com.google.gson.JsonParser()
+                    .parse(weaponsContent).getAsJsonObject();
+
+            if (!weaponsRoot.has("weapons"))
+                return;
+            com.google.gson.JsonArray weapons = weaponsRoot.getAsJsonArray("weapons");
+
+            // 读取或创建 tooltips.json
+            com.google.gson.JsonObject tooltipsRoot;
+            com.google.gson.JsonArray tooltipsArray;
+            if (tooltipsFile.exists()) {
+                String tooltipsContent = new String(Files.readAllBytes(tooltipsFile.toPath()),
+                        java.nio.charset.StandardCharsets.UTF_8);
+                tooltipsRoot = new com.google.gson.JsonParser().parse(tooltipsContent).getAsJsonObject();
+                tooltipsArray = tooltipsRoot.has("tooltips") ? tooltipsRoot.getAsJsonArray("tooltips")
+                        : new com.google.gson.JsonArray();
+            } else {
+                tooltipsRoot = new com.google.gson.JsonObject();
+                tooltipsArray = new com.google.gson.JsonArray();
+            }
+
+            // 收集已存在的 tooltip IDs
+            java.util.Set<String> existingIds = new java.util.HashSet<>();
+            for (com.google.gson.JsonElement elem : tooltipsArray) {
+                if (elem.isJsonObject() && elem.getAsJsonObject().has("id")) {
+                    existingIds.add(elem.getAsJsonObject().get("id").getAsString());
+                }
+            }
+
+            // lang 文件内容
+            StringBuilder zhLang = new StringBuilder();
+            StringBuilder enLang = new StringBuilder();
+            zhLang.append("# BSTweaker 武器本地化 - 自动生成\n\n");
+            enLang.append("# BSTweaker Weapon Localization - Auto-generated\n\n");
+
+            boolean modified = false;
+
+            for (com.google.gson.JsonElement elem : weapons) {
+                com.google.gson.JsonObject weapon = elem.getAsJsonObject();
+                String id = weapon.has("id") ? weapon.get("id").getAsString() : null;
+                if (id == null)
+                    continue;
+
+                String type = weapon.has("type") ? weapon.get("type").getAsString() : "weapon";
+
+                // 只为支持的武器类型生成 tooltip 和 lang
+                if (!isSupportedWeaponType(type)) {
+                    continue;
+                }
+
+                String typeNameZh = getWeaponTypeNameZh(type);
+                String typeNameEn = getWeaponTypeNameEn(type);
+
+                // 生成 lang keys
+                String nameKey = "bstweaker.weapon." + id + ".name";
+                String tip1Key = "bstweaker.weapon." + id + ".tip1";
+                String tip2Key = "bstweaker.weapon." + id + ".tip2";
+                String tip3Key = "bstweaker.weapon." + id + ".tip3";
+                // 物品原始翻译 key (Minecraft 标准格式)
+                String itemLangKey = "item.bstweaker_" + id + ".name";
+
+                // 添加到 lang 文件
+                // 物品原始名称
+                zhLang.append(itemLangKey).append("=").append(id).append("\n");
+                enLang.append(itemLangKey).append("=").append(id).append("\n");
+                // tooltip 相关
+                zhLang.append(nameKey).append("=").append(id).append("\n");
+                zhLang.append(tip1Key).append("=§7一把自定义的").append(typeNameZh).append("\n");
+                zhLang.append(tip2Key).append("=§e由 BSTweaker 生成\n");
+                zhLang.append(tip3Key).append("=§6可在 tooltips.json 中自定义\n\n");
+
+                enLang.append(nameKey).append("=").append(id).append("\n");
+                enLang.append(tip1Key).append("=§7A custom ").append(typeNameEn).append("\n");
+                enLang.append(tip2Key).append("=§eGenerated by BSTweaker\n");
+                enLang.append(tip3Key).append("=§6Customize in tooltips.json\n\n");
+
+                // 如果 tooltips 中不存在，添加
+                if (!existingIds.contains(id)) {
+                    com.google.gson.JsonObject tooltip = new com.google.gson.JsonObject();
+                    tooltip.addProperty("id", id);
+                    tooltip.addProperty("displayName", "@" + nameKey);
+                    com.google.gson.JsonArray tips = new com.google.gson.JsonArray();
+                    tips.add("@" + tip1Key);
+                    tips.add("@" + tip2Key);
+                    tips.add("@" + tip3Key);
+                    tooltip.add("tooltip", tips);
+                    tooltipsArray.add(tooltip);
+                    modified = true;
+                    BSTweaker.LOG.info("Auto-generated tooltip for: " + id);
+                }
+            }
+
+            // 写入 tooltips.json（如果有修改）
+            if (modified) {
+                tooltipsRoot.add("tooltips", tooltipsArray);
+                com.google.gson.Gson gson = new com.google.gson.GsonBuilder().setPrettyPrinting().create();
+                Files.write(tooltipsFile.toPath(),
+                        gson.toJson(tooltipsRoot).getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            }
+
+            // 写入 lang 文件 (追加模式：只添加新 key，不覆盖已有)
+            File zhLangFile = new File(langDir, "zh_cn.lang");
+            File enLangFile = new File(langDir, "en_us.lang");
+            appendLangFile(zhLangFile, zhLang.toString());
+            appendLangFile(enLangFile, enLang.toString());
+
+        } catch (Exception e) {
+            BSTweaker.LOG.error("Failed to generate tooltips and lang: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 追加模式写入 lang 文件：只添加新 key，不覆盖已有
+     */
+    private static void appendLangFile(File langFile, String newContent) {
+        try {
+            // 读取已有内容
+            java.util.Set<String> existingKeys = new java.util.HashSet<>();
+            StringBuilder existing = new StringBuilder();
+            if (langFile.exists()) {
+                for (String line : Files.readAllLines(langFile.toPath(), java.nio.charset.StandardCharsets.UTF_8)) {
+                    existing.append(line).append("\n");
+                    if (line.contains("=") && !line.trim().startsWith("#")) {
+                        existingKeys.add(line.split("=")[0].trim());
+                    }
+                }
+            } else {
+                existing.append("# BSTweaker Weapon Localization\n\n");
+            }
+
+            // 只添加新 key
+            StringBuilder toAppend = new StringBuilder();
+            for (String line : newContent.split("\n")) {
+                if (line.contains("=") && !line.trim().startsWith("#")) {
+                    String key = line.split("=")[0].trim();
+                    if (!existingKeys.contains(key)) {
+                        toAppend.append(line).append("\n");
+                    }
+                }
+            }
+
+            // 如果有新内容，追加到文件末尾
+            if (toAppend.length() > 0) {
+                existing.append("\n# Auto-generated\n");
+                existing.append(toAppend);
+                Files.write(langFile.toPath(), existing.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                BSTweaker.LOG.info("Appended new keys to: " + langFile.getName());
+            }
+        } catch (Exception e) {
+            BSTweaker.LOG.error("Failed to append lang file: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 支持的武器类型列表 (BetterSurvival 原版5种)
+     */
+    private static final java.util.Set<String> SUPPORTED_TYPES = new java.util.HashSet<>(
+            java.util.Arrays.asList("dagger", "hammer", "spear", "battleaxe", "nunchaku"));
+
+    private static boolean isSupportedWeaponType(String type) {
+        return SUPPORTED_TYPES.contains(type.toLowerCase());
+    }
+
+    private static String getWeaponTypeNameZh(String type) {
+        switch (type.toLowerCase()) {
+            case "dagger":
+                return "匕首";
+            case "hammer":
+                return "战锤";
+            case "spear":
+                return "长矛";
+            case "battleaxe":
+                return "战斧";
+            case "nunchaku":
+                return "双截棍";
+            default:
+                return "武器";
+        }
+    }
+
+    private static String getWeaponTypeNameEn(String type) {
+        switch (type.toLowerCase()) {
+            case "dagger":
+                return "Dagger";
+            case "hammer":
+                return "Hammer";
+            case "spear":
+                return "Spear";
+            case "battleaxe":
+                return "Battle Axe";
+            case "nunchaku":
+                return "Nunchaku";
+            default:
+                return "Weapon";
         }
     }
 
