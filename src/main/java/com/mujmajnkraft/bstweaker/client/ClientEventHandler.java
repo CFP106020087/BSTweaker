@@ -11,6 +11,7 @@ import net.minecraft.client.resources.IResourcePack;
 import net.minecraft.item.Item;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.event.ModelRegistryEvent;
+import net.minecraftforge.client.event.TextureStitchEvent;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
@@ -158,5 +159,38 @@ public class ClientEventHandler {
             mc.refreshResources();
             BSTweaker.LOG.info("Resource refresh complete.");
         });
+    }
+
+    /**
+     * Register ALL config textures to texture atlas at stitch time.
+     * This enables hot-reload for all textures by pre-registering them in atlas.
+     */
+    @SubscribeEvent
+    public static void onTextureStitchPre(TextureStitchEvent.Pre event) {
+        // Only handle item texture map
+        if (event.getMap() != Minecraft.getMinecraft().getTextureMapBlocks()) {
+            return;
+        }
+
+        // Ensure DynamicResourcePack has scanned resources
+        DynamicResourcePack.scanConfigResources();
+
+        // Register all config textures to the atlas
+        java.util.Set<String> textureNames = DynamicResourcePack.getTextureNames();
+        int registered = 0;
+
+        for (String textureName : textureNames) {
+            // Register in BS namespace (where models reference them)
+            String bsPath = "mujmajnkraftsbettersurvival:items/" + textureName;
+            event.getMap().registerSprite(new ResourceLocation(bsPath));
+
+            // Also register in bstweaker namespace for fallback
+            String bstPath = "bstweaker:items/" + textureName;
+            event.getMap().registerSprite(new ResourceLocation(bstPath));
+
+            registered++;
+        }
+
+        BSTweaker.LOG.info("Registered " + registered + " config textures to atlas (both BS and BST namespaces)");
     }
 }

@@ -63,17 +63,22 @@ public class ResourceInjector {
             generateWeaponTooltipsAndLang();
         }
 
-        // 4. 复制模型文件到 assets
-        copyResources(cfgModelsDir, modelsDir, ".json", "model");
+        // DISABLED: Direct asset copying - now using DynamicResourcePack for runtime
+        // loading
+        // These copies were interfering with hot-reload by putting files in assets/
+        // which always overrides DynamicResourcePack
 
-        // 5. 复制纹理文件到 assets
-        copyResources(cfgTexturesDir, texturesDir, ".png", "texture");
-        copyResources(cfgTexturesDir, texturesDir, ".png.mcmeta", "mcmeta");
+        // 4. 复制模型文件到 assets (DISABLED)
+        // copyResources(cfgModelsDir, modelsDir, ".json", "model");
 
-        // 6. 复制语言文件到 assets
-        copyResources(new File(configDir, "lang"), langDir, ".lang", "lang");
+        // 5. 复制纹理文件到 assets (DISABLED)
+        // copyResources(cfgTexturesDir, texturesDir, ".png", "texture");
+        // copyResources(cfgTexturesDir, texturesDir, ".png.mcmeta", "mcmeta");
 
-        BSTweaker.LOG.info("Resource injection completed");
+        // 6. 复制语言文件到 assets (DISABLED)
+        // copyResources(new File(configDir, "lang"), langDir, ".lang", "lang");
+
+        BSTweaker.LOG.info("Resource injection completed (using DynamicResourcePack only)");
     }
 
     /**
@@ -347,8 +352,9 @@ public class ResourceInjector {
                 String tip1Key = "bstweaker.weapon." + id + ".tip1";
                 String tip2Key = "bstweaker.weapon." + id + ".tip2";
                 String tip3Key = "bstweaker.weapon." + id + ".tip3";
-                // 物品原始翻译 key (Minecraft 标准格式)
-                String itemLangKey = "item.bstweaker_" + id + ".name";
+                // 物品原始翻译 key (Minecraft 标准格式: item.<translationKey>.name)
+                // translationKey is set to id + type in TweakerWeaponInjector
+                String itemLangKey = "item." + id + type + ".name";
 
                 // 添加到 lang 文件
                 // 物品原始名称

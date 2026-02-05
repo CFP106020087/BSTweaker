@@ -32,8 +32,14 @@ public class BSTweakerMixinPlugin implements IFMLLoadingPlugin {
 
     static {
         try {
+            // Early mixin for Minecraft class (must be loaded before Minecraft class is
+            // initialized)
+            FermiumRegistryAPI.enqueueMixin(false, "mixins.bstweaker-early.json");
+            LOGGER.info("Early mixin queued via FermiumBooter");
+
+            // Main mixins (for BetterSurvival classes)
             FermiumRegistryAPI.enqueueMixin(true, "mixins.bstweaker.json");
-            LOGGER.info("Mixin queued via FermiumBooter");
+            LOGGER.info("Main mixin queued via FermiumBooter");
         } catch (Throwable e) {
             LOGGER.error("FermiumBooter registration failed: " + e);
         }
@@ -62,22 +68,23 @@ public class BSTweakerMixinPlugin implements IFMLLoadingPlugin {
                 File configDir = new File(mcDir, "config/bstweaker");
                 File modsDir = new File(mcDir, "mods");
 
-                // Generate placeholders from weapons.json FIRST
+                // Generate placeholders from weapons.json (mcmeta for animations)
                 File weaponsJson = new File(configDir, "weapons.json");
                 if (weaponsJson.exists()) {
                     generatePlaceholders(weaponsJson, configDir);
                 }
 
-                // Method 1: Try injecting into BS JAR
-                File bsJar = findBSJar(modsDir);
-                if (bsJar != null) {
-                    injectIntoJar(configDir, bsJar);
-                    LOGGER.info("Resources injected into: " + bsJar.getName());
-                } else {
-                    // Method 2: Fall back to resource pack
-                    LOGGER.warn("BetterSurvival JAR not found, falling back to resource pack");
-                    createResourcePack(configDir, new File(mcDir, "resourcepacks/bstweaker"));
-                }
+                // DISABLED: JAR injection and resource pack generation
+                // Now relying on DynamicResourcePack for runtime resource loading
+                // File bsJar = findBSJar(modsDir);
+                // if (bsJar != null) {
+                // injectIntoJar(configDir, bsJar);
+                // LOGGER.info("Resources injected into: " + bsJar.getName());
+                // } else {
+                // LOGGER.warn("BetterSurvival JAR not found, falling back to resource pack");
+                // createResourcePack(configDir, new File(mcDir, "resourcepacks/bstweaker"));
+                // }
+                LOGGER.info("Resource loading via DynamicResourcePack (no JAR injection)");
             }
         } catch (Throwable e) {
             LOGGER.error("Resource injection failed: " + e.getMessage());

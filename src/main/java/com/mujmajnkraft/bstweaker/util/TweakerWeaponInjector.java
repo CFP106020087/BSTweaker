@@ -344,6 +344,11 @@ public class TweakerWeaponInjector {
             // Keep BS native registry name
             // Format: mujmajnkraftsbettersurvival:item<material><type>
 
+            // Override translation key to use weapon id instead of BSTWEAKER_material
+            // BS constructor sets key to material.name().toLowerCase() + type
+            // We want to use the id from config for proper localization
+            weapon.setTranslationKey(id + type);
+
             // Modify attack damage and speed
             if (weaponDef.has("damageModifier") || weaponDef.has("speedModifier")) {
                 modifyWeaponStats(weapon, weaponDef);
@@ -351,7 +356,7 @@ public class TweakerWeaponInjector {
 
             System.out.println(
                     "[BSTweaker] Created weapon: " + weapon.getRegistryName() + " (type=" + type + ", material="
-                            + materialName + ")");
+                            + materialName + ", translationKey=" + id + type + ")");
             return weapon;
 
         } catch (Exception e) {

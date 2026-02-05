@@ -264,6 +264,13 @@ public class DynamicResourcePack implements IResourcePack {
             if (configModels.containsKey(name)) {
                 return new FileInputStream(configModels.get(name));
             }
+            // Fallback: strip "bstweaker_" prefix if present
+            if (name.contains("bstweaker_")) {
+                String stripped = name.replace("bstweaker_", "");
+                if (configModels.containsKey(stripped)) {
+                    return new FileInputStream(configModels.get(stripped));
+                }
+            }
         }
 
         // Check config textures
@@ -334,6 +341,14 @@ public class DynamicResourcePack implements IResourcePack {
 
             if (configModels.containsKey(name)) {
                 return true;
+            }
+            // Fallback: strip "bstweaker_" prefix if present (supports itembstweaker_xxx ->
+            // itemxxx mapping)
+            if (name.contains("bstweaker_")) {
+                String stripped = name.replace("bstweaker_", "");
+                if (configModels.containsKey(stripped)) {
+                    return true;
+                }
             }
         }
 

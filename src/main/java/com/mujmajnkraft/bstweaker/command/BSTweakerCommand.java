@@ -104,11 +104,16 @@ public class BSTweakerCommand extends CommandBase {
     @SideOnly(Side.CLIENT)
     private void refreshClientResources() {
         try {
-            // 确保在客户端主线程执行
+            // Use FAST texture reload via HotReloadHelper (bypasses full resource refresh)
             net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getMinecraft();
             mc.addScheduledTask(() -> {
+                // Request fast reload - this triggers FastTextureReloader instead of full
+                // refresh
+                com.mujmajnkraft.bstweaker.client.HotReloadHelper.enableFastReload();
+                // Trigger a dummy refresh to invoke the Mixin that intercepts and uses fast
+                // reload
                 mc.refreshResources();
-                BSTweaker.LOG.info("Client resources refreshed via scheduled task");
+                BSTweaker.LOG.info("Fast texture reload triggered");
             });
         } catch (Exception e) {
             BSTweaker.LOG.error("Failed to refresh client resources", e);
