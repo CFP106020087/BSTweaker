@@ -33,9 +33,28 @@ public class DynamicResourcePack implements IResourcePack {
     private static final Map<String, File> configMcmeta = new HashMap<>();
 
     private static File configDir;
+    private static File resourcesDir;
+    private static boolean initialized = false;
 
-    static {
-        configDir = new File(Loader.instance().getConfigDir(), "bstweaker");
+    // Singleton instance
+    private static DynamicResourcePack INSTANCE;
+
+    /** Get singleton instance */
+    public static DynamicResourcePack getInstance() {
+        if (INSTANCE == null) {
+            INSTANCE = new DynamicResourcePack();
+        }
+        return INSTANCE;
+    }
+
+    /** Lazy initialization to avoid early class loading issues */
+    private static void ensureInit() {
+        if (!initialized) {
+            configDir = new File(net.minecraftforge.fml.common.Loader.instance().getConfigDir(), "bstweaker");
+            resourcesDir = new File(net.minecraftforge.fml.common.Loader.instance().getConfigDir().getParentFile(),
+                    "resources/" + BS_NAMESPACE);
+            initialized = true;
+        }
     }
 
     /** Rescan config resources for hot-reload. */
@@ -53,64 +72,114 @@ public class DynamicResourcePack implements IResourcePack {
         java.util.Set<net.minecraft.util.ResourceLocation> locations = new java.util.HashSet<>();
         for (String name : configTextures.keySet()) {
             locations.add(new net.minecraft.util.ResourceLocation(Reference.MOD_ID, "textures/items/" + name + ".png"));
-            if (!name.startsWith("itembstweaker_")) {
-                locations.add(new net.minecraft.util.ResourceLocation(Reference.MOD_ID,
-                        "textures/items/itembstweaker_" + name + ".png"));
-            }
         }
         return locations;
     }
 
-    /** Scan config directory for resources. */
-    public static void scanConfigResources() {
-        File texturesDir = new File(configDir, "textures");
-        File modelsDir = new File(configDir, "models");
-        File langDir = new File(configDir, "lang");
+    /**
+     * Get texture File by name (for hot reload - bypasses cache).
+     * Supports lookup with or without 'item' prefix.
+     */
+    public static java.io.File getTextureFile(String textureName) {
+        // Try exact match first
+        File file = configTextures.get(textureName);
+        if (file != null)
+            return file;
 
-        if (!texturesDir.exists()) {
-            texturesDir.mkdirs();
-            createReadme(texturesDir,
+        // Try with 'item' prefix if not present
+        if (!textureName.startsWith("item")) {
+            file = configTextures.get("item" + textureName);
+            if (file != null)
+                return file;
+        }
+
+        // Try without 'item' prefix if present
+        if (textureName.startsWith("item")) {
+            file = configTextures.get(textureName.substring(4));
+            if (file != null)
+                return file;
+        }
+
+        return null;
+    }
+
+    /** Get all texture names. */
+    public static java.util.Set<String> getTextureNames() {
+        return configTextures.keySet();
+    }
+
+    /** Scan config and resources directories for resources. */
+    public static void scanConfigResources() {
+        ensureInit(); // 延迟初始化
+        // 扫描 config/bstweaker 目录（用户放置的源资源）
+        File cfgTexturesDir = new File(configDir, "textures");
+        File cfgModelsDir = new File(configDir, "models");
+        File cfgLangDir = new File(configDir, "lang");
+
+        // 扫描 resources/<namespace> 目录（生成的资源，热重载的核心）
+        File resTexturesDir = new File(resourcesDir, "textures/items");
+        File resModelsDir = new File(resourcesDir, "models/item");
+        File resLangDir = new File(resourcesDir, "lang");
+
+        // 创建 config 目录结构（首次运行）
+        if (!cfgTexturesDir.exists()) {
+            cfgTexturesDir.mkdirs();
+            createReadme(cfgTexturesDir,
                     "Place your weapon texture .png files here.\nOptionally add .png.mcmeta files for animations.");
         }
-        if (!modelsDir.exists()) {
-            modelsDir.mkdirs();
-            createReadme(modelsDir,
+        if (!cfgModelsDir.exists()) {
+            cfgModelsDir.mkdirs();
+            createReadme(cfgModelsDir,
                     "Place custom model .json files here (optional).\nIf not provided, a default handheld model will be generated.");
         }
-        if (!langDir.exists()) {
-            langDir.mkdirs();
-            createReadme(langDir,
+        if (!cfgLangDir.exists()) {
+            cfgLangDir.mkdirs();
+            createReadme(cfgLangDir,
                     "Place language .lang files here (e.g., en_us.lang, zh_cn.lang).\nFormat: item.bstweaker.weapon_id.name=Display Name");
         }
 
+        // 扫描 config textures
+        scanDirectory(cfgTexturesDir, ".png", configTextures);
+        scanMcmeta(cfgTexturesDir);
 
-        if (texturesDir.exists() && texturesDir.listFiles() != null) {
-            for (File file : texturesDir.listFiles()) {
-                if (file.getName().endsWith(".png")) {
-                    String name = file.getName().replace(".png", "");
-                    configTextures.put(name, file);
-                } else if (file.getName().endsWith(".mcmeta")) {
+        // 扫描 resources textures（优先级更高）
+        scanDirectory(resTexturesDir, ".png", configTextures);
+        scanMcmeta(resTexturesDir);
+
+        // 扫描 config models
+        scanDirectory(cfgModelsDir, ".json", configModels);
+
+        // 扫描 resources models（优先级更高）
+        scanDirectory(resModelsDir, ".json", configModels);
+        BSTweaker.LOG
+                .info("Scanned " + configModels.size() + " models from config+resources: " + configModels.keySet());
+
+        // 扫描 config lang
+        scanDirectory(cfgLangDir, ".lang", configLangs);
+
+        // 扫描 resources lang（优先级更高）
+        scanDirectory(resLangDir, ".lang", configLangs);
+    }
+
+    /** Helper: scan directory and add files to map. */
+    private static void scanDirectory(File dir, String extension, Map<String, File> map) {
+        if (dir.exists() && dir.listFiles() != null) {
+            for (File file : dir.listFiles()) {
+                if (file.getName().endsWith(extension)) {
+                    String name = file.getName().replace(extension, "");
+                    map.put(name, file);
+                }
+            }
+        }
+    }
+
+    /** Helper: scan mcmeta files. */
+    private static void scanMcmeta(File dir) {
+        if (dir.exists() && dir.listFiles() != null) {
+            for (File file : dir.listFiles()) {
+                if (file.getName().endsWith(".mcmeta")) {
                     String name = file.getName().replace(".png.mcmeta", "");
                     configMcmeta.put(name, file);
-                }
-            }
-        }
-
-        if (modelsDir.exists() && modelsDir.listFiles() != null) {
-            for (File file : modelsDir.listFiles()) {
-                if (file.getName().endsWith(".json")) {
-                    String name = file.getName().replace(".json", "");
-                    configModels.put(name, file);
-                }
-            }
-        }
-
-
-        if (langDir.exists() && langDir.listFiles() != null) {
-            for (File file : langDir.listFiles()) {
-                if (file.getName().endsWith(".lang")) {
-                    String name = file.getName().replace(".lang", "");
-                    configLangs.put(name, file);
                 }
             }
         }
@@ -166,6 +235,11 @@ public class DynamicResourcePack implements IResourcePack {
         String namespace = location.getNamespace();
         String path = location.getPath();
 
+        // Debug logging
+        if (path.contains("model") || path.contains("texture")) {
+
+        }
+
         // Check if namespace is supported (bstweaker or mujmajnkraftsbettersurvival)
         if (!Reference.MOD_ID.equals(namespace) && !BS_NAMESPACE.equals(namespace)) {
             throw new FileNotFoundException("Resource not found: " + location);
@@ -190,13 +264,6 @@ public class DynamicResourcePack implements IResourcePack {
             if (configModels.containsKey(name)) {
                 return new FileInputStream(configModels.get(name));
             }
-            // Try removing itembstweaker_ prefix
-            if (name.startsWith("itembstweaker_")) {
-                String shortName = name.substring(14);
-                if (configModels.containsKey(shortName)) {
-                    return new FileInputStream(configModels.get(shortName));
-                }
-            }
         }
 
         // Check config textures
@@ -204,19 +271,11 @@ public class DynamicResourcePack implements IResourcePack {
             String name = path.replace("textures/items/", "").replace(".png", "");
             // Direct match
             if (configTextures.containsKey(name)) {
+
                 return new FileInputStream(configTextures.get(name));
-            }
-            // Try removing itembstweaker_ prefix
-            if (name.startsWith("itembstweaker_")) {
-                String shortName = name.substring(14);
-                if (configTextures.containsKey(shortName)) {
-                    return new FileInputStream(configTextures.get(shortName));
-                }
-            }
-            // Reverse match: request without prefix, file with prefix
-            String prefixedName = "itembstweaker_" + name;
-            if (configTextures.containsKey(prefixedName)) {
-                return new FileInputStream(configTextures.get(prefixedName));
+            } else {
+                BSTweaker.LOG.warn(
+                        "getInputStream: Texture NOT FOUND: '" + name + "' | Available: " + configTextures.keySet());
             }
         }
 
@@ -225,11 +284,6 @@ public class DynamicResourcePack implements IResourcePack {
             String name = path.replace("textures/items/", "").replace(".png.mcmeta", "");
             if (configMcmeta.containsKey(name)) {
                 return new FileInputStream(configMcmeta.get(name));
-            }
-            // Reverse match
-            String prefixedName = "itembstweaker_" + name;
-            if (configMcmeta.containsKey(prefixedName)) {
-                return new FileInputStream(configMcmeta.get(prefixedName));
             }
         }
 
@@ -249,7 +303,16 @@ public class DynamicResourcePack implements IResourcePack {
         String namespace = location.getNamespace();
         String path = location.getPath();
 
-        // Check if namespace is supported
+        // Check config lang files FIRST (for bstweaker namespace) - needed for tooltip
+        // translation
+        if (Reference.MOD_ID.equals(namespace) && path.startsWith("lang/") && path.endsWith(".lang")) {
+            String name = path.replace("lang/", "").replace(".lang", "");
+            if (configLangs.containsKey(name)) {
+                return true;
+            }
+        }
+
+        // Check if namespace is supported for other resources
         if (!Reference.MOD_ID.equals(namespace) && !BS_NAMESPACE.equals(namespace)) {
             return false;
         }
@@ -272,13 +335,6 @@ public class DynamicResourcePack implements IResourcePack {
             if (configModels.containsKey(name)) {
                 return true;
             }
-            // Try removing itembstweaker_ prefix
-            if (name.startsWith("itembstweaker_")) {
-                String shortName = name.substring(14);
-                if (configModels.containsKey(shortName)) {
-                    return true;
-                }
-            }
         }
 
         // Check config textures
@@ -289,18 +345,6 @@ public class DynamicResourcePack implements IResourcePack {
             if (configTextures.containsKey(name)) {
                 return true;
             }
-            // Try removing itembstweaker_ prefix (request has prefix, file doesn't)
-            if (name.startsWith("itembstweaker_")) {
-                String shortName = name.substring(14);
-                if (configTextures.containsKey(shortName)) {
-                    return true;
-                }
-            }
-            // Reverse match: request without prefix, file with prefix
-            String prefixedName = "itembstweaker_" + name;
-            if (configTextures.containsKey(prefixedName)) {
-                return true;
-            }
         }
 
         // Check config mcmeta
@@ -309,25 +353,9 @@ public class DynamicResourcePack implements IResourcePack {
             if (configMcmeta.containsKey(name)) {
                 return true;
             }
-            // Try removing itembstweaker_ prefix
-            if (name.startsWith("itembstweaker_")) {
-                String shortName = name.substring(14);
-                if (configMcmeta.containsKey(shortName)) {
-                    return true;
-                }
-            }
-            // Reverse match
-            String prefixedName = "itembstweaker_" + name;
-            if (configMcmeta.containsKey(prefixedName)) {
-                return true;
-            }
         }
 
-        // Check config lang files
-        if (path.startsWith("lang/") && path.endsWith(".lang")) {
-            String name = path.replace("lang/", "").replace(".lang", "");
-            return configLangs.containsKey(name);
-        }
+        // Lang files already checked at the beginning of this method
 
         return false;
     }
