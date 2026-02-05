@@ -211,6 +211,8 @@ public class BSTweakerMixinPlugin implements IFMLLoadingPlugin {
         URI jarUri = URI.create("jar:" + jarFile.toURI());
 
         try (FileSystem jarFs = FileSystems.newFileSystem(jarUri, env)) {
+            // Cleanup orphaned bstweaker resources first
+            cleanupOrphanedResources(configDir, jarFs);
             // Inject models
             injectModels(configDir, jarFs);
             // Inject textures
@@ -220,6 +222,84 @@ public class BSTweakerMixinPlugin implements IFMLLoadingPlugin {
         } catch (Exception e) {
             LOGGER.error("Failed to inject into JAR: " + e.getMessage());
             e.printStackTrace();
+        }
+    }
+
+    /**
+     * Remove bstweaker resources from JAR that are no longer in config.
+     * Only removes files with "bstweaker_" prefix to avoid touching original BS
+     * files.
+     */
+    private void cleanupOrphanedResources(File configDir, FileSystem jarFs) {
+        try {
+            // Collect current texture names from config
+            File texturesDir = new File(configDir, "textures");
+            java.util.Set<String> validTextures = new java.util.HashSet<>();
+            if (texturesDir.exists()) {
+                File[] files = texturesDir.listFiles();
+                if (files != null) {
+                    for (File f : files) {
+                        String name = f.getName();
+                        if (name.endsWith(".png") || name.endsWith(".mcmeta")) {
+                            validTextures.add(translateFileName(name));
+                        }
+                    }
+                }
+            }
+
+            // Check JAR textures directory
+            Path jarTexturesPath = jarFs.getPath("assets/" + BS_NAMESPACE + "/textures/items");
+            if (Files.exists(jarTexturesPath)) {
+                try (java.util.stream.Stream<Path> stream = Files.list(jarTexturesPath)) {
+                    List<Path> toDelete = new ArrayList<>();
+                    stream.forEach(path -> {
+                        String fileName = path.getFileName().toString();
+                        // Only clean up our injected files (with bstweaker_ prefix)
+                        if (fileName.contains("bstweaker_") && !validTextures.contains(fileName)) {
+                            toDelete.add(path);
+                        }
+                    });
+                    for (Path path : toDelete) {
+                        Files.delete(path);
+                        LOGGER.info("Cleaned up orphaned texture: " + path.getFileName());
+                    }
+                }
+            }
+
+            // Collect current model names from config
+            File modelsDir = new File(configDir, "models");
+            java.util.Set<String> validModels = new java.util.HashSet<>();
+            if (modelsDir.exists()) {
+                File[] files = modelsDir.listFiles();
+                if (files != null) {
+                    for (File f : files) {
+                        if (f.getName().endsWith(".json")) {
+                            validModels.add(translateFileName(f.getName()));
+                        }
+                    }
+                }
+            }
+
+            // Check JAR models directory
+            Path jarModelsPath = jarFs.getPath("assets/" + BS_NAMESPACE + "/models/item");
+            if (Files.exists(jarModelsPath)) {
+                try (java.util.stream.Stream<Path> stream = Files.list(jarModelsPath)) {
+                    List<Path> toDelete = new ArrayList<>();
+                    stream.forEach(path -> {
+                        String fileName = path.getFileName().toString();
+                        // Only clean up our injected files (with bstweaker_ prefix)
+                        if (fileName.contains("bstweaker_") && !validModels.contains(fileName)) {
+                            toDelete.add(path);
+                        }
+                    });
+                    for (Path path : toDelete) {
+                        Files.delete(path);
+                        LOGGER.info("Cleaned up orphaned model: " + path.getFileName());
+                    }
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.warn("Cleanup failed (non-fatal): " + e.getMessage());
         }
     }
 
