@@ -15,6 +15,7 @@
     "    enchantability: 附魔能力",
     "  damageModifier: 额外伤害 (可选)",
     "  speedModifier: 攻速修正 (可选)",
+    "  placeholders: 占位符变体 (可选,如 [spinning] 用于双截棍)",
     "",
     "自动生成 (可在mod配置中关闭)：",
     "  - tooltips.json 条目",
@@ -37,6 +38,7 @@
     "    enchantability: Enchantability",
     "  damageModifier: Extra damage (optional)",
     "  speedModifier: Speed modifier (optional)",
+    "  placeholders: Placeholder variants (optional, e.g. [spinning] for nunchaku)",
     "",
     "Auto-generated (toggle in mod config):",
     "  - tooltips.json entries",
@@ -113,6 +115,9 @@
       "id": "emeraldnunchaku",
       "type": "nunchaku",
       "texture": "emeraldnunchaku",
+      "placeholders": [
+        "spinning"
+      ],
       "material": {
         "name": "emerald",
         "harvestLevel": 2,

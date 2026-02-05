@@ -5,12 +5,21 @@ import fermiumbooter.FermiumRegistryAPI;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import javax.imageio.ImageIO;
 
 @IFMLLoadingPlugin.MCVersion("1.12.2")
 @IFMLLoadingPlugin.TransformerExclusions({ "com.mujmajnkraft.bstweaker.core" })
@@ -53,6 +62,12 @@ public class BSTweakerMixinPlugin implements IFMLLoadingPlugin {
                 File configDir = new File(mcDir, "config/bstweaker");
                 File modsDir = new File(mcDir, "mods");
 
+                // Generate placeholders from weapons.json FIRST
+                File weaponsJson = new File(configDir, "weapons.json");
+                if (weaponsJson.exists()) {
+                    generatePlaceholders(weaponsJson, configDir);
+                }
+
                 // Method 1: Try injecting into BS JAR
                 File bsJar = findBSJar(modsDir);
                 if (bsJar != null) {
@@ -67,6 +82,106 @@ public class BSTweakerMixinPlugin implements IFMLLoadingPlugin {
         } catch (Throwable e) {
             LOGGER.error("Resource injection failed: " + e.getMessage());
             e.printStackTrace();
+        }
+    }
+
+    /**
+     * Generate placeholder textures from weapons.json.
+     * Creates 32x32 transparent PNG + mcmeta for each weapon and its variants.
+     */
+    private void generatePlaceholders(File weaponsJson, File configDir) {
+        try {
+            JsonParser parser = new JsonParser();
+            JsonObject root = parser.parse(new FileReader(weaponsJson)).getAsJsonObject();
+
+            File texturesDir = new File(configDir, "textures");
+            if (!texturesDir.exists()) {
+                texturesDir.mkdirs();
+            }
+
+            // Process weapons array
+            if (root.has("weapons")) {
+                JsonArray weapons = root.getAsJsonArray("weapons");
+                for (JsonElement elem : weapons) {
+                    JsonObject weapon = elem.getAsJsonObject();
+                    generateWeaponPlaceholders(weapon, texturesDir);
+                }
+            }
+
+            LOGGER.info("Placeholder generation completed");
+        } catch (Exception e) {
+            LOGGER.error("Failed to generate placeholders: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Generate placeholders for a single weapon.
+     * Uses "placeholders" array from weapon definition if present.
+     */
+    private void generateWeaponPlaceholders(JsonObject weapon, File texturesDir) {
+        String id = weapon.has("id") ? weapon.get("id").getAsString() : null;
+        if (id == null)
+            return;
+
+        // Base texture name
+        String baseTextureName = "item" + id;
+
+        // Get placeholders array from weapon definition
+        // Default: just base texture. Nunchaku-type might have ["base", "spinning"]
+        List<String> variants = new ArrayList<>();
+        variants.add(""); // Base texture (no suffix)
+
+        if (weapon.has("placeholders")) {
+            JsonArray placeholders = weapon.getAsJsonArray("placeholders");
+            for (JsonElement p : placeholders) {
+                String suffix = p.getAsString();
+                if (!suffix.isEmpty() && !suffix.equals("base")) {
+                    variants.add(suffix);
+                }
+            }
+        }
+
+        // Generate each variant
+        for (String suffix : variants) {
+            String textureName = suffix.isEmpty() ? baseTextureName : baseTextureName + suffix;
+            File pngFile = new File(texturesDir, textureName + ".png");
+            File mcmetaFile = new File(texturesDir, textureName + ".png.mcmeta");
+
+            // Only generate if not exists (don't overwrite user textures)
+            if (!pngFile.exists()) {
+                generatePlaceholderPng(pngFile);
+                LOGGER.info("Generated placeholder: " + textureName + ".png");
+            }
+
+            // Generate mcmeta for animation variants (spinning, etc.)
+            if (!suffix.isEmpty() && !mcmetaFile.exists()) {
+                generatePlaceholderMcmeta(mcmetaFile);
+                LOGGER.info("Generated placeholder mcmeta: " + textureName + ".png.mcmeta");
+            }
+        }
+    }
+
+    /** Generate a 32x32 transparent placeholder PNG. */
+    private void generatePlaceholderPng(File file) {
+        try {
+            BufferedImage img = new BufferedImage(32, 32, BufferedImage.TYPE_INT_ARGB);
+            // Fill with transparent (already default for TYPE_INT_ARGB)
+            // Optionally add a subtle marker pixel
+            img.setRGB(0, 0, 0x01000000); // Nearly invisible marker
+            ImageIO.write(img, "png", file);
+        } catch (Exception e) {
+            LOGGER.error("Failed to generate placeholder PNG: " + e.getMessage());
+        }
+    }
+
+    /** Generate placeholder mcmeta for animation. */
+    private void generatePlaceholderMcmeta(File file) {
+        try {
+            String mcmeta = "{\n  \"animation\": {\n    \"frametime\": 2\n  }\n}";
+            Files.write(file.toPath(), mcmeta.getBytes(StandardCharsets.UTF_8));
+        } catch (Exception e) {
+            LOGGER.error("Failed to generate placeholder mcmeta: " + e.getMessage());
         }
     }
 
