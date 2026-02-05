@@ -206,7 +206,8 @@ public class DynamicResourcePack implements IResourcePack {
             try {
                 String content = new String(Files.readAllBytes(configModels.get(textureName).toPath()),
                         StandardCharsets.UTF_8);
-                String modelPath = "assets/" + Reference.MOD_ID + "/models/item/" + textureName + ".json";
+                // Model path uses BS namespace where items are registered
+                String modelPath = "assets/" + BS_NAMESPACE + "/models/item/" + textureName + ".json";
                 dynamicModels.put(modelPath, content);
                 return;
             } catch (IOException e) {
@@ -215,17 +216,19 @@ public class DynamicResourcePack implements IResourcePack {
         }
 
         // Otherwise generate default model
-        String modelPath = "assets/" + Reference.MOD_ID + "/models/item/" + textureName + ".json";
+        // Model path uses BS namespace where items are registered
+        String modelPath = "assets/" + BS_NAMESPACE + "/models/item/" + textureName + ".json";
         String modelContent = generateModelJson(textureName);
         dynamicModels.put(modelPath, modelContent);
     }
     
     /** Generate model JSON content. */
     private static String generateModelJson(String textureName) {
+        // Model texture reference uses BS namespace where textures are served
         return "{\n" +
                "  \"parent\": \"item/handheld\",\n" +
                "  \"textures\": {\n" +
-               "    \"layer0\": \"" + Reference.MOD_ID + ":items/" + textureName + "\"\n" +
+                "    \"layer0\": \"" + BS_NAMESPACE + ":items/" + textureName + "\"\n" +
                "  }\n" +
                "}";
     }
@@ -260,7 +263,7 @@ public class DynamicResourcePack implements IResourcePack {
             } else {
                 name = path.replace("models/", "").replace(".json", "");
             }
-            // Direct match
+            // Direct match from config models
             if (configModels.containsKey(name)) {
                 return new FileInputStream(configModels.get(name));
             }
@@ -270,6 +273,15 @@ public class DynamicResourcePack implements IResourcePack {
                 if (configModels.containsKey(stripped)) {
                     return new FileInputStream(configModels.get(stripped));
                 }
+            }
+
+            // Auto-generate model if we have a matching texture
+            // Model name format: item<material><type> (e.g. itememeraldnunchaku)
+            // Texture name format: item<material><type> (e.g. itememeraldnunchaku)
+            if (configTextures.containsKey(name)) {
+                String modelJson = generateModelJson(name);
+                BSTweaker.LOG.info("[DRP] Auto-generated model for: " + name);
+                return new ByteArrayInputStream(modelJson.getBytes(StandardCharsets.UTF_8));
             }
         }
 
@@ -350,6 +362,11 @@ public class DynamicResourcePack implements IResourcePack {
                     return true;
                 }
             }
+
+            // Auto-generate model if we have a matching texture
+            if (configTextures.containsKey(name)) {
+                return true;
+            }
         }
 
         // Check config textures
@@ -365,7 +382,10 @@ public class DynamicResourcePack implements IResourcePack {
         // Check config mcmeta
         if (path.startsWith("textures/items/") && path.endsWith(".png.mcmeta")) {
             String name = path.replace("textures/items/", "").replace(".png.mcmeta", "");
-            if (configMcmeta.containsKey(name)) {
+            boolean found = configMcmeta.containsKey(name);
+            BSTweaker.LOG.info("[DRP] resourceExists mcmeta check: '" + name + "' found=" + found +
+                    ", configMcmeta.size=" + configMcmeta.size());
+            if (found) {
                 return true;
             }
         }

@@ -290,8 +290,11 @@ public class TweakerWeaponInjector {
             float damage = matDef.has("damage") ? matDef.get("damage").getAsFloat() : 2.0F;
             int enchantability = matDef.has("enchantability") ? matDef.get("enchantability").getAsInt() : 14;
 
+            // Register material WITHOUT prefix so item registry name matches texture name
+            // e.g. material "emerald" -> item "itememeraldnunchaku" -> texture
+            // "itememeraldnunchaku.png"
             ToolMaterial material = EnumHelper.addToolMaterial(
-                    "BSTWEAKER_" + name,
+                    name,
                     harvestLevel,
                     durability,
                     efficiency,

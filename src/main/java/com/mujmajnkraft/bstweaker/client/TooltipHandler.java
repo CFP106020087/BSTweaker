@@ -32,16 +32,27 @@ public class TooltipHandler {
         List<String> tooltip = event.getToolTip();
         
         // Replace item name with displayName (first line of tooltip)
-        if (def.has("displayName") && !tooltip.isEmpty()) {
-            String displayName = def.get("displayName").getAsString();
-            // Support translation keys: @key.name -> I18n.format("key.name")
-            if (displayName.startsWith("@")) {
-                displayName = I18n.format(displayName.substring(1));
+        if (!tooltip.isEmpty()) {
+            String displayName = null;
+
+            if (def.has("displayName")) {
+                displayName = def.get("displayName").getAsString();
+            } else if (def.has("id")) {
+                // Auto-generate from id: "emeralddagger" -> "Emeralddagger"
+                String id = def.get("id").getAsString();
+                displayName = id.substring(0, 1).toUpperCase() + id.substring(1);
             }
-            // Support color codes
-            displayName = formatTooltipLine(displayName);
-            // Replace first line (original item name)
-            tooltip.set(0, displayName);
+
+            if (displayName != null) {
+                // Support translation keys: @key.name -> I18n.format("key.name")
+                if (displayName.startsWith("@")) {
+                    displayName = I18n.format(displayName.substring(1));
+                }
+                // Support color codes
+                displayName = formatTooltipLine(displayName);
+                // Replace first line (original item name)
+                tooltip.set(0, displayName);
+            }
         }
 
         // Add custom tooltip

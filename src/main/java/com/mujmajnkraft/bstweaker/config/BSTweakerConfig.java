@@ -27,6 +27,15 @@ public class BSTweakerConfig {
     @Config.LangKey("bstweaker.config.autoGenerateTooltips")
     public static boolean autoGenerateTooltips = true;
 
+    @Config.Comment({
+            "Enable fast texture hot-reload (faster but limited)",
+            "When disabled, /bstweaker reload will use full F3+T refresh",
+            "启用快速纹理热重载（更快但有限制）",
+            "禁用时，/bstweaker reload 将使用完整的 F3+T 刷新"
+    })
+    @Config.LangKey("bstweaker.config.enableFastReload")
+    public static boolean enableFastReload = true;
+
     @Mod.EventBusSubscriber(modid = Reference.MOD_ID)
     private static class EventHandler {
         @SubscribeEvent
