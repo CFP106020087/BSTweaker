@@ -64,27 +64,35 @@ public class BSTweakerMixinPlugin implements IFMLLoadingPlugin {
     public void injectData(Map<String, Object> data) {
         try {
             File mcDir = (File) data.get("mcLocation");
+            LOGGER.info("[BSTweaker] injectData called, mcDir=" + mcDir);
             if (mcDir != null) {
                 File configDir = new File(mcDir, "config/bstweaker");
                 File modsDir = new File(mcDir, "mods");
+                LOGGER.info("[BSTweaker] configDir=" + configDir + " exists=" + configDir.exists());
+                LOGGER.info("[BSTweaker] modsDir=" + modsDir + " exists=" + modsDir.exists());
 
                 // Generate placeholders from weapons.json (mcmeta for animations)
                 File weaponsJson = new File(configDir, "weapons.json");
+                LOGGER.info("[BSTweaker] weaponsJson=" + weaponsJson + " exists=" + weaponsJson.exists());
                 if (weaponsJson.exists()) {
                     generatePlaceholders(weaponsJson, configDir);
                 }
 
-                // DISABLED: JAR injection and resource pack generation
-                // Now relying on DynamicResourcePack for runtime resource loading
-                // File bsJar = findBSJar(modsDir);
-                // if (bsJar != null) {
-                // injectIntoJar(configDir, bsJar);
-                // LOGGER.info("Resources injected into: " + bsJar.getName());
-                // } else {
-                // LOGGER.warn("BetterSurvival JAR not found, falling back to resource pack");
-                // createResourcePack(configDir, new File(mcDir, "resourcepacks/bstweaker"));
-                // }
-                LOGGER.info("Resource loading via DynamicResourcePack (no JAR injection)");
+                // Inject spinning placeholders into BS JAR for initial texture atlas stitching
+                // This ensures Minecraft recognizes animation textures before
+                // DynamicResourcePack loads
+                File bsJar = findBSJar(modsDir);
+                LOGGER.info("[BSTweaker] findBSJar result: " + bsJar);
+                if (bsJar != null) {
+                    injectSpinningPlaceholders(configDir, bsJar);
+                    LOGGER.info("Spinning placeholders injected into: " + bsJar.getName());
+                } else {
+                    // Dev environment fallback: copy to resources directory
+                    File resourcesDir = new File(mcDir, "resources/" + BS_NAMESPACE + "/textures/items");
+                    copySpinningPlaceholdersToResources(configDir, resourcesDir);
+                    LOGGER.info("Dev environment: Spinning placeholders copied to resources dir");
+                }
+                LOGGER.info("Runtime resource loading via DynamicResourcePack");
             }
         } catch (Throwable e) {
             LOGGER.error("Resource injection failed: " + e.getMessage());
@@ -197,12 +205,103 @@ public class BSTweakerMixinPlugin implements IFMLLoadingPlugin {
         if (!modsDir.exists())
             return null;
 
-        File[] jars = modsDir.listFiles((d, n) -> n.toLowerCase().contains("bettersurvival") && n.endsWith(".jar"));
+        // Match both "bettersurvival" and "better_survival" naming patterns
+        File[] jars = modsDir.listFiles((d, n) -> {
+            String lower = n.toLowerCase();
+            return (lower.contains("bettersurvival") || lower.contains("better_survival")) && n.endsWith(".jar");
+        });
 
         if (jars != null && jars.length > 0) {
             return jars[0];
         }
         return null;
+    }
+
+    /**
+     * Inject only spinning placeholder textures and mcmeta into BS JAR.
+     * This ensures Minecraft recognizes animation textures during initial texture
+     * atlas stitching.
+     * DynamicResourcePack will override with actual textures at runtime.
+     */
+    private void injectSpinningPlaceholders(File configDir, File jarFile) {
+        File texturesDir = new File(configDir, "textures");
+        if (!texturesDir.exists()) {
+            LOGGER.info("No textures dir, skipping spinning placeholder injection");
+            return;
+        }
+
+        // Find all spinning placeholder files (texture + mcmeta)
+        File[] spinningFiles = texturesDir
+                .listFiles((d, n) -> n.contains("spinning") && (n.endsWith(".png") || n.endsWith(".png.mcmeta")));
+
+        if (spinningFiles == null || spinningFiles.length == 0) {
+            LOGGER.info("No spinning placeholders found");
+            return;
+        }
+
+        Map<String, String> env = new HashMap<>();
+        env.put("create", "false");
+
+        URI jarUri = URI.create("jar:" + jarFile.toURI());
+
+        try (FileSystem jarFs = FileSystems.newFileSystem(jarUri, env)) {
+            for (File file : spinningFiles) {
+                String targetName = translateFileName(file.getName());
+                Path targetPath = jarFs.getPath("assets/" + BS_NAMESPACE + "/textures/items/" + targetName);
+
+                // Ensure directory exists
+                Files.createDirectories(targetPath.getParent());
+
+                // Copy file to JAR
+                Files.copy(file.toPath(), targetPath, StandardCopyOption.REPLACE_EXISTING);
+
+                LOGGER.info("Injected spinning placeholder: " + file.getName() + " -> " + targetName);
+            }
+            LOGGER.info("Spinning placeholder injection completed: " + spinningFiles.length + " files");
+        } catch (Exception e) {
+            LOGGER.error("Failed to inject spinning placeholders: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Copy spinning placeholder textures and mcmeta to resources directory (dev
+     * environment fallback).
+     */
+    private void copySpinningPlaceholdersToResources(File configDir, File resourcesDir) {
+        File texturesDir = new File(configDir, "textures");
+        if (!texturesDir.exists()) {
+            LOGGER.info("No textures dir, skipping spinning placeholder copy");
+            return;
+        }
+
+        // Find all spinning placeholder files (texture + mcmeta)
+        File[] spinningFiles = texturesDir
+                .listFiles((d, n) -> n.contains("spinning") && (n.endsWith(".png") || n.endsWith(".png.mcmeta")));
+
+        if (spinningFiles == null || spinningFiles.length == 0) {
+            LOGGER.info("No spinning placeholders found for dev copy");
+            return;
+        }
+
+        try {
+            // Ensure resources directory exists
+            if (!resourcesDir.exists()) {
+                resourcesDir.mkdirs();
+            }
+
+            for (File file : spinningFiles) {
+                String targetName = translateFileName(file.getName());
+                File targetFile = new File(resourcesDir, targetName);
+
+                Files.copy(file.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                LOGGER.info("Copied spinning placeholder: " + file.getName() + " -> " + targetName);
+            }
+            LOGGER.info("Dev spinning placeholder copy completed: " + spinningFiles.length + " files");
+        } catch (Exception e) {
+            LOGGER.error("Failed to copy spinning placeholders: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     /** Inject resources into BetterSurvival JAR. */

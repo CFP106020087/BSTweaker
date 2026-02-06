@@ -110,6 +110,7 @@ public class DynamicResourcePack implements IResourcePack {
 
     /** Scan config and resources directories for resources. */
     public static void scanConfigResources() {
+        BSTweaker.LOG.info("[DRP-DIAG] scanConfigResources STARTED at " + System.currentTimeMillis());
         ensureInit(); // 延迟初始化
         // 扫描 config/bstweaker 目录（用户放置的源资源）
         File cfgTexturesDir = new File(configDir, "textures");
@@ -311,14 +312,21 @@ public class DynamicResourcePack implements IResourcePack {
         // Check config mcmeta
         if (path.startsWith("textures/items/") && path.endsWith(".png.mcmeta")) {
             String name = path.replace("textures/items/", "").replace(".png.mcmeta", "");
-            if (configMcmeta.containsKey(name)) {
-                return new FileInputStream(configMcmeta.get(name));
+
+            // Strip itembstweaker_ prefix for lookup (config files use original names)
+            String lookupName = name;
+            if (name.startsWith("itembstweaker_")) {
+                lookupName = "item" + name.substring("itembstweaker_".length());
+            }
+
+            if (configMcmeta.containsKey(lookupName)) {
+                return new FileInputStream(configMcmeta.get(lookupName));
             }
             // Fallback: check file system directly if not in map
-            File mcmetaFile = new File(configDir, "textures/" + name + ".png.mcmeta");
+            File mcmetaFile = new File(configDir, "textures/" + lookupName + ".png.mcmeta");
             if (mcmetaFile.exists()) {
-                configMcmeta.put(name, mcmetaFile); // Add to map for future lookups
-                BSTweaker.LOG.info("[DRP] getInputStream mcmeta fallback: '" + name + "'");
+                configMcmeta.put(lookupName, mcmetaFile); // Add to map for future lookups
+                BSTweaker.LOG.info("[DRP] getInputStream mcmeta fallback: '" + lookupName + "'");
                 return new FileInputStream(mcmetaFile);
             }
         }
@@ -338,6 +346,11 @@ public class DynamicResourcePack implements IResourcePack {
     public boolean resourceExists(ResourceLocation location) {
         String namespace = location.getNamespace();
         String path = location.getPath();
+
+        // DIAGNOSTIC: Track spinning texture/mcmeta requests during texture stitch
+        if (path.contains("spinning")) {
+            BSTweaker.LOG.info("[DRP-DIAG] resourceExists SPINNING request: ns=" + namespace + " path=" + path);
+        }
 
         // Check config lang files FIRST (for bstweaker namespace) - needed for tooltip
         // translation
@@ -408,20 +421,28 @@ public class DynamicResourcePack implements IResourcePack {
         // Check config mcmeta
         if (path.startsWith("textures/items/") && path.endsWith(".png.mcmeta")) {
             String name = path.replace("textures/items/", "").replace(".png.mcmeta", "");
-            boolean found = configMcmeta.containsKey(name);
+
+            // Strip itembstweaker_ prefix for lookup (config files use original names)
+            String lookupName = name;
+            if (name.startsWith("itembstweaker_")) {
+                lookupName = "item" + name.substring("itembstweaker_".length());
+            }
+
+            boolean found = configMcmeta.containsKey(lookupName);
 
             // Fallback: check file system directly if not in map (handles files added after
             // scan)
             if (!found) {
-                File mcmetaFile = new File(configDir, "textures/" + name + ".png.mcmeta");
+                File mcmetaFile = new File(configDir, "textures/" + lookupName + ".png.mcmeta");
                 if (mcmetaFile.exists()) {
-                    configMcmeta.put(name, mcmetaFile); // Add to map for future lookups
+                    configMcmeta.put(lookupName, mcmetaFile); // Add to map for future lookups
                     found = true;
-                    BSTweaker.LOG.info("[DRP] mcmeta fallback found: '" + name + "'");
+                    BSTweaker.LOG.info("[DRP] mcmeta fallback found: '" + lookupName + "'");
                 }
             }
 
-            BSTweaker.LOG.info("[DRP] resourceExists mcmeta check: '" + name + "' found=" + found +
+            BSTweaker.LOG.info("[DRP] resourceExists mcmeta check: name='" + name + "' lookupName='" + lookupName
+                    + "' found=" + found +
                     ", configMcmeta.size=" + configMcmeta.size());
             if (found) {
                 return true;

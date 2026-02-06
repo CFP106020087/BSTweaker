@@ -265,8 +265,9 @@ public class ResourceInjector {
                         spinningSb.append("{\n");
                         spinningSb.append("  \"parent\": \"item/generated\",\n");
                         spinningSb.append("  \"textures\": {\n");
-                        spinningSb.append("    \"layer0\": \"bstweaker:items/item").append(texture)
-                                .append("spinning\"\n");
+                        // Use BS namespace directly so texture path matches JAR injection
+                        spinningSb.append("    \"layer0\": \"mujmajnkraftsbettersurvival:items/itembstweaker_")
+                                .append(texture).append("spinning\"\n");
                         spinningSb.append("  }");
                         // nunchaku spinning 需要特殊的 display 属性（更大的 scale）
                         if ("nunchaku".equals(type)) {
