@@ -39,14 +39,18 @@ public class ResourceInjector {
             init();
         }
 
-        // Only create config directories - assets/ should NEVER be touched
-        // DynamicResourcePack serves resources from config/ at runtime
+        // 确保目标目录存在
+        File modelsDir = new File(assetsDir, "models/item");
+        File texturesDir = new File(assetsDir, "textures/items");
+        File langDir = new File(assetsDir, "lang");
         File cfgModelsDir = new File(configDir, "models");
         File cfgTexturesDir = new File(configDir, "textures");
 
-        // CRITICAL: Clean up old assets directory to prevent ResourceLoader override
-        // This ensures DynamicResourcePack has priority
-        cleanupOldAssets();
+        modelsDir.mkdirs();
+        texturesDir.mkdirs();
+        langDir.mkdirs();
+        cfgModelsDir.mkdirs();
+        cfgTexturesDir.mkdirs();
 
         // 1. 从 JAR 解压默认纹理到 cfg/textures（首次运行）
         extractDefaultTextures(cfgTexturesDir);
@@ -130,52 +134,6 @@ public class ResourceInjector {
     }
 
     /**
-     * 清理旧的 assets 目录中的文件
-     * 这些文件会覆盖 DynamicResourcePack，必须删除
-     * Clean up old assets directory files that would override DynamicResourcePack
-     */
-    private static void cleanupOldAssets() {
-        if (assetsDir == null || !assetsDir.exists()) {
-            return;
-        }
-
-        // 删除 textures/items 目录中的所有文件
-        File texturesDir = new File(assetsDir, "textures/items");
-        if (texturesDir.exists()) {
-            deleteDirectoryContents(texturesDir);
-            BSTweaker.LOG.info("Cleaned up old assets: " + texturesDir.getAbsolutePath());
-        }
-
-        // 删除 models/item 目录中的所有文件
-        File modelsDir = new File(assetsDir, "models/item");
-        if (modelsDir.exists()) {
-            deleteDirectoryContents(modelsDir);
-            BSTweaker.LOG.info("Cleaned up old assets: " + modelsDir.getAbsolutePath());
-        }
-
-        // 删除 lang 目录中的所有文件
-        File langDir = new File(assetsDir, "lang");
-        if (langDir.exists()) {
-            deleteDirectoryContents(langDir);
-            BSTweaker.LOG.info("Cleaned up old assets: " + langDir.getAbsolutePath());
-        }
-    }
-
-    /**
-     * 删除目录中的所有文件（不删除目录本身）
-     */
-    private static void deleteDirectoryContents(File dir) {
-        File[] files = dir.listFiles();
-        if (files != null) {
-            for (File file : files) {
-                if (file.isFile()) {
-                    file.delete();
-                }
-            }
-        }
-    }
-
-    /**
      * 根据 weapons.json 自动生成模型到 cfg/models
      * 生成: <texture>_normal.json, <texture>.json (base model),
      * <texture>spinning.json (如果有)
@@ -225,15 +183,27 @@ public class ResourceInjector {
                     continue;
                 }
 
-                // 1. 生成 _normal.json
-                File normalModel = new File(modelsDir, texture + "_normal.json");
+                // Compute registryName to match actual weapon registry name
+                // - If id already ends with type (e.g., "emeraldexamplenunchaku"), use "item" +
+                // id
+                // - If id doesn't end with type (e.g., "a"), use "item" + id + type
+                String registryName;
+                if (weaponId.endsWith(type)) {
+                    registryName = "item" + weaponId;
+                } else {
+                    registryName = "item" + weaponId + type;
+                }
+
+                // 1. 生成 _normal.json (使用 registryName 作为文件名，匹配武器注册名)
+                File normalModel = new File(modelsDir, registryName + "_normal.json");
                 if (!normalModel.exists()) {
                     String parent = "nunchaku".equals(type) ? "item/generated" : "item/handheld";
                     StringBuilder normalSb = new StringBuilder();
                     normalSb.append("{\n");
                     normalSb.append("  \"parent\": \"").append(parent).append("\",\n");
                     normalSb.append("  \"textures\": {\n");
-                    normalSb.append("    \"layer0\": \"bstweaker:items/item").append(texture).append("\"\n");
+                    normalSb.append("    \"layer0\": \"mujmajnkraftsbettersurvival:items/item").append(texture)
+                            .append("\"\n");
                     normalSb.append("  }");
                     // nunchaku 需要特殊的 display 属性
                     if ("nunchaku".equals(type)) {
@@ -254,20 +224,19 @@ public class ResourceInjector {
                     BSTweaker.LOG.info("Generated: " + normalModel.getName());
                 }
 
-                // 2. 检查是否是双截棍（nunchaku 需要 spinning 模型）
-                boolean hasSpinning = "nunchaku".equals(type);
+                // 2. 检查是否是 nunchaku 类型（nunchaku 需要 spinning 模型）
+                boolean needsSpinning = "nunchaku".equals(type);
 
-                // 3. 生成 spinning.json（如果有 spinning 纹理）
-                if (hasSpinning) {
-                    File spinningModel = new File(modelsDir, texture + "spinning.json");
+                // 3. 生成 spinning.json（nunchaku 类型自动生成）
+                if (needsSpinning) {
+                    File spinningModel = new File(modelsDir, registryName + "spinning.json");
                     if (!spinningModel.exists()) {
                         StringBuilder spinningSb = new StringBuilder();
                         spinningSb.append("{\n");
                         spinningSb.append("  \"parent\": \"item/generated\",\n");
                         spinningSb.append("  \"textures\": {\n");
-                        // Use BS namespace directly so texture path matches JAR injection
-                        spinningSb.append("    \"layer0\": \"mujmajnkraftsbettersurvival:items/itembstweaker_")
-                                .append(texture).append("spinning\"\n");
+                        spinningSb.append("    \"layer0\": \"mujmajnkraftsbettersurvival:items/item").append(texture)
+                                .append("spinning\"\n");
                         spinningSb.append("  }");
                         // nunchaku spinning 需要特殊的 display 属性（更大的 scale）
                         if ("nunchaku".equals(type)) {
@@ -290,7 +259,7 @@ public class ResourceInjector {
                 }
 
                 // 4. 生成 base model（带 overrides）
-                File baseModel = new File(modelsDir, texture + ".json");
+                File baseModel = new File(modelsDir, registryName + ".json");
                 if (!baseModel.exists()) {
                     StringBuilder sb = new StringBuilder();
                     sb.append("{\n");
@@ -301,12 +270,13 @@ public class ResourceInjector {
                     sb.append("  \"overrides\": [\n");
                     sb.append("    {\n");
                     sb.append("      \"predicate\": {\"bstweaker:always\": 1},\n");
-                    sb.append("      \"model\": \"bstweaker:item/" + texture + "_normal\"\n");
+                    sb.append("      \"model\": \"mujmajnkraftsbettersurvival:item/" + registryName + "_normal\"\n");
                     sb.append("    }");
-                    if (hasSpinning) {
+                    if (needsSpinning) {
                         sb.append(",\n    {\n");
                         sb.append("      \"predicate\": {\"spinning\": 1},\n");
-                        sb.append("      \"model\": \"bstweaker:item/" + texture + "spinning\"\n");
+                        sb.append(
+                                "      \"model\": \"mujmajnkraftsbettersurvival:item/" + registryName + "spinning\"\n");
                         sb.append("    }");
                     }
                     sb.append("\n  ]\n");
@@ -391,10 +361,6 @@ public class ResourceInjector {
                 String typeNameZh = getWeaponTypeNameZh(type);
                 String typeNameEn = getWeaponTypeNameEn(type);
 
-                // 生成可读的显示名称
-                String displayNameZh = formatDisplayName(id, type, typeNameZh);
-                String displayNameEn = formatDisplayName(id, type, typeNameEn);
-
                 // 生成 lang keys
                 String nameKey = "bstweaker.weapon." + id + ".name";
                 String tip1Key = "bstweaker.weapon." + id + ".tip1";
@@ -405,16 +371,16 @@ public class ResourceInjector {
                 String itemLangKey = "item." + id + type + ".name";
 
                 // 添加到 lang 文件
-                // 物品原始名称 - 使用格式化的显示名称
-                zhLang.append(itemLangKey).append("=").append(displayNameZh).append("\n");
-                enLang.append(itemLangKey).append("=").append(displayNameEn).append("\n");
+                // 物品原始名称
+                zhLang.append(itemLangKey).append("=").append(id).append("\n");
+                enLang.append(itemLangKey).append("=").append(id).append("\n");
                 // tooltip 相关
-                zhLang.append(nameKey).append("=").append(displayNameZh).append("\n");
+                zhLang.append(nameKey).append("=").append(id).append("\n");
                 zhLang.append(tip1Key).append("=§7一把自定义的").append(typeNameZh).append("\n");
                 zhLang.append(tip2Key).append("=§e由 BSTweaker 生成\n");
                 zhLang.append(tip3Key).append("=§6可在 tooltips.json 中自定义\n\n");
 
-                enLang.append(nameKey).append("=").append(displayNameEn).append("\n");
+                enLang.append(nameKey).append("=").append(id).append("\n");
                 enLang.append(tip1Key).append("=§7A custom ").append(typeNameEn).append("\n");
                 enLang.append(tip2Key).append("=§eGenerated by BSTweaker\n");
                 enLang.append(tip3Key).append("=§6Customize in tooltips.json\n\n");
@@ -462,9 +428,7 @@ public class ResourceInjector {
             // 读取已有内容
             java.util.Set<String> existingKeys = new java.util.HashSet<>();
             StringBuilder existing = new StringBuilder();
-            boolean fileExists = langFile.exists();
-
-            if (fileExists) {
+            if (langFile.exists()) {
                 for (String line : Files.readAllLines(langFile.toPath(), java.nio.charset.StandardCharsets.UTF_8)) {
                     existing.append(line).append("\n");
                     if (line.contains("=") && !line.trim().startsWith("#")) {
@@ -472,7 +436,6 @@ public class ResourceInjector {
                     }
                 }
             } else {
-                // Create header for new file
                 existing.append("# BSTweaker Weapon Localization\n\n");
             }
 
@@ -487,15 +450,12 @@ public class ResourceInjector {
                 }
             }
 
-            // 如果有新内容，追加到文件末尾；或者文件不存在时创建
-            if (toAppend.length() > 0 || !fileExists) {
-                if (toAppend.length() > 0) {
-                    existing.append("\n# Auto-generated\n");
-                    existing.append(toAppend);
-                }
+            // 如果有新内容，追加到文件末尾
+            if (toAppend.length() > 0) {
+                existing.append("\n# Auto-generated\n");
+                existing.append(toAppend);
                 Files.write(langFile.toPath(), existing.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));
-                BSTweaker.LOG.info("Updated lang file: " + langFile.getName() + " (new keys: "
-                        + (toAppend.length() > 0 ? "yes" : "no") + ")");
+                BSTweaker.LOG.info("Appended new keys to: " + langFile.getName());
             }
         } catch (Exception e) {
             BSTweaker.LOG.error("Failed to append lang file: " + e.getMessage());
@@ -510,24 +470,6 @@ public class ResourceInjector {
 
     private static boolean isSupportedWeaponType(String type) {
         return SUPPORTED_TYPES.contains(type.toLowerCase());
-    }
-
-    /**
-     * 格式化武器 ID 为可读的显示名称
-     * Format weapon ID into readable display name
-     * e.g. "emeraldexampledagger" + "dagger" -> "Emeraldexample Dagger"
-     */
-    private static String formatDisplayName(String id, String type, String typeName) {
-        // 从 id 中移除 type 后缀
-        String baseName = id;
-        if (id.toLowerCase().endsWith(type.toLowerCase())) {
-            baseName = id.substring(0, id.length() - type.length());
-        }
-        // 首字母大写
-        if (!baseName.isEmpty()) {
-            baseName = baseName.substring(0, 1).toUpperCase() + baseName.substring(1);
-        }
-        return baseName + " " + typeName;
     }
 
     /**

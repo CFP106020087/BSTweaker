@@ -260,7 +260,7 @@ public class FastTextureReloader {
                 try {
                     // Use ObfuscationReflectionHelper for SRG name mapping
                     java.lang.reflect.Field framesField = net.minecraftforge.fml.common.ObfuscationReflectionHelper.findField(
-                        TextureAtlasSprite.class, "framesTextureData");  // MCP name
+                        TextureAtlasSprite.class, "field_110976_a");  // framesTextureData
                     @SuppressWarnings("unchecked")
                     java.util.List<int[][]> framesTextureData = (java.util.List<int[][]>) framesField.get(sprite);
                     

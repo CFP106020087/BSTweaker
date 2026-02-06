@@ -6,6 +6,7 @@ import java.util.List;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import com.mujmajnkraft.bstweaker.BSTweaker;
@@ -80,12 +81,12 @@ public class MixinMinecraftRefreshResources {
      * Inject at HEAD of refreshResources.
      * If fast reload mode is enabled, cancel the full refresh and do fast reload.
      */
-    @Inject(method = { "func_110436_a" }, at = @At("HEAD"), cancellable = true)
+    @Inject(method = { "refreshResources", "func_110436_a" }, at = @At("HEAD"), cancellable = true)
     private void bstweaker$onRefreshResources(CallbackInfo ci) {
         // Ensure DynamicResourcePack is in the list
         ensureDynamicPackPresent();
 
-        // Check if a fast reload was requested
+        // Check if fast reload is enabled in config AND a fast reload was requested
         if (HotReloadHelper.consumeFastReload()) {
             doFastReload();
             ci.cancel(); // Skip the slow full refresh
@@ -97,13 +98,47 @@ public class MixinMinecraftRefreshResources {
         }
     }
 
+    /**
+     * Inject DynamicResourcePack into the resource pack list that gets passed to
+     * reloadResourcesOnGameThread.
+     * This matches ResourceLoader's ASM pattern: inject BEFORE func_110541_a is
+     * called.
+     * This ensures our pack has highest priority for model/texture loading.
+     */
+    @SuppressWarnings("unchecked")
+    @ModifyArg(method = { "refreshResources",
+            "func_110436_a" }, at = @At(value = "INVOKE", target = "Lnet/minecraft/client/resources/IReloadableResourceManager;reloadResources(Ljava/util/List;)V"), index = 0)
+    private List<IResourcePack> bstweaker$injectDynamicPack(List<IResourcePack> resourcePacks) {
+        // Rescan config resources before reload
+        DynamicResourcePack.scanConfigResources();
+
+        // Check if DynamicResourcePack is already in the list
+        boolean hasOurPack = false;
+        for (Object pack : resourcePacks) {
+            if (pack instanceof DynamicResourcePack) {
+                hasOurPack = true;
+                break;
+            }
+        }
+
+        // Add at index 0 for highest priority (like RL's insertForcedPack)
+        if (!hasOurPack) {
+            resourcePacks.add(0, DynamicResourcePack.getInstance());
+            BSTweaker.LOG.info("[MIXIN] Injected DynamicResourcePack into reloadResources list (index 0)");
+        }
+
+        return resourcePacks;
+    }
+
+    // Keep legacy method for startGame injection
     private void ensureDynamicPackPresent() {
         List<IResourcePack> packs = getDefaultResourcePacks();
         if (packs != null && !isDynamicPackPresent(packs)) {
             packs.add(0, DynamicResourcePack.getInstance());
-            BSTweaker.LOG.info("[MIXIN] Injected DynamicResourcePack in refreshResources");
+            BSTweaker.LOG.info("[MIXIN] Injected DynamicResourcePack in defaultResourcePacks");
         }
     }
+
 
     /**
      * Fast reload: only reload BSTweaker resources (language, models, textures).
@@ -111,7 +146,7 @@ public class MixinMinecraftRefreshResources {
     private void doFastReload() {
         try {
             long start = System.currentTimeMillis();
-            Minecraft mc = (Minecraft) (Object) this; // Use 'this' since we're injected into Minecraft
+            Minecraft mc = Minecraft.getMinecraft();
 
             // 1. Rescan config files
             DynamicResourcePack.rescan();

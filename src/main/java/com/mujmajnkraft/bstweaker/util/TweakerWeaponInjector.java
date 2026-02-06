@@ -191,6 +191,29 @@ public class TweakerWeaponInjector {
         return weapons;
     }
 
+    /** Load material from JSON definition and register it. */
+    private static void loadMaterial(JsonObject matDef) {
+        String name = matDef.has("name") ? matDef.get("name").getAsString().toUpperCase() : "UNKNOWN";
+
+        // Skip if already cached
+        if (materialCache.containsKey(name)) {
+            return;
+        }
+
+        int harvestLevel = matDef.has("harvestLevel") ? matDef.get("harvestLevel").getAsInt() : 2;
+        int durability = matDef.has("durability") ? matDef.get("durability").getAsInt() : 500;
+        float efficiency = matDef.has("efficiency") ? matDef.get("efficiency").getAsFloat() : 6.0f;
+        float damage = matDef.has("damage") ? matDef.get("damage").getAsFloat() : 2.0f;
+        int enchantability = matDef.has("enchantability") ? matDef.get("enchantability").getAsInt() : 14;
+
+        ToolMaterial material = EnumHelper.addToolMaterial(name, harvestLevel, durability, efficiency, damage,
+                enchantability);
+        if (material != null) {
+            materialCache.put(name, material);
+            System.out.println("[BSTweaker] Registered material: " + name);
+        }
+    }
+
     /** Hot-reload configs (tooltips and scripts only, no new weapons). */
     public static void reloadConfigs() {
         System.out.println("[BSTweaker] Reloading configs...");
@@ -278,44 +301,7 @@ public class TweakerWeaponInjector {
             System.err.println("[BSTweaker] Failed to reload configs: " + e.getMessage());
             e.printStackTrace();
         }
-    }
 
-    /** Load material definition. */
-    private static void loadMaterial(JsonObject matDef) {
-        try {
-            String name = matDef.get("name").getAsString().toUpperCase();
-            int harvestLevel = matDef.has("harvestLevel") ? matDef.get("harvestLevel").getAsInt() : 2;
-            int durability = matDef.has("durability") ? matDef.get("durability").getAsInt() : 250;
-            float efficiency = matDef.has("efficiency") ? matDef.get("efficiency").getAsFloat() : 6.0F;
-            float damage = matDef.has("damage") ? matDef.get("damage").getAsFloat() : 2.0F;
-            int enchantability = matDef.has("enchantability") ? matDef.get("enchantability").getAsInt() : 14;
-
-            // Register material WITHOUT prefix so item registry name matches texture name
-            // e.g. material "emerald" -> item "itememeraldnunchaku" -> texture
-            // "itememeraldnunchaku.png"
-            ToolMaterial material = EnumHelper.addToolMaterial(
-                    name,
-                    harvestLevel,
-                    durability,
-                    efficiency,
-                    damage,
-                    enchantability);
-
-            // Set repair item
-            if (matDef.has("repairItem")) {
-                String repairItemId = matDef.get("repairItem").getAsString();
-                Item repairItem = Item.getByNameOrId(repairItemId);
-                if (repairItem != null) {
-                    material.setRepairItem(new ItemStack(repairItem));
-                }
-            }
-
-            materialCache.put(name, material);
-            System.out.println("[BSTweaker] Loaded material: " + name);
-
-        } catch (Exception e) {
-            System.err.println("[BSTweaker] Failed to load material: " + e.getMessage());
-        }
     }
 
     /** Create single weapon. */

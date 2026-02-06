@@ -47,6 +47,28 @@ public class DynamicResourcePack implements IResourcePack {
         return INSTANCE;
     }
 
+    /**
+     * Called by ASM from Minecraft.refreshResources before reloadResources.
+     * Injects DynamicResourcePack at index 0 for highest priority.
+     */
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    public static void insertPack(java.util.List resourcePacks) {
+        // Ensure resources are scanned
+        scanConfigResources();
+
+        // Check if already present
+        for (Object pack : resourcePacks) {
+            if (pack instanceof DynamicResourcePack) {
+                return; // Already present
+            }
+        }
+
+        // Insert at index 0 for highest priority
+        resourcePacks.add(0, getInstance());
+        BSTweaker.LOG.info(
+                "[ASM] Injected DynamicResourcePack into resource list (index 0, size=" + resourcePacks.size() + ")");
+    }
+
     /** Lazy initialization to avoid early class loading issues */
     private static void ensureInit() {
         if (!initialized) {
@@ -110,7 +132,6 @@ public class DynamicResourcePack implements IResourcePack {
 
     /** Scan config and resources directories for resources. */
     public static void scanConfigResources() {
-        BSTweaker.LOG.info("[DRP-DIAG] scanConfigResources STARTED at " + System.currentTimeMillis());
         ensureInit(); // 延迟初始化
         // 扫描 config/bstweaker 目录（用户放置的源资源）
         File cfgTexturesDir = new File(configDir, "textures");
@@ -146,7 +167,6 @@ public class DynamicResourcePack implements IResourcePack {
         // 扫描 resources textures（优先级更高）
         scanDirectory(resTexturesDir, ".png", configTextures);
         scanMcmeta(resTexturesDir);
-        BSTweaker.LOG.info("[DRP] scanMcmeta complete: " + configMcmeta.size() + " entries: " + configMcmeta.keySet());
 
         // 扫描 config models
         scanDirectory(cfgModelsDir, ".json", configModels);
@@ -166,16 +186,12 @@ public class DynamicResourcePack implements IResourcePack {
     /** Helper: scan directory and add files to map. */
     private static void scanDirectory(File dir, String extension, Map<String, File> map) {
         if (dir.exists() && dir.listFiles() != null) {
-            BSTweaker.LOG.info("[DRP] scanDirectory: " + dir.getAbsolutePath() + " ext=" + extension);
             for (File file : dir.listFiles()) {
                 if (file.getName().endsWith(extension)) {
                     String name = file.getName().replace(extension, "");
                     map.put(name, file);
-                    BSTweaker.LOG.info("[DRP]   -> added: " + name);
                 }
             }
-        } else {
-            BSTweaker.LOG.warn("[DRP] scanDirectory: dir does not exist or empty: " + dir.getAbsolutePath());
         }
     }
 
@@ -212,7 +228,6 @@ public class DynamicResourcePack implements IResourcePack {
             try {
                 String content = new String(Files.readAllBytes(configModels.get(textureName).toPath()),
                         StandardCharsets.UTF_8);
-                // Model path uses BS namespace where items are registered
                 String modelPath = "assets/" + BS_NAMESPACE + "/models/item/" + textureName + ".json";
                 dynamicModels.put(modelPath, content);
                 return;
@@ -222,7 +237,6 @@ public class DynamicResourcePack implements IResourcePack {
         }
 
         // Otherwise generate default model
-        // Model path uses BS namespace where items are registered
         String modelPath = "assets/" + BS_NAMESPACE + "/models/item/" + textureName + ".json";
         String modelContent = generateModelJson(textureName);
         dynamicModels.put(modelPath, modelContent);
@@ -230,7 +244,6 @@ public class DynamicResourcePack implements IResourcePack {
     
     /** Generate model JSON content. */
     private static String generateModelJson(String textureName) {
-        // Model texture reference uses BS namespace where textures are served
         return "{\n" +
                "  \"parent\": \"item/handheld\",\n" +
                "  \"textures\": {\n" +
@@ -269,7 +282,7 @@ public class DynamicResourcePack implements IResourcePack {
             } else {
                 name = path.replace("models/", "").replace(".json", "");
             }
-            // Direct match from config models
+            // Direct match
             if (configModels.containsKey(name)) {
                 return new FileInputStream(configModels.get(name));
             }
@@ -282,8 +295,6 @@ public class DynamicResourcePack implements IResourcePack {
             }
 
             // Auto-generate model if we have a matching texture
-            // Model name format: item<material><type> (e.g. itememeraldnunchaku)
-            // Texture name format: item<material><type> (e.g. itememeraldnunchaku)
             if (configTextures.containsKey(name)) {
                 String modelJson = generateModelJson(name);
                 BSTweaker.LOG.info("[DRP] Auto-generated model for: " + name);
@@ -294,39 +305,27 @@ public class DynamicResourcePack implements IResourcePack {
         // Check config textures
         if (path.startsWith("textures/items/") && path.endsWith(".png")) {
             String name = path.replace("textures/items/", "").replace(".png", "");
-            // Direct match
             if (configTextures.containsKey(name)) {
                 return new FileInputStream(configTextures.get(name));
             }
-            // Fallback: check file system directly if not in map
+            // Fallback: check file system
             File textureFile = new File(configDir, "textures/" + name + ".png");
             if (textureFile.exists()) {
-                configTextures.put(name, textureFile); // Add to map for future lookups
-                BSTweaker.LOG.info("[DRP] getInputStream texture fallback: '" + name + "'");
+                configTextures.put(name, textureFile);
                 return new FileInputStream(textureFile);
             }
-            BSTweaker.LOG
-                    .warn("getInputStream: Texture NOT FOUND: '" + name + "' | Available: " + configTextures.keySet());
         }
 
         // Check config mcmeta
         if (path.startsWith("textures/items/") && path.endsWith(".png.mcmeta")) {
             String name = path.replace("textures/items/", "").replace(".png.mcmeta", "");
-
-            // Strip itembstweaker_ prefix for lookup (config files use original names)
-            String lookupName = name;
-            if (name.startsWith("itembstweaker_")) {
-                lookupName = "item" + name.substring("itembstweaker_".length());
+            if (configMcmeta.containsKey(name)) {
+                return new FileInputStream(configMcmeta.get(name));
             }
-
-            if (configMcmeta.containsKey(lookupName)) {
-                return new FileInputStream(configMcmeta.get(lookupName));
-            }
-            // Fallback: check file system directly if not in map
-            File mcmetaFile = new File(configDir, "textures/" + lookupName + ".png.mcmeta");
+            // Fallback: check file system
+            File mcmetaFile = new File(configDir, "textures/" + name + ".png.mcmeta");
             if (mcmetaFile.exists()) {
-                configMcmeta.put(lookupName, mcmetaFile); // Add to map for future lookups
-                BSTweaker.LOG.info("[DRP] getInputStream mcmeta fallback: '" + lookupName + "'");
+                configMcmeta.put(name, mcmetaFile);
                 return new FileInputStream(mcmetaFile);
             }
         }
@@ -346,11 +345,6 @@ public class DynamicResourcePack implements IResourcePack {
     public boolean resourceExists(ResourceLocation location) {
         String namespace = location.getNamespace();
         String path = location.getPath();
-
-        // DIAGNOSTIC: Track spinning texture/mcmeta requests during texture stitch
-        if (path.contains("spinning")) {
-            BSTweaker.LOG.info("[DRP-DIAG] resourceExists SPINNING request: ns=" + namespace + " path=" + path);
-        }
 
         // Check config lang files FIRST (for bstweaker namespace) - needed for tooltip
         // translation
@@ -408,12 +402,10 @@ public class DynamicResourcePack implements IResourcePack {
                 return true;
             }
 
-            // Fallback: check file system directly if not in map (handles files added after
-            // scan)
+            // Fallback: check file system directly
             File textureFile = new File(configDir, "textures/" + name + ".png");
             if (textureFile.exists()) {
-                configTextures.put(name, textureFile); // Add to map for future lookups
-                BSTweaker.LOG.info("[DRP] resourceExists texture fallback found: '" + name + "'");
+                configTextures.put(name, textureFile);
                 return true;
             }
         }
@@ -421,30 +413,14 @@ public class DynamicResourcePack implements IResourcePack {
         // Check config mcmeta
         if (path.startsWith("textures/items/") && path.endsWith(".png.mcmeta")) {
             String name = path.replace("textures/items/", "").replace(".png.mcmeta", "");
-
-            // Strip itembstweaker_ prefix for lookup (config files use original names)
-            String lookupName = name;
-            if (name.startsWith("itembstweaker_")) {
-                lookupName = "item" + name.substring("itembstweaker_".length());
+            if (configMcmeta.containsKey(name)) {
+                return true;
             }
 
-            boolean found = configMcmeta.containsKey(lookupName);
-
-            // Fallback: check file system directly if not in map (handles files added after
-            // scan)
-            if (!found) {
-                File mcmetaFile = new File(configDir, "textures/" + lookupName + ".png.mcmeta");
-                if (mcmetaFile.exists()) {
-                    configMcmeta.put(lookupName, mcmetaFile); // Add to map for future lookups
-                    found = true;
-                    BSTweaker.LOG.info("[DRP] mcmeta fallback found: '" + lookupName + "'");
-                }
-            }
-
-            BSTweaker.LOG.info("[DRP] resourceExists mcmeta check: name='" + name + "' lookupName='" + lookupName
-                    + "' found=" + found +
-                    ", configMcmeta.size=" + configMcmeta.size());
-            if (found) {
+            // Fallback: check file system directly
+            File mcmetaFile = new File(configDir, "textures/" + name + ".png.mcmeta");
+            if (mcmetaFile.exists()) {
+                configMcmeta.put(name, mcmetaFile);
                 return true;
             }
         }
