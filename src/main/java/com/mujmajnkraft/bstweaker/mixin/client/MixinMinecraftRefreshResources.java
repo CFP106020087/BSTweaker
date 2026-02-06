@@ -87,7 +87,8 @@ public class MixinMinecraftRefreshResources {
         ensureDynamicPackPresent();
 
         // Check if fast reload is enabled in config AND a fast reload was requested
-        if (HotReloadHelper.consumeFastReload()) {
+        if (com.mujmajnkraft.bstweaker.config.BSTweakerConfig.enableFastReload
+                && HotReloadHelper.consumeFastReload()) {
             doFastReload();
             ci.cancel(); // Skip the slow full refresh
         } else {
@@ -157,8 +158,8 @@ public class MixinMinecraftRefreshResources {
             // 3. Fast reload textures - directly update sprite regions in atlas
             com.mujmajnkraft.bstweaker.client.FastTextureReloader.reloadWeaponTextures();
 
-            // 4. Reload models for our items only
-            reloadWeaponModels(mc);
+            // 4. Reload models - clear cache and rebake from JSON
+            com.mujmajnkraft.bstweaker.client.FastTextureReloader.reloadModels();
 
             long elapsed = System.currentTimeMillis() - start;
             BSTweaker.LOG.info("Fast reload completed: " + elapsed + "ms");

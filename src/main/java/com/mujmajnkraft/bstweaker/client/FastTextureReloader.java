@@ -738,18 +738,119 @@ public class FastTextureReloader {
                 return;
             }
 
+            // === CACHE INVALIDATION ===
+            // Three levels of caching prevent model display param updates:
+            // 1. ModelLoaderRegistry.cache (IModel cache, static)
+            // 2. ModelLoaderRegistry.aliases (MRL -> file location redirect)
+            // 3. ModelBakery.loadedModels (raw ModelBlock JSON cache, in ModelLoader
+            // instance)
+
+            // Level 1: ModelLoaderRegistry.cache
+            java.util.Map<ResourceLocation, IModel> registryCache = null;
+            try {
+                java.lang.reflect.Field cacheField = ModelLoaderRegistry.class.getDeclaredField("cache");
+                cacheField.setAccessible(true);
+                @SuppressWarnings("unchecked")
+                java.util.Map<ResourceLocation, IModel> c = (java.util.Map<ResourceLocation, IModel>) cacheField
+                        .get(null);
+                registryCache = c;
+            } catch (Exception e) {
+                BSTweaker.LOG.warn("Could not access ModelLoaderRegistry.cache: " + e.getMessage());
+            }
+
+            // Level 2: ModelLoaderRegistry.aliases
+            java.util.Map<ResourceLocation, ResourceLocation> aliases = null;
+            try {
+                java.lang.reflect.Field aliasField = ModelLoaderRegistry.class.getDeclaredField("aliases");
+                aliasField.setAccessible(true);
+                @SuppressWarnings("unchecked")
+                java.util.Map<ResourceLocation, ResourceLocation> a = (java.util.Map<ResourceLocation, ResourceLocation>) aliasField
+                        .get(null);
+                aliases = a;
+            } catch (Exception e) {
+                BSTweaker.LOG.warn("Could not access ModelLoaderRegistry.aliases: " + e.getMessage());
+            }
+
+            // Level 3: ModelBakery.loadedModels (via VanillaLoader.INSTANCE.loader)
+            java.util.Map<ResourceLocation, ?> loadedModels = null;
+            try {
+                // VanillaLoader is a private enum inside ModelLoader
+                Class<?> vanillaLoaderClass = null;
+                for (Class<?> inner : ModelLoader.class.getDeclaredClasses()) {
+                    if (inner.getSimpleName().equals("VanillaLoader")) {
+                        vanillaLoaderClass = inner;
+                        break;
+                    }
+                }
+                if (vanillaLoaderClass != null) {
+                    // Get INSTANCE
+                    Object vanillaInstance = null;
+                    for (Object enumConst : vanillaLoaderClass.getEnumConstants()) {
+                        vanillaInstance = enumConst;
+                        break;
+                    }
+                    if (vanillaInstance != null) {
+                        // Get loader field
+                        java.lang.reflect.Field loaderField = vanillaLoaderClass.getDeclaredField("loader");
+                        loaderField.setAccessible(true);
+                        Object loader = loaderField.get(vanillaInstance);
+                        if (loader != null) {
+                            // Get loadedModels from ModelBakery (parent class)
+                            // Try MCP name first, then SRG
+                            java.lang.reflect.Field loadedModelsField = null;
+                            try {
+                                loadedModelsField = net.minecraft.client.renderer.block.model.ModelBakery.class
+                                        .getDeclaredField("loadedModels");
+                            } catch (NoSuchFieldException ex) {
+                                loadedModelsField = net.minecraft.client.renderer.block.model.ModelBakery.class
+                                        .getDeclaredField("field_177614_t");
+                            }
+                            loadedModelsField.setAccessible(true);
+                            @SuppressWarnings("unchecked")
+                            java.util.Map<ResourceLocation, ?> lm = (java.util.Map<ResourceLocation, ?>) loadedModelsField
+                                    .get(loader);
+                            loadedModels = lm;
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                BSTweaker.LOG.warn("Could not access ModelBakery.loadedModels: " + e.getMessage());
+            }
+
             int reloaded = 0;
             for (Item weapon : weapons) {
                 ResourceLocation regName = weapon.getRegistryName();
                 if (regName == null)
                     continue;
 
-                // Get ModelResourceLocation for inventory variant
                 ModelResourceLocation mrl = new ModelResourceLocation(regName, "inventory");
+                // Item file location (alias target): namespace:item/<path>
+                ResourceLocation itemFileLoc = new ResourceLocation(
+                        regName.getNamespace(), "item/" + regName.getPath());
+                // Actual file location (with models/ prefix): namespace:models/item/<path>
+                ResourceLocation actualFileLoc = new ResourceLocation(
+                        regName.getNamespace(), "models/item/" + regName.getPath());
 
                 try {
-                    // Clear the model from ModelLoaderRegistry cache to force reload
-                    // This is done by getting a fresh model
+                    // Clear all cache levels for this model
+                    if (registryCache != null) {
+                        registryCache.remove(mrl); // MRL: namespace:item#inventory
+                        registryCache.remove(itemFileLoc); // Alias target: namespace:item/<path>
+                        registryCache.remove(actualFileLoc); // Actual: namespace:models/item/<path>
+                        registryCache.remove(regName); // Base: namespace:<path>
+                    }
+                    if (aliases != null) {
+                        aliases.remove(mrl); // Remove alias so getModel re-establishes it
+                    }
+                    if (loadedModels != null) {
+                        loadedModels.remove(actualFileLoc); // ModelBakery JSON cache
+                        loadedModels.remove(itemFileLoc);
+                    }
+
+                    BSTweaker.LOG
+                            .info("Cleared caches for " + regName + " (mrl=" + mrl + ", file=" + itemFileLoc + ")");
+
+                    // Now getModelOrMissing will re-read the JSON file from DynamicResourcePack
                     IModel unbaked = ModelLoaderRegistry.getModelOrMissing(mrl);
 
                     // Bake the model with current textures

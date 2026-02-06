@@ -1,0 +1,61 @@
+# BSTweaker 本地化 - 简体中文
+
+# === 验证消息 ===
+bstweaker.validation.title=[BSTweaker] 检测到配置错误!
+bstweaker.validation.summary=错误: %d | 警告: %d
+bstweaker.validation.more=... 还有 %d 条消息
+bstweaker.validation.see_log=详情请查看日志文件
+
+# 错误级别
+bstweaker.validation.level.error=错误
+bstweaker.validation.level.warning=警告
+bstweaker.validation.level.info=提示
+
+# 来源
+bstweaker.validation.source.weapons=武器配置
+bstweaker.validation.source.scripts=脚本配置
+bstweaker.validation.source.tooltips=提示配置
+bstweaker.validation.source.models=模型文件
+bstweaker.validation.source.textures=纹理文件
+
+# 通用验证错误
+bstweaker.validation.missing_required=缺少必填属性: %s
+bstweaker.validation.type_error=类型错误，期望 %s
+bstweaker.validation.unknown_type=未知武器类型 '%s'，有效值: %s
+bstweaker.validation.invalid_attribute=该属性不适用于 %s 类型，已忽略
+
+# 属性描述
+bstweaker.attr.id=武器唯一ID
+bstweaker.attr.type=武器类型
+bstweaker.attr.material=材质定义
+bstweaker.attr.texture=纹理名称
+bstweaker.attr.damageModifier=伤害修正
+bstweaker.attr.speedModifier=攻速修正
+bstweaker.attr.name=材质名称
+bstweaker.attr.harvestLevel=挖掘等级
+bstweaker.attr.durability=耐久度
+bstweaker.attr.efficiency=挖掘效率
+bstweaker.attr.damage=基础伤害
+bstweaker.attr.enchantability=附魔能力
+bstweaker.attr.knockback=击退力度
+bstweaker.attr.critMultiplier=暴击倍率
+bstweaker.attr.lifesteal=吸血比例
+bstweaker.attr.armorPenetration=护甲穿透
+bstweaker.attr.attackReach=攻击距离加成
+bstweaker.attr.backstabMultiplier=背刺伤害倍率
+bstweaker.attr.throwDamage=投掷伤害
+bstweaker.attr.throwSpeed=投掷速度
+bstweaker.attr.groundPoundRadius=砸地范围
+bstweaker.attr.groundPoundDamage=砸地伤害
+bstweaker.attr.stunDuration=眩晕时长(tick)
+bstweaker.attr.armorBreakChance=破甲概率
+bstweaker.attr.throwRange=投掷距离
+bstweaker.attr.pierceCount=穿刺数量
+bstweaker.attr.reachBonus=攻击距离加成
+bstweaker.attr.disarmChance=缴械概率
+bstweaker.attr.shieldBreakBonus=破盾加成
+bstweaker.attr.armorDamageBonus=护甲伤害加成
+bstweaker.attr.spinSpeedBase=基础转速
+bstweaker.attr.spinSpeedMax=最大转速
+bstweaker.attr.comboDamageBonus=连击伤害加成
+bstweaker.attr.comboResetTime=连击重置时间(tick)

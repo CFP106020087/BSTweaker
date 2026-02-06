@@ -27,6 +27,14 @@ public class BSTweakerConfig {
     @Config.LangKey("bstweaker.config.autoGenerateTooltips")
     public static boolean autoGenerateTooltips = true;
 
+    @Config.Comment({
+            "Enable fast reload mode for /bst reload command",
+            "When enabled, only reloads BSTweaker resources instead of full F3+T refresh",
+            "启用快速重载模式，仅重载 BSTweaker 资源而非完整 F3+T 刷新"
+    })
+    @Config.LangKey("bstweaker.config.enableFastReload")
+    public static boolean enableFastReload = true;
+
     @Mod.EventBusSubscriber(modid = Reference.MOD_ID)
     private static class EventHandler {
         @SubscribeEvent

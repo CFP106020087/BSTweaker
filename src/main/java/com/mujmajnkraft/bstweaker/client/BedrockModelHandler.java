@@ -10,7 +10,6 @@ import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
 // 模型管理和烘焙
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.texture.AbstractTexture;
 import net.minecraft.client.renderer.texture.ITextureObject;

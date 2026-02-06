@@ -1,0 +1,93 @@
+buildscript {
+    repositories {
+        maven { url = 'https://maven.minecraftforge.net/' }
+        maven { url = 'https://repo.spongepowered.org/maven' }
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
+        classpath 'org.spongepowered:mixingradle:0.6-SNAPSHOT'
+    }
+}
+
+apply plugin: 'net.minecraftforge.gradle.forge'
+apply plugin: 'org.spongepowered.mixin'
+
+version = "${mod_version}"
+group = 'com.mujmajnkraft.bstweaker'
+archivesBaseName = 'bstweaker'
+
+sourceCompatibility = targetCompatibility = '1.8'
+
+// UTF-8 编码
+compileJava.options.encoding = 'UTF-8'
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+minecraft {
+    version = "1.12.2-14.23.5.2847"
+    runDir = "run"
+    mappings = "stable_39"
+    makeObfSourceJar = false
+}
+
+repositories {
+    maven { url = 'https://repo.spongepowered.org/maven' }
+    maven { url = 'https://cursemaven.com' }
+    flatDir { dirs 'libs' }
+    flatDir { dirs 'compile-libs' }
+}
+
+dependencies {
+    // Mixin - 仅用于编译和注解处理，运行时由 FermiumBooter 提供
+    compileOnly('org.spongepowered:mixin:0.8.5') {
+        exclude module: 'launchwrapper'
+        exclude module: 'guava'
+        exclude module: 'gson'
+    }
+
+    annotationProcessor('org.spongepowered:mixin:0.8.5:processor') {
+        exclude module: 'guava'
+        exclude module: 'gson'
+    }
+    
+    // FermiumBooter - 需要在 libs 目录中作为 coremod 运行
+    runtimeOnly name:'`FermiumBooter-1.2.0'
+    compileOnly name:'`FermiumBooter-1.2.0'
+    
+    // BetterSurvival 作为编译时依赖 (从 compile-libs 目录加载)
+    compileOnly name:'better_survival'
+}
+
+mixin {
+    add sourceSets.main, "mixins.bstweaker.refmap.json"
+}
+
+jar {
+    manifest {
+        attributes(
+                'FMLCorePlugin': 'com.mujmajnkraft.bstweaker.core.BSTweakerMixinPlugin',
+                'FMLCorePluginContainsFMLMod': 'true',
+                'ForceLoadAsMod': 'true'
+        )
+    }
+}
+
+processResources {
+    inputs.property "version", project.version
+    inputs.property "mcversion", project.minecraft.version
+
+    from(sourceSets.main.resources.srcDirs) {
+        include 'mcmod.info'
+        expand 'version': project.version, 
+               'mcversion': project.minecraft.version,
+               'mod_name': 'BetterSurvival Tweaker',
+               'mod_description': 'JSON-based weapon configuration addon for BetterSurvival',
+               'mod_author': 'BSTweaker'
+    }
+
+    from(sourceSets.main.resources.srcDirs) {
+        exclude 'mcmod.info'
+    }
+}
