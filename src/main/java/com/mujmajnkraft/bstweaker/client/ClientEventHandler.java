@@ -152,12 +152,15 @@ public class ClientEventHandler {
             return; // Client only
 
         hasRefreshedThisSession = true;
-        BSTweaker.LOG.info("First world join - scheduling resource refresh...");
+        BSTweaker.LOG.info("First world join - scheduling resource refresh for spinning models...");
 
         Minecraft mc = Minecraft.getMinecraft();
+        // Single refresh should be sufficient now that DynamicResourcePack is properly
+        // integrated
         mc.addScheduledTask(() -> {
+            BSTweaker.LOG.info("Executing resource refresh for override models...");
             mc.refreshResources();
-            BSTweaker.LOG.info("Resource refresh complete.");
+            BSTweaker.LOG.info("Resource refresh complete - spinning should now work.");
         });
     }
 

@@ -46,8 +46,8 @@ description: BSTweaker 开发安全规则
 
 每次请用户测试时，先执行清理：
 ```powershell
-# 清理 run 目录（保留 mods）
-Get-ChildItem -Path run -Exclude mods | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+# 清理 run 目录（保留 mods 和 config）
+Get-ChildItem -Path run -Exclude mods,config | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
 # 运行客户端
 ./gradlew runClient
 ```
