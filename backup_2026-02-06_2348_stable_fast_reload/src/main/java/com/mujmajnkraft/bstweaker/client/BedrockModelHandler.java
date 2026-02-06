@@ -10,20 +10,24 @@ import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
 // 模型管理和烘焙
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.renderer.texture.TextureMap;
-import net.minecraft.client.renderer.texture.AbstractTexture;
-import net.minecraft.client.renderer.texture.ITextureObject;
-// 动画元数据
-import net.minecraft.client.resources.data.AnimationMetadataSection;
-import net.minecraft.client.resources.data.AnimationFrame;
-// 资源加载
-import net.minecraft.client.resources.IResource;
+import net.minecraft.client.renderer.block.model.ModelManager;
+import net.minecraft.client.renderer.block.model.ModelBakery;
+import net.minecraft.client.renderer.block.model.IBakedModel;
+import net.minecraft.client.renderer.block.model.ModelResourceLocation;
+
+// 模型加载和注册
+import net.minecraftforge.client.model.ModelLoader;
+import net.minecraftforge.client.model.IModel;
+import net.minecraftforge.client.model.ModelLoaderRegistry;
+
+// 物品模型渲染
+import net.minecraft.client.renderer.ItemModelMesher;
+import net.minecraft.client.renderer.RenderItem;
+
+// 资源管理
 import net.minecraft.client.resources.IResourceManager;
-// 模型加载（display属性）
-import net.minecraft.client.renderer.block.model.ModelBlock;
-import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
-import net.minecraft.client.renderer.block.model.ItemTransformVec3f;
+import net.minecraft.client.resources.IResourceManagerReloadListener;
+import net.minecraft.client.resources.SimpleReloadableResourceManager;
 /**
  * Bedrock 模型处理器 - 使用反射实现 GeckoLib 软依赖
  * 

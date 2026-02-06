@@ -261,10 +261,6 @@ public class FastTextureReloader {
             
             BSTweaker.LOG.info("Loading override texture: " + textureName);
             
-            // CRITICAL: Clear the entire allocated area first to prevent ghost pixels
-            // This is needed when new texture is smaller than pre-allocated space (128x128)
-            clearSpriteArea(width, height, originX, originY);
-
             // Upload texture
             TextureUtil.uploadTextureMipmap(newTextureData, width, height, originX, originY, false, false);
             
@@ -288,50 +284,44 @@ public class FastTextureReloader {
                             (animTextureFile != null ? animTextureFile.getAbsolutePath() : "null"));
                         if (animTextureFile != null && animTextureFile.exists()) {
                             BufferedImage fullImage = ImageIO.read(animTextureFile);
+                            // Use SPRITE dimensions, not image dimensions - must match atlas
+                            int frameWidth = width;
+                            int frameHeight = height;
                             
-                            // TARGET dimensions: sprite's allocated size in atlas (may be pre-allocated to
-                            // 128x128)
-                            int targetFrameWidth = width;
-                            int targetFrameHeight = height;
+                            // Validate image dimensions
+                            if (fullImage.getWidth() != frameWidth) {
+                                BSTweaker.LOG.warn("Image width " + fullImage.getWidth() + " doesn't match sprite width " + frameWidth + " for " + textureName);
+                                // Scale the image horizontally if needed
+                            }
                             
-                            // SOURCE dimensions: detect from source image (animation strip with square
-                            // frames)
-                            int srcFrameWidth = fullImage.getWidth();
-                            int srcFrameHeight = fullImage.getWidth(); // Assume square frames in source
-                            int actualFrameCount = fullImage.getHeight() / srcFrameHeight;
-
-                            boolean needsScale = (srcFrameWidth != targetFrameWidth
-                                    || srcFrameHeight != targetFrameHeight);
+                            int actualFrameCount = fullImage.getHeight() / frameHeight;
                             
                             BSTweaker.LOG.info("Loading " + actualFrameCount + " animation frames for: " + textureName + 
-                                    " (source: " + srcFrameWidth + "x" + srcFrameHeight + " -> target: "
-                                    + targetFrameWidth + "x" + targetFrameHeight +
-                                    ", scale: " + needsScale + ")");
+                                " (image size: " + fullImage.getWidth() + "x" + fullImage.getHeight() + ", sprite size: " + frameWidth + "x" + frameHeight + ")");
                             
-                            // Load each frame, scaling if necessary
+                            // Load each frame
                             for (int i = 0; i < Math.min(frameCount, actualFrameCount); i++) {
-                                // Extract frame from source strip
-                                int srcY = i * srcFrameHeight;
+                                // Extract frame from the strip, scaling if necessary
+                                int srcY = i * (fullImage.getHeight() / actualFrameCount);
+                                int srcHeight = fullImage.getHeight() / actualFrameCount;
                                 
                                 BufferedImage frameImage;
-                                if (!needsScale) {
+                                if (fullImage.getWidth() == frameWidth && srcHeight == frameHeight) {
                                     // Perfect match - just extract
-                                    frameImage = fullImage.getSubimage(0, srcY, srcFrameWidth, srcFrameHeight);
+                                    frameImage = fullImage.getSubimage(0, srcY, frameWidth, srcHeight);
                                 } else {
-                                    // Need to scale from source size to target (atlas) size
-                                    frameImage = new BufferedImage(targetFrameWidth, targetFrameHeight,
-                                            BufferedImage.TYPE_INT_ARGB);
+                                    // Need to scale
+                                    frameImage = new BufferedImage(frameWidth, frameHeight, BufferedImage.TYPE_INT_ARGB);
                                     java.awt.Graphics2D g = frameImage.createGraphics();
                                     g.setRenderingHint(java.awt.RenderingHints.KEY_INTERPOLATION, 
                                         java.awt.RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
-                                    g.drawImage(fullImage.getSubimage(0, srcY, srcFrameWidth, srcFrameHeight),
-                                            0, 0, targetFrameWidth, targetFrameHeight, null);
+                                    g.drawImage(fullImage.getSubimage(0, srcY, fullImage.getWidth(), srcHeight), 
+                                        0, 0, frameWidth, frameHeight, null);
                                     g.dispose();
                                 }
                                 
-                                int[] pixels = new int[targetFrameWidth * targetFrameHeight];
-                                frameImage.getRGB(0, 0, targetFrameWidth, targetFrameHeight, pixels, 0,
-                                        targetFrameWidth);
+                                int[] pixels = new int[frameWidth * frameHeight];
+                                frameImage.getRGB(0, 0, frameWidth, frameHeight, pixels, 0, frameWidth);
                                 framesTextureData.set(i, new int[][] { pixels });
                             }
                             
@@ -343,7 +333,7 @@ public class FastTextureReloader {
                             // Upload frame 0 directly to GPU at sprite's atlas position
                             if (framesTextureData.size() > 0 && framesTextureData.get(0) != null) {
                                 int[][] frame0 = framesTextureData.get(0);
-                                TextureUtil.uploadTextureMipmap(frame0, width, height, originX, originY, false, false);
+                                TextureUtil.uploadTextureMipmap(frame0, frameWidth, frameHeight, originX, originY, false, false);
                                 BSTweaker.LOG.info("Uploaded frame 0 to GPU for: " + matchedName);
                             }
                             
@@ -645,59 +635,34 @@ public class FastTextureReloader {
                 return null;
             }
 
-            // Determine source texture dimensions and detect animation strips
-            int srcWidth = image.getWidth();
-            int srcHeight = image.getHeight();
 
-            // Animation strip detection: height is multiple of width (square frames stacked
-            // vertically)
-            boolean isAnimationStrip = (srcWidth > 0 && srcHeight > srcWidth && srcHeight % srcWidth == 0);
-            int srcFrameHeight = isAnimationStrip ? srcWidth : srcHeight;
-
-            if (isAnimationStrip) {
-                int frameCount = srcHeight / srcFrameHeight;
-                BSTweaker.LOG.info("Detected animation strip for " + spriteName +
-                        ": " + srcWidth + "x" + srcHeight + ", " + frameCount + " frames (frame size: " + srcWidth + "x"
-                        + srcFrameHeight + ")");
-            }
-
-            // Need to scale if source dimensions don't match expected (pre-allocated)
-            // dimensions
-            boolean needsScale = (srcWidth != expectedWidth || srcFrameHeight != expectedHeight);
-
-            if (needsScale) {
-                BSTweaker.LOG.info("Scaling texture for " + spriteName +
-                        " from " + srcWidth + "x" + srcFrameHeight + " to " + expectedWidth + "x" + expectedHeight +
-                        (isAnimationStrip ? " (animation strip)" : ""));
-
-                // Create scaled image - for animations, scale each frame
-                int scaledTotalHeight = isAnimationStrip ? expectedHeight * (srcHeight / srcFrameHeight)
-                        : expectedHeight;
-                java.awt.image.BufferedImage scaled = new java.awt.image.BufferedImage(
-                        expectedWidth, scaledTotalHeight, java.awt.image.BufferedImage.TYPE_INT_ARGB);
-                java.awt.Graphics2D g = scaled.createGraphics();
-                g.setRenderingHint(java.awt.RenderingHints.KEY_INTERPOLATION,
-                        java.awt.RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
-
-                if (isAnimationStrip) {
-                    // Scale each frame individually
-                    int frameCount = srcHeight / srcFrameHeight;
-                    for (int i = 0; i < frameCount; i++) {
-                        int srcY = i * srcFrameHeight;
-                        int dstY = i * expectedHeight;
-                        g.drawImage(image,
-                                0, dstY, expectedWidth, dstY + expectedHeight, // dest
-                                0, srcY, srcWidth, srcY + srcFrameHeight, // src
-                                null);
-                    }
+            // Scale image if dimensions don't match
+            if (image.getWidth() != expectedWidth || image.getHeight() != expectedHeight) {
+                // Check if it's an animation strip (width matches, height is multiple of expected height)
+                if (image.getWidth() == expectedWidth && image.getHeight() % expectedHeight == 0 && image.getHeight() > expectedHeight) {
+                     int frameCount = image.getHeight() / expectedHeight;
+                     BSTweaker.LOG.info("Detected animation strip for " + spriteName + 
+                        ": " + image.getWidth() + "x" + image.getHeight() + ", " + frameCount + " frames. Using first frame.");
+                     // Do not scale! Just use the image as is.
+                     // The getRGB call below will only read the first frame because we pass expectedHeight
                 } else {
+                    BSTweaker.LOG.info("Scaling texture for " + spriteName + 
+                        " from " + image.getWidth() + "x" + image.getHeight() + 
+                        " to " + expectedWidth + "x" + expectedHeight);
+                    
+                    // Create scaled image
+                    java.awt.image.BufferedImage scaled = new java.awt.image.BufferedImage(
+                        expectedWidth, expectedHeight, java.awt.image.BufferedImage.TYPE_INT_ARGB);
+                    java.awt.Graphics2D g = scaled.createGraphics();
+                    g.setRenderingHint(java.awt.RenderingHints.KEY_INTERPOLATION, 
+                        java.awt.RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
                     g.drawImage(image, 0, 0, expectedWidth, expectedHeight, null);
+                    g.dispose();
+                    image = scaled;
                 }
-                g.dispose();
-                image = scaled;
             }
 
-            // Convert to int[] pixel array (ARGB format) - just first frame
+            // Convert to int[] pixel array (ARGB format)
             int[] pixels = new int[expectedWidth * expectedHeight];
             image.getRGB(0, 0, expectedWidth, expectedHeight, pixels, 0, expectedWidth);
 
@@ -776,29 +741,5 @@ public class FastTextureReloader {
             BSTweaker.LOG.error("Fast model reload failed: " + e.getMessage());
             e.printStackTrace();
         }
-    }
-
-    /**
-     * Clear the sprite area with transparent pixels.
-     * This prevents ghost pixels when new texture is smaller than allocated space.
-     * 
-     * @param width   Sprite width in atlas
-     * @param height  Sprite height in atlas
-     * @param originX X origin in atlas
-     * @param originY Y origin in atlas
-     */
-    private static void clearSpriteArea(int width, int height, int originX, int originY) {
-        // Create transparent pixel array
-        int totalPixels = width * height;
-        int[] clearPixels = new int[totalPixels];
-        // All zeros = fully transparent black (ARGB = 0x00000000)
-
-        // Wrap in mipmap format (just level 0)
-        int[][] clearData = new int[1][];
-        clearData[0] = clearPixels;
-
-        // Upload transparent area to GPU
-        TextureUtil.uploadTextureMipmap(clearData, width, height, originX, originY, false, false);
-        BSTweaker.LOG.debug("Cleared sprite area {}x{} at ({},{})", width, height, originX, originY);
     }
 }
