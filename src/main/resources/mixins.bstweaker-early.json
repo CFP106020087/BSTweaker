@@ -6,6 +6,8 @@
     "target": "@env(CLIENT)",
     "compatibilityLevel": "JAVA_8",
     "mixins": [
-        "MixinMinecraftRefreshResources"
+        "MixinMinecraftRefreshResources",
+        "MixinModelManagerAccessor"
     ]
 }
+

@@ -152,15 +152,18 @@ public class ClientEventHandler {
             return; // Client only
 
         hasRefreshedThisSession = true;
-        BSTweaker.LOG.info("First world join - scheduling resource refresh for spinning models...");
+        BSTweaker.LOG.info("First world join - using fast reload for weapon models...");
 
         Minecraft mc = Minecraft.getMinecraft();
-        // Single refresh should be sufficient now that DynamicResourcePack is properly
-        // integrated
+        // Use fast reload instead of full mc.refreshResources()
         mc.addScheduledTask(() -> {
-            BSTweaker.LOG.info("Executing resource refresh for override models...");
-            mc.refreshResources();
-            BSTweaker.LOG.info("Resource refresh complete - spinning should now work.");
+            BSTweaker.LOG.info("Executing fast texture reload...");
+            FastTextureReloader.reloadWeaponTextures();
+
+            BSTweaker.LOG.info("Executing fast model reload...");
+            FastTextureReloader.reloadModels();
+
+            BSTweaker.LOG.info("Fast reload complete - spinning should now work.");
         });
     }
 

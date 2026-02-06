@@ -4,18 +4,29 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.InputStream;
 import java.util.Set;
+import java.util.function.Function;
 
 import javax.imageio.ImageIO;
 
 import com.mujmajnkraft.bstweaker.BSTweaker;
+import com.mujmajnkraft.bstweaker.mixin.client.MixinModelManagerAccessor;
 import com.mujmajnkraft.bstweaker.util.TweakerWeaponInjector;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.ItemModelMesher;
+import net.minecraft.client.renderer.block.model.IBakedModel;
+import net.minecraft.client.renderer.block.model.ModelManager;
+import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.texture.TextureUtil;
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.item.Item;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.registry.IRegistry;
+import net.minecraftforge.client.model.IModel;
+import net.minecraftforge.client.model.ModelLoader;
+import net.minecraftforge.client.model.ModelLoaderRegistry;
 
 /**
  * Fast texture hot-reload by directly updating sprite regions in the texture atlas.
@@ -663,6 +674,72 @@ public class FastTextureReloader {
         } catch (Exception e) {
             BSTweaker.LOG.warn("Failed to load texture data for " + spriteName + ": " + e.getMessage());
             return null;
+        }
+    }
+
+    /**
+     * Reload models for BSTweaker weapons only.
+     * Re-bakes weapon models and updates ModelManager's bakedRegistry,
+     * then calls ItemModelMesher.rebuildCache() to propagate changes.
+     * This avoids a full resource reload (F3+T).
+     */
+    public static void reloadModels() {
+        try {
+            Minecraft mc = Minecraft.getMinecraft();
+            ItemModelMesher mesher = mc.getRenderItem().getItemModelMesher();
+            ModelManager modelManager = mesher.getModelManager();
+
+            // Get the baked model registry via Mixin accessor
+            IRegistry<ModelResourceLocation, IBakedModel> registry = ((MixinModelManagerAccessor) modelManager)
+                    .getModelRegistry();
+
+            // Texture getter for baking
+            Function<ResourceLocation, TextureAtlasSprite> textureGetter = loc -> mc.getTextureMapBlocks()
+                    .getAtlasSprite(loc.toString());
+
+            Set<Item> weapons = TweakerWeaponInjector.getItemDefinitionMap().keySet();
+            if (weapons.isEmpty()) {
+                BSTweaker.LOG.info("No weapons to reload models for");
+                return;
+            }
+
+            int reloaded = 0;
+            for (Item weapon : weapons) {
+                ResourceLocation regName = weapon.getRegistryName();
+                if (regName == null)
+                    continue;
+
+                // Get ModelResourceLocation for inventory variant
+                ModelResourceLocation mrl = new ModelResourceLocation(regName, "inventory");
+
+                try {
+                    // Clear the model from ModelLoaderRegistry cache to force reload
+                    // This is done by getting a fresh model
+                    IModel unbaked = ModelLoaderRegistry.getModelOrMissing(mrl);
+
+                    // Bake the model with current textures
+                    IBakedModel baked = unbaked.bake(
+                            unbaked.getDefaultState(),
+                            DefaultVertexFormats.ITEM,
+                            textureGetter);
+
+                    // Update the registry with the new baked model
+                    registry.putObject(mrl, baked);
+                    reloaded++;
+
+                    BSTweaker.LOG.debug("Reloaded model for weapon: " + regName);
+                } catch (Exception e) {
+                    BSTweaker.LOG.warn("Failed to reload model for " + regName + ": " + e.getMessage());
+                }
+            }
+
+            // Rebuild ItemModelMesher cache to propagate changes
+            mesher.rebuildCache();
+
+            BSTweaker.LOG.info("Fast model reload: updated " + reloaded + " weapon models");
+        } catch (Exception e) {
+            BSTweaker.LOG.error("Fast model reload failed: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 }
