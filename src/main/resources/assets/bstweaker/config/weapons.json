@@ -47,12 +47,12 @@
   ],
   "weapons": [
     {
-      "_comment": "绿宝石匕首 / Emerald Dagger - 范本",
-      "id": "emeralddagger",
+      "_comment": "绿宝石匕首范本 / Emerald Dagger Example",
+      "id": "emeraldexampledagger",
       "type": "dagger",
-      "texture": "emeralddagger",
+      "texture": "emeraldexampledagger",
       "material": {
-        "name": "emerald",
+        "name": "emeraldexample",
         "harvestLevel": 2,
         "durability": 800,
         "efficiency": 7.0,
@@ -63,12 +63,12 @@
       "speedModifier": 0.0
     },
     {
-      "_comment": "绿宝石战锤 / Emerald Hammer - 范本",
-      "id": "emeraldhammer",
+      "_comment": "绿宝石战锤范本 / Emerald Hammer Example",
+      "id": "emeraldexamplehammer",
       "type": "hammer",
-      "texture": "emeraldhammer",
+      "texture": "emeraldexamplehammer",
       "material": {
-        "name": "emerald",
+        "name": "emeraldexample",
         "harvestLevel": 2,
         "durability": 800,
         "efficiency": 7.0,
@@ -79,12 +79,12 @@
       "speedModifier": 0.0
     },
     {
-      "_comment": "绿宝石长矛 / Emerald Spear - 范本",
-      "id": "emeraldspear",
+      "_comment": "绿宝石长矛范本 / Emerald Spear Example",
+      "id": "emeraldexamplespear",
       "type": "spear",
-      "texture": "emeraldspear",
+      "texture": "emeraldexamplespear",
       "material": {
-        "name": "emerald",
+        "name": "emeraldexample",
         "harvestLevel": 2,
         "durability": 800,
         "efficiency": 7.0,
@@ -95,12 +95,12 @@
       "speedModifier": 0.0
     },
     {
-      "_comment": "绿宝石战斧 / Emerald Battleaxe - 范本",
-      "id": "emeraldbattleaxe",
+      "_comment": "绿宝石战斧范本 / Emerald Battleaxe Example",
+      "id": "emeraldexamplebattleaxe",
       "type": "battleaxe",
-      "texture": "emeraldbattleaxe",
+      "texture": "emeraldexamplebattleaxe",
       "material": {
-        "name": "emerald",
+        "name": "emeraldexample",
         "harvestLevel": 2,
         "durability": 800,
         "efficiency": 7.0,
@@ -111,15 +111,15 @@
       "speedModifier": 0.0
     },
     {
-      "_comment": "绿宝石双截棍 / Emerald Nunchaku - 范本",
-      "id": "emeraldnunchaku",
+      "_comment": "绿宝石双截棍范本 / Emerald Nunchaku Example",
+      "id": "emeraldexamplenunchaku",
       "type": "nunchaku",
-      "texture": "emeraldnunchaku",
+      "texture": "emeraldexamplenunchaku",
       "placeholders": [
         "spinning"
       ],
       "material": {
-        "name": "emerald",
+        "name": "emeraldexample",
         "harvestLevel": 2,
         "durability": 800,
         "efficiency": 7.0,

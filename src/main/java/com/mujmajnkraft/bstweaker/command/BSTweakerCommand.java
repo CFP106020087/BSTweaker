@@ -104,6 +104,10 @@ public class BSTweakerCommand extends CommandBase {
     @SideOnly(Side.CLIENT)
     private void refreshClientResources() {
         try {
+            // Reload translations FIRST before texture reload
+            com.mujmajnkraft.bstweaker.client.ConfigLangLoader.reload();
+            BSTweaker.LOG.info("Reloaded ConfigLangLoader translations");
+
             // Use FAST texture reload via HotReloadHelper (bypasses full resource refresh)
             net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getMinecraft();
             mc.addScheduledTask(() -> {

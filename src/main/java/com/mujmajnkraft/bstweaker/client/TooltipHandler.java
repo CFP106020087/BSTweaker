@@ -33,20 +33,42 @@ public class TooltipHandler {
         
         // Replace item name with displayName (first line of tooltip)
         if (!tooltip.isEmpty()) {
+            String currentName = tooltip.get(0);
             String displayName = null;
 
-            if (def.has("displayName")) {
+            // Check if current name is an untranslated key (raw key shown)
+            if (currentName.startsWith("bstweaker.") || currentName.startsWith("item.")) {
+                // Try to translate the raw key using ConfigLangLoader
+                if (ConfigLangLoader.hasTranslation(currentName)) {
+                    displayName = ConfigLangLoader.translate(currentName);
+                }
+            }
+
+            // If still no displayName, try from definition
+            if (displayName == null && def.has("displayName")) {
                 displayName = def.get("displayName").getAsString();
-            } else if (def.has("id")) {
+            } else if (displayName == null && def.has("id")) {
                 // Auto-generate from id: "emeralddagger" -> "Emeralddagger"
                 String id = def.get("id").getAsString();
-                displayName = id.substring(0, 1).toUpperCase() + id.substring(1);
+                // Try ConfigLangLoader first with weapon key
+                String weaponKey = "bstweaker.weapon." + id + ".name";
+                if (ConfigLangLoader.hasTranslation(weaponKey)) {
+                    displayName = ConfigLangLoader.translate(weaponKey);
+                } else {
+                    displayName = id.substring(0, 1).toUpperCase() + id.substring(1);
+                }
             }
 
             if (displayName != null) {
-                // Support translation keys: @key.name -> I18n.format("key.name")
+                // Support translation keys: @key.name -> translate
                 if (displayName.startsWith("@")) {
-                    displayName = I18n.format(displayName.substring(1));
+                    String key = displayName.substring(1);
+                    // Use ConfigLangLoader for bstweaker keys
+                    if (key.startsWith("bstweaker.") && ConfigLangLoader.hasTranslation(key)) {
+                        displayName = ConfigLangLoader.translate(key);
+                    } else {
+                        displayName = I18n.format(key);
+                    }
                 }
                 // Support color codes
                 displayName = formatTooltipLine(displayName);
@@ -78,7 +100,12 @@ public class TooltipHandler {
                     String comment = eventDef.get("_comment").getAsString();
                     // Support translation keys
                     if (comment.startsWith("@")) {
-                        comment = I18n.format(comment.substring(1));
+                        String key = comment.substring(1);
+                        if (key.startsWith("bstweaker.") && ConfigLangLoader.hasTranslation(key)) {
+                            comment = ConfigLangLoader.translate(key);
+                        } else {
+                            comment = I18n.format(key);
+                        }
                     }
                     tooltip.add(TextFormatting.DARK_PURPLE + "- " + comment);
                 }
@@ -88,10 +115,15 @@ public class TooltipHandler {
     
     /** Format tooltip line with color codes and translation keys. */
     private static String formatTooltipLine(String line) {
-        // Translation key: @key.name -> I18n.format("key.name")
+        // Translation key: @key.name -> translate
         if (line.startsWith("@")) {
             String key = line.substring(1);
-            line = I18n.format(key);
+            // Try ConfigLangLoader first for bstweaker keys
+            if (key.startsWith("bstweaker.") && ConfigLangLoader.hasTranslation(key)) {
+                line = ConfigLangLoader.translate(key);
+            } else {
+                line = I18n.format(key);
+            }
         }
 
         // Support & color codes
