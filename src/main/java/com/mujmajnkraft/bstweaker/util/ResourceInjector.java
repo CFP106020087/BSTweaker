@@ -258,35 +258,34 @@ public class ResourceInjector {
                 boolean hasSpinning = "nunchaku".equals(type);
 
                 // 3. 生成 spinning.json（如果有 spinning 纹理）
+                // Always regenerate to ensure texture path stays correct
                 if (hasSpinning) {
                     File spinningModel = new File(modelsDir, texture + "spinning.json");
-                    if (!spinningModel.exists()) {
-                        StringBuilder spinningSb = new StringBuilder();
-                        spinningSb.append("{\n");
-                        spinningSb.append("  \"parent\": \"item/generated\",\n");
-                        spinningSb.append("  \"textures\": {\n");
-                        // Use BS namespace directly so texture path matches JAR injection
-                        spinningSb.append("    \"layer0\": \"mujmajnkraftsbettersurvival:items/itembstweaker_")
-                                .append(texture).append("spinning\"\n");
+                    StringBuilder spinningSb = new StringBuilder();
+                    spinningSb.append("{\n");
+                    spinningSb.append("  \"parent\": \"item/generated\",\n");
+                    spinningSb.append("  \"textures\": {\n");
+                    // Use bstweaker namespace consistent with _normal model texture reference
+                    spinningSb.append("    \"layer0\": \"bstweaker:items/item")
+                            .append(texture).append("spinning\"\n");
+                    spinningSb.append("  }");
+                    // nunchaku spinning 需要特殊的 display 属性（更大的 scale）
+                    if ("nunchaku".equals(type)) {
+                        spinningSb.append(",\n  \"display\": {\n");
+                        spinningSb.append(
+                                "    \"thirdperson_righthand\": { \"rotation\": [75, 90, 0], \"translation\": [0, 9.75, 8], \"scale\": [1.7, 1.7, 0.85] },\n");
+                        spinningSb.append(
+                                "    \"thirdperson_lefthand\": { \"rotation\": [75, -90, 0], \"translation\": [0, 9.75, 8], \"scale\": [1.7, 1.7, 0.85] },\n");
+                        spinningSb.append(
+                                "    \"firstperson_righthand\": { \"rotation\": [15, 90, 0], \"translation\": [0, 9.35, -2.2], \"scale\": [1.36, 1.36, 0.68] },\n");
+                        spinningSb.append(
+                                "    \"firstperson_lefthand\": { \"rotation\": [15, -90, 0], \"translation\": [0, 9.35, -2.2], \"scale\": [1.36, 1.36, 0.68] }\n");
                         spinningSb.append("  }");
-                        // nunchaku spinning 需要特殊的 display 属性（更大的 scale）
-                        if ("nunchaku".equals(type)) {
-                            spinningSb.append(",\n  \"display\": {\n");
-                            spinningSb.append(
-                                    "    \"thirdperson_righthand\": { \"rotation\": [75, 90, 0], \"translation\": [0, 9.75, 8], \"scale\": [1.7, 1.7, 0.85] },\n");
-                            spinningSb.append(
-                                    "    \"thirdperson_lefthand\": { \"rotation\": [75, -90, 0], \"translation\": [0, 9.75, 8], \"scale\": [1.7, 1.7, 0.85] },\n");
-                            spinningSb.append(
-                                    "    \"firstperson_righthand\": { \"rotation\": [15, 90, 0], \"translation\": [0, 9.35, -2.2], \"scale\": [1.36, 1.36, 0.68] },\n");
-                            spinningSb.append(
-                                    "    \"firstperson_lefthand\": { \"rotation\": [15, -90, 0], \"translation\": [0, 9.35, -2.2], \"scale\": [1.36, 1.36, 0.68] }\n");
-                            spinningSb.append("  }");
-                        }
-                        spinningSb.append("\n}");
-                        Files.write(spinningModel.toPath(),
-                                spinningSb.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));
-                        BSTweaker.LOG.info("Generated: " + spinningModel.getName());
                     }
+                    spinningSb.append("\n}");
+                    Files.write(spinningModel.toPath(),
+                            spinningSb.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                    BSTweaker.LOG.info("Generated: " + spinningModel.getName());
                 }
 
                 // 4. 生成 base model（带 overrides）

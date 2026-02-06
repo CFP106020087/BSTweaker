@@ -280,6 +280,14 @@ public class DynamicResourcePack implements IResourcePack {
                     return new FileInputStream(configModels.get(stripped));
                 }
             }
+            // Fallback: strip "item" prefix (BS registry names prepend "item" but
+            // ResourceInjector generates model files without this prefix)
+            if (name.startsWith("item")) {
+                String withoutItem = name.substring("item".length());
+                if (configModels.containsKey(withoutItem)) {
+                    return new FileInputStream(configModels.get(withoutItem));
+                }
+            }
 
             // Auto-generate model if we have a matching texture
             // Model name format: item<material><type> (e.g. itememeraldnunchaku)
@@ -389,6 +397,14 @@ public class DynamicResourcePack implements IResourcePack {
             if (name.contains("bstweaker_")) {
                 String stripped = name.replace("bstweaker_", "");
                 if (configModels.containsKey(stripped)) {
+                    return true;
+                }
+            }
+            // Fallback: strip "item" prefix (BS registry names prepend "item" but
+            // ResourceInjector generates model files without this prefix)
+            if (name.startsWith("item")) {
+                String withoutItem = name.substring("item".length());
+                if (configModels.containsKey(withoutItem)) {
                     return true;
                 }
             }
