@@ -34,6 +34,17 @@ Thumbs.db
 # Third-party source / reference
 BetterSurvival-master/
 Resource-Loader-master/
+UniversalTweaks-main/
+
+# Agent workflows
+.agent/
+
+# Backups
+backup_*/
+
+# Log files
+*_log.txt
+*_log?.txt
 
 # Workspace temp files
 temp_*.java
