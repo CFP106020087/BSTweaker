@@ -74,12 +74,7 @@ public class FastTextureReloader {
             
             // Debug: list all sprites containing "nunchaku" 
             try {
-                java.lang.reflect.Field mapField;
-                try {
-                    mapField = TextureMap.class.getDeclaredField("mapUploadedSprites");
-                } catch (NoSuchFieldException nsfe) {
-                    mapField = TextureMap.class.getDeclaredField("field_94252_e"); // SRG name
-                }
+                java.lang.reflect.Field mapField = TextureMap.class.getDeclaredField("mapUploadedSprites");
                 mapField.setAccessible(true);
                 @SuppressWarnings("unchecked")
                 java.util.Map<String, TextureAtlasSprite> uploadedSprites = (java.util.Map<String, TextureAtlasSprite>) mapField.get(textureMap);
@@ -361,23 +356,11 @@ public class FastTextureReloader {
                             
                             // Force animation to restart from frame 0
                             try {
-                                java.lang.reflect.Field tickCounterField;
-                                try {
-                                    tickCounterField = TextureAtlasSprite.class.getDeclaredField("tickCounter");
-                                } catch (NoSuchFieldException nsfe) {
-                                    tickCounterField = TextureAtlasSprite.class.getDeclaredField("field_110983_h"); // SRG
-                                                                                                                    // name
-                                }
+                                java.lang.reflect.Field tickCounterField = TextureAtlasSprite.class.getDeclaredField("tickCounter");
                                 tickCounterField.setAccessible(true);
                                 tickCounterField.setInt(sprite, 0);
                                 
-                                java.lang.reflect.Field frameCounterField;
-                                try {
-                                    frameCounterField = TextureAtlasSprite.class.getDeclaredField("frameCounter");
-                                } catch (NoSuchFieldException nsfe) {
-                                    frameCounterField = TextureAtlasSprite.class.getDeclaredField("field_110973_g"); // SRG
-                                                                                                                     // name
-                                }
+                                java.lang.reflect.Field frameCounterField = TextureAtlasSprite.class.getDeclaredField("frameCounter");
                                 frameCounterField.setAccessible(true);
                                 frameCounterField.setInt(sprite, 0);
                             } catch (Exception resetEx) {
@@ -555,12 +538,7 @@ public class FastTextureReloader {
             // This ensures that animated textures continue to display the new texture
             if (sprite.hasAnimationMetadata()) {
                 try {
-                    java.lang.reflect.Field framesField;
-                    try {
-                        framesField = TextureAtlasSprite.class.getDeclaredField("framesTextureData");
-                    } catch (NoSuchFieldException nsfe) {
-                        framesField = TextureAtlasSprite.class.getDeclaredField("field_110976_a"); // SRG name
-                    }
+                    java.lang.reflect.Field framesField = TextureAtlasSprite.class.getDeclaredField("framesTextureData");
                     framesField.setAccessible(true);
                     @SuppressWarnings("unchecked")
                     java.util.List<int[][]> framesTextureData = (java.util.List<int[][]>) framesField.get(sprite);
@@ -798,14 +776,8 @@ public class FastTextureReloader {
             // VanillaModelWrapper uses identity check (==) against this field
             if (parentLoc.getPath().equals("builtin/generated") || parentLoc.getPath().equals("item/generated")) {
                 try {
-                    java.lang.reflect.Field f;
-                    try {
-                        f = net.minecraft.client.renderer.block.model.ModelBakery.class
-                                .getDeclaredField("MODEL_GENERATED");
-                    } catch (NoSuchFieldException nsfe) {
-                        f = net.minecraft.client.renderer.block.model.ModelBakery.class
-                                .getDeclaredField("field_177606_o"); // SRG name
-                    }
+                    java.lang.reflect.Field f = net.minecraft.client.renderer.block.model.ModelBakery.class
+                            .getDeclaredField("MODEL_GENERATED");
                     f.setAccessible(true);
                     net.minecraft.client.renderer.block.model.ModelBlock modelGenerated = (net.minecraft.client.renderer.block.model.ModelBlock) f
                             .get(null);
@@ -819,14 +791,8 @@ public class FastTextureReloader {
             // builtin/entity is terminal
             if (parentLoc.getPath().equals("builtin/entity")) {
                 try {
-                    java.lang.reflect.Field f;
-                    try {
-                        f = net.minecraft.client.renderer.block.model.ModelBakery.class
-                                .getDeclaredField("MODEL_ENTITY");
-                    } catch (NoSuchFieldException nsfe) {
-                        f = net.minecraft.client.renderer.block.model.ModelBakery.class
-                                .getDeclaredField("field_177616_r"); // SRG name
-                    }
+                    java.lang.reflect.Field f = net.minecraft.client.renderer.block.model.ModelBakery.class
+                            .getDeclaredField("MODEL_ENTITY");
                     f.setAccessible(true);
                     net.minecraft.client.renderer.block.model.ModelBlock modelEntity = (net.minecraft.client.renderer.block.model.ModelBlock) f
                             .get(null);

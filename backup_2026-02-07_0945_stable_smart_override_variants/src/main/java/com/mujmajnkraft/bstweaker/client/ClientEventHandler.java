@@ -186,20 +186,15 @@ public class ClientEventHandler {
         int registered = 0;
 
         for (String textureName : textureNames) {
-            try {
-                // Register in BS namespace (where models reference them)
-                String bsPath = "mujmajnkraftsbettersurvival:items/" + textureName;
-                event.getMap().registerSprite(new ResourceLocation(bsPath));
+            // Register in BS namespace (where models reference them)
+            String bsPath = "mujmajnkraftsbettersurvival:items/" + textureName;
+            event.getMap().registerSprite(new ResourceLocation(bsPath));
 
-                // Also register in bstweaker namespace for fallback
-                String bstPath = "bstweaker:items/" + textureName;
-                event.getMap().registerSprite(new ResourceLocation(bstPath));
+            // Also register in bstweaker namespace for fallback
+            String bstPath = "bstweaker:items/" + textureName;
+            event.getMap().registerSprite(new ResourceLocation(bstPath));
 
-                registered++;
-            } catch (Exception e) {
-                // CTM/Chisel mod may crash on null metadata — safe to skip
-                BSTweaker.LOG.debug("Failed to register sprite " + textureName + ": " + e.getMessage());
-            }
+            registered++;
         }
 
         BSTweaker.LOG.info("Registered " + registered + " config textures to atlas (both BS and BST namespaces)");

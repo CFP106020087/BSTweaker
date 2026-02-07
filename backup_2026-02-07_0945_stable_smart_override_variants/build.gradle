@@ -62,7 +62,6 @@ dependencies {
 
 mixin {
     add sourceSets.main, "mixins.bstweaker.refmap.json"
-    add sourceSets.main, "mixins.bstweaker-early.refmap.json"
 }
 
 jar {
