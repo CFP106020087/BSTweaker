@@ -1,0 +1,53 @@
+{
+  "_tutorial_zh": [
+    "=== 武器脚本效果配置 ===",
+    "定义武器的特殊效果",
+    "",
+    "事件类型：",
+    "  onHit: 攻击命中时",
+    "  onKill: 击杀时",
+    "  onHurt: 被攻击时",
+    "  whenHeld: 主手持有时 (每5tick)",
+    "",
+    "变量：",
+    "  self: 武器持有者",
+    "  victim: 目标 (onHit/onKill) 或攻击者 (onHurt)",
+    "",
+    "示例动作：",
+    "  victim.setFire(3) - 点燃3秒",
+    "  victim.addPotion('poison', 100, 1) - 中毒",
+    "  self.heal(2) - 恢复2血"
+  ],
+  "_tutorial_en": [
+    "=== Weapon Script Effects Config ===",
+    "Defines special weapon effects",
+    "",
+    "Event types:",
+    "  onHit: On attack hit",
+    "  onKill: On kill",
+    "  onHurt: When hurt",
+    "  whenHeld: While held (every 5 ticks)",
+    "",
+    "Variables:",
+    "  self: Weapon holder",
+    "  victim: Target (onHit/onKill) or attacker (onHurt)",
+    "",
+    "Example actions:",
+    "  victim.setFire(3) - Ignite 3s",
+    "  victim.addPotion('poison', 100, 1) - Poison",
+    "  self.heal(2) - Heal 2"
+  ],
+  "_example": {
+    "_comment": "复制到 scripts 数组使用 / Copy to scripts array to use",
+    "id": "emeralddagger",
+    "events": [
+      {
+        "event": "onHit",
+        "actions": [
+          "victim.addPotion('glowing', 60, 0)"
+        ]
+      }
+    ]
+  },
+  "scripts": []
+}

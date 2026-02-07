@@ -1,0 +1,35 @@
+{
+  "_tutorial_zh": [
+    "=== 武器提示信息配置 ===",
+    "定义武器的显示名称和悬停提示",
+    "新武器启动时自动生成条目，可在此自定义",
+    "",
+    "字段：",
+    "  id: 武器ID (与 weapons.json 一致)",
+    "  displayName: 显示名称，@前缀=从lang翻译",
+    "  tooltip: 提示数组，@前缀=从lang翻译",
+    "",
+    "自动生成 (不覆盖已有)：",
+    "  - 新武器自动添加3条预设tooltip",
+    "  - displayName 默认 @bstweaker.weapon.<id>.name",
+    "",
+    "颜色：§6金 §7灰 §c红 §e黄 §a绿 §b青 §d粉 §l粗 §o斜"
+  ],
+  "_tutorial_en": [
+    "=== Weapon Tooltip Config ===",
+    "Defines display names and hover tooltips",
+    "New weapons auto-generate entries on startup, customize here",
+    "",
+    "Fields:",
+    "  id: Weapon ID (matches weapons.json)",
+    "  displayName: Display name, @ prefix = translate from lang",
+    "  tooltip: Tooltip array, @ prefix = translate from lang",
+    "",
+    "Auto-generated (no overwrite):",
+    "  - New weapons get 3 preset tooltips",
+    "  - displayName defaults to @bstweaker.weapon.<id>.name",
+    "",
+    "Colors: §6gold §7gray §c red §e yellow §a green §b aqua §d pink §l bold §o italic"
+  ],
+  "tooltips": []
+}

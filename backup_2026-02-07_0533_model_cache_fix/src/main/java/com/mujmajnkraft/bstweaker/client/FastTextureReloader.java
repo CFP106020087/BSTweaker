@@ -27,19 +27,12 @@ import net.minecraft.util.registry.IRegistry;
 import net.minecraftforge.client.model.IModel;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.client.model.ModelLoaderRegistry;
-import net.minecraft.client.resources.IResourceManager;
 
 /**
  * Fast texture hot-reload by directly updating sprite regions in the texture atlas.
  * This bypasses the slow full-atlas re-stitch process.
  */
 public class FastTextureReloader {
-
-    // Static fields for mixin communication (weapon-only fast reload)
-    public static volatile boolean weaponOnlyReload = false;
-    public static volatile IRegistry<ModelResourceLocation, IBakedModel> oldModelRegistry = null;
-    public static volatile java.util.Set<IModel> weaponIModels = null;
-    public static volatile java.util.Map<IModel, IBakedModel> oldBakedModelCache = null;
 
     /**
      * Reload textures for BSTweaker weapons only.
@@ -720,109 +713,169 @@ public class FastTextureReloader {
     }
 
     /**
-     * Reload models for BSTweaker weapons only (fast path).
-     * Calls ModelManager.onResourceManagerReload() but mixins intercept to:
-     * 1. Skip baking non-weapon models (return old cached baked models)
-     * 2. Skip texture atlas re-stitching (handled separately)
-     * Result: only weapon models are re-baked through Forge's full pipeline.
+     * Reload models for BSTweaker weapons only.
+     * Re-bakes weapon models and updates ModelManager's bakedRegistry,
+     * then calls ItemModelMesher.rebuildCache() to propagate changes.
+     * This avoids a full resource reload (F3+T).
      */
     public static void reloadModels() {
         try {
-            long start = System.currentTimeMillis();
             Minecraft mc = Minecraft.getMinecraft();
+            ItemModelMesher mesher = mc.getRenderItem().getItemModelMesher();
+            ModelManager modelManager = mesher.getModelManager();
 
-            // Rescan config resources to pick up modified model JSON files
-            DynamicResourcePack.rescan();
+            // Get the baked model registry via Mixin accessor
+            IRegistry<ModelResourceLocation, IBakedModel> registry = ((MixinModelManagerAccessor) modelManager)
+                    .getModelRegistry();
 
-            // Set flag — MixinModelManagerFastReload will cancel full reload,
-            // read weapon JSON fresh, create VanillaModelWrapper, bake, update registry
-            weaponOnlyReload = true;
-            try {
-                ModelManager modelManager = mc.getRenderItem().getItemModelMesher().getModelManager();
-                modelManager.onResourceManagerReload(mc.getResourceManager());
-            } finally {
-                weaponOnlyReload = false;
+            // Texture getter for baking
+            Function<ResourceLocation, TextureAtlasSprite> textureGetter = loc -> mc.getTextureMapBlocks()
+                    .getAtlasSprite(loc.toString());
+
+            Set<Item> weapons = TweakerWeaponInjector.getItemDefinitionMap().keySet();
+            if (weapons.isEmpty()) {
+                BSTweaker.LOG.info("No weapons to reload models for");
+                return;
             }
 
-            // Rebuild ItemModelMesher cache
-            mc.getRenderItem().getItemModelMesher().rebuildCache();
+            // === CACHE INVALIDATION ===
+            // Three levels of caching prevent model display param updates:
+            // 1. ModelLoaderRegistry.cache (IModel cache, static)
+            // 2. ModelLoaderRegistry.aliases (MRL -> file location redirect)
+            // 3. ModelBakery.loadedModels (raw ModelBlock JSON cache, in ModelLoader
+            // instance)
 
-            long elapsed = System.currentTimeMillis() - start;
-            BSTweaker.LOG.info("Fast model reload (weapon-only bake): " + elapsed + "ms");
+            // Level 1: ModelLoaderRegistry.cache
+            java.util.Map<ResourceLocation, IModel> registryCache = null;
+            try {
+                java.lang.reflect.Field cacheField = ModelLoaderRegistry.class.getDeclaredField("cache");
+                cacheField.setAccessible(true);
+                @SuppressWarnings("unchecked")
+                java.util.Map<ResourceLocation, IModel> c = (java.util.Map<ResourceLocation, IModel>) cacheField
+                        .get(null);
+                registryCache = c;
+            } catch (Exception e) {
+                BSTweaker.LOG.warn("Could not access ModelLoaderRegistry.cache: " + e.getMessage());
+            }
+
+            // Level 2: ModelLoaderRegistry.aliases
+            java.util.Map<ResourceLocation, ResourceLocation> aliases = null;
+            try {
+                java.lang.reflect.Field aliasField = ModelLoaderRegistry.class.getDeclaredField("aliases");
+                aliasField.setAccessible(true);
+                @SuppressWarnings("unchecked")
+                java.util.Map<ResourceLocation, ResourceLocation> a = (java.util.Map<ResourceLocation, ResourceLocation>) aliasField
+                        .get(null);
+                aliases = a;
+            } catch (Exception e) {
+                BSTweaker.LOG.warn("Could not access ModelLoaderRegistry.aliases: " + e.getMessage());
+            }
+
+            // Level 3: ModelBakery.loadedModels (via VanillaLoader.INSTANCE.loader)
+            java.util.Map<ResourceLocation, ?> loadedModels = null;
+            try {
+                // VanillaLoader is a private enum inside ModelLoader
+                Class<?> vanillaLoaderClass = null;
+                for (Class<?> inner : ModelLoader.class.getDeclaredClasses()) {
+                    if (inner.getSimpleName().equals("VanillaLoader")) {
+                        vanillaLoaderClass = inner;
+                        break;
+                    }
+                }
+                if (vanillaLoaderClass != null) {
+                    // Get INSTANCE
+                    Object vanillaInstance = null;
+                    for (Object enumConst : vanillaLoaderClass.getEnumConstants()) {
+                        vanillaInstance = enumConst;
+                        break;
+                    }
+                    if (vanillaInstance != null) {
+                        // Get loader field
+                        java.lang.reflect.Field loaderField = vanillaLoaderClass.getDeclaredField("loader");
+                        loaderField.setAccessible(true);
+                        Object loader = loaderField.get(vanillaInstance);
+                        if (loader != null) {
+                            // Get loadedModels from ModelBakery (parent class)
+                            // Try MCP name first, then SRG
+                            java.lang.reflect.Field loadedModelsField = null;
+                            try {
+                                loadedModelsField = net.minecraft.client.renderer.block.model.ModelBakery.class
+                                        .getDeclaredField("loadedModels");
+                            } catch (NoSuchFieldException ex) {
+                                loadedModelsField = net.minecraft.client.renderer.block.model.ModelBakery.class
+                                        .getDeclaredField("field_177614_t");
+                            }
+                            loadedModelsField.setAccessible(true);
+                            @SuppressWarnings("unchecked")
+                            java.util.Map<ResourceLocation, ?> lm = (java.util.Map<ResourceLocation, ?>) loadedModelsField
+                                    .get(loader);
+                            loadedModels = lm;
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                BSTweaker.LOG.warn("Could not access ModelBakery.loadedModels: " + e.getMessage());
+            }
+
+            int reloaded = 0;
+            for (Item weapon : weapons) {
+                ResourceLocation regName = weapon.getRegistryName();
+                if (regName == null)
+                    continue;
+
+                ModelResourceLocation mrl = new ModelResourceLocation(regName, "inventory");
+                // Item file location (alias target): namespace:item/<path>
+                ResourceLocation itemFileLoc = new ResourceLocation(
+                        regName.getNamespace(), "item/" + regName.getPath());
+                // Actual file location (with models/ prefix): namespace:models/item/<path>
+                ResourceLocation actualFileLoc = new ResourceLocation(
+                        regName.getNamespace(), "models/item/" + regName.getPath());
+
+                try {
+                    // Clear all cache levels for this model
+                    if (registryCache != null) {
+                        registryCache.remove(mrl); // MRL: namespace:item#inventory
+                        registryCache.remove(itemFileLoc); // Alias target: namespace:item/<path>
+                        registryCache.remove(actualFileLoc); // Actual: namespace:models/item/<path>
+                        registryCache.remove(regName); // Base: namespace:<path>
+                    }
+                    if (aliases != null) {
+                        aliases.remove(mrl); // Remove alias so getModel re-establishes it
+                    }
+                    if (loadedModels != null) {
+                        loadedModels.remove(actualFileLoc); // ModelBakery JSON cache
+                        loadedModels.remove(itemFileLoc);
+                    }
+
+                    BSTweaker.LOG
+                            .info("Cleared caches for " + regName + " (mrl=" + mrl + ", file=" + itemFileLoc + ")");
+
+                    // Now getModelOrMissing will re-read the JSON file from DynamicResourcePack
+                    IModel unbaked = ModelLoaderRegistry.getModelOrMissing(mrl);
+
+                    // Bake the model with current textures
+                    IBakedModel baked = unbaked.bake(
+                            unbaked.getDefaultState(),
+                            DefaultVertexFormats.ITEM,
+                            textureGetter);
+
+                    // Update the registry with the new baked model
+                    registry.putObject(mrl, baked);
+                    reloaded++;
+
+                    BSTweaker.LOG.debug("Reloaded model for weapon: " + regName);
+                } catch (Exception e) {
+                    BSTweaker.LOG.warn("Failed to reload model for " + regName + ": " + e.getMessage());
+                }
+            }
+
+            // Rebuild ItemModelMesher cache to propagate changes
+            mesher.rebuildCache();
+
+            BSTweaker.LOG.info("Fast model reload: updated " + reloaded + " weapon models");
         } catch (Exception e) {
             BSTweaker.LOG.error("Fast model reload failed: " + e.getMessage());
             e.printStackTrace();
-        }
-    }
-
-    /**
-     * Resolve the parent chain of a ModelBlock by reading parent JSONs
-     * from the ResourceManager. Public so MixinModelManagerFastReload can use it.
-     */
-    public static void resolveParents(net.minecraft.client.renderer.block.model.ModelBlock model,
-            IResourceManager resourceManager) {
-        net.minecraft.client.renderer.block.model.ModelBlock current = model;
-        java.util.Set<String> visited = new java.util.HashSet<>();
-
-        while (current.getParentLocation() != null) {
-            ResourceLocation parentLoc = current.getParentLocation();
-            String parentStr = parentLoc.toString();
-
-            if (visited.contains(parentStr))
-                break;
-            visited.add(parentStr);
-
-            // builtin/generated: set parent to actual ModelBakery.MODEL_GENERATED instance
-            // VanillaModelWrapper uses identity check (==) against this field
-            if (parentLoc.getPath().equals("builtin/generated") || parentLoc.getPath().equals("item/generated")) {
-                try {
-                    java.lang.reflect.Field f = net.minecraft.client.renderer.block.model.ModelBakery.class
-                            .getDeclaredField("MODEL_GENERATED");
-                    f.setAccessible(true);
-                    net.minecraft.client.renderer.block.model.ModelBlock modelGenerated = (net.minecraft.client.renderer.block.model.ModelBlock) f
-                            .get(null);
-                    current.parent = modelGenerated;
-                } catch (Exception e) {
-                    BSTweaker.LOG.warn("Failed to get MODEL_GENERATED: " + e.getMessage());
-                }
-                break;
-            }
-
-            // builtin/entity is terminal
-            if (parentLoc.getPath().equals("builtin/entity")) {
-                try {
-                    java.lang.reflect.Field f = net.minecraft.client.renderer.block.model.ModelBakery.class
-                            .getDeclaredField("MODEL_ENTITY");
-                    f.setAccessible(true);
-                    net.minecraft.client.renderer.block.model.ModelBlock modelEntity = (net.minecraft.client.renderer.block.model.ModelBlock) f
-                            .get(null);
-                    current.parent = modelEntity;
-                } catch (Exception e) {
-                    BSTweaker.LOG.warn("Failed to get MODEL_ENTITY: " + e.getMessage());
-                }
-                break;
-            }
-
-            ResourceLocation parentJsonLoc;
-            String path = parentLoc.getPath();
-            if (path.startsWith("models/")) {
-                parentJsonLoc = new ResourceLocation(parentLoc.getNamespace(), path + ".json");
-            } else {
-                parentJsonLoc = new ResourceLocation(parentLoc.getNamespace(), "models/" + path + ".json");
-            }
-
-            try (java.io.InputStream is = resourceManager.getResource(parentJsonLoc).getInputStream();
-                    java.io.InputStreamReader reader = new java.io.InputStreamReader(is,
-                            java.nio.charset.StandardCharsets.UTF_8)) {
-                net.minecraft.client.renderer.block.model.ModelBlock parent = net.minecraft.client.renderer.block.model.ModelBlock
-                        .deserialize(reader);
-                parent.name = parentJsonLoc.toString();
-                current.parent = parent;
-                current = parent;
-            } catch (Exception e) {
-                BSTweaker.LOG.warn("Failed to load parent model " + parentJsonLoc + ": " + e.getMessage());
-                break;
-            }
         }
     }
 

@@ -9,14 +9,21 @@ import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
-
+// 模型管理和烘焙
+import net.minecraft.client.renderer.texture.TextureMap;
+import net.minecraft.client.renderer.texture.AbstractTexture;
+import net.minecraft.client.renderer.texture.ITextureObject;
+// 动画元数据
+import net.minecraft.client.resources.data.AnimationMetadataSection;
+import net.minecraft.client.resources.data.AnimationFrame;
+// 资源加载
+import net.minecraft.client.resources.IResource;
+import net.minecraft.client.resources.IResourceManager;
+// 模型加载（display属性）
 import net.minecraft.client.renderer.block.model.ModelBlock;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
-import net.minecraftforge.client.model.ModelLoaderRegistry;
+import net.minecraft.client.renderer.block.model.ItemTransformVec3f;
 /**
- *
- *
- *
  * Bedrock 模型处理器 - 使用反射实现 GeckoLib 软依赖
  * 
  * 功能:
