@@ -111,6 +111,17 @@ public class TooltipHandler {
                 }
             }
         }
+
+        // Placeholder texture warning
+        if (def.has("_placeholder") && def.get("_placeholder").getAsBoolean()) {
+            tooltip.add("");
+            tooltip.add(TextFormatting.YELLOW + "" + TextFormatting.ITALIC
+                    + "\u26a0 \u5360\u4f4d\u7eb9\u7406 (Placeholder)");
+            tooltip.add(TextFormatting.GRAY
+                    + "\u5c06\u81ea\u5b9a\u4e49\u7eb9\u7406\u653e\u5165 config/bstweaker/textures/");
+            tooltip.add(TextFormatting.GRAY + "\u7136\u540e\u4f7f\u7528 " + TextFormatting.AQUA + "/bstweaker reload"
+                    + TextFormatting.GRAY + " \u91cd\u8f7d");
+        }
     }
     
     /** Format tooltip line with color codes and translation keys. */

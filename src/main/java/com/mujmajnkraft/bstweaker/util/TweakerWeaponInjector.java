@@ -2,8 +2,11 @@ package com.mujmajnkraft.bstweaker.util;
 
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -14,6 +17,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
 import com.mujmajnkraft.bstweaker.effects.EffectEventHandler;
 import com.mujmajnkraft.bstweaker.effects.WeaponEvent;
 import com.mujmajnkraft.bstweaker.validation.ConfigValidationErrors;
@@ -67,7 +71,7 @@ public class TweakerWeaponInjector {
             File scriptsFile = new File(configDir, "scripts.json");
             File apiFile = new File(configDir, "SCRIPT_API.md");
 
-            // Copy default configs
+            // Copy default configs (only if not exist)
             copyDefaultConfig("weapons.json", weaponsFile);
             copyDefaultConfig("tooltips.json", tooltipsFile);
             copyDefaultConfig("scripts.json", scriptsFile);
@@ -78,105 +82,125 @@ public class TweakerWeaponInjector {
                 return weapons;
             }
 
+            // === Phase 1: Parse weapons.json ===
             JsonParser parser = new JsonParser();
-            // Read with UTF-8
-            JsonObject root = parser.parse(new java.io.InputStreamReader(
-                    new java.io.FileInputStream(weaponsFile), java.nio.charset.StandardCharsets.UTF_8))
-                    .getAsJsonObject();
+            JsonElement rootElement = parser.parse(new java.io.InputStreamReader(
+                    new java.io.FileInputStream(weaponsFile), java.nio.charset.StandardCharsets.UTF_8));
+            if (rootElement == null || !rootElement.isJsonObject()) {
+                System.err.println("[BSTweaker] weapons.json is empty or invalid (parsed as: " + rootElement + ")");
+                return weapons;
+            }
+            JsonObject root = rootElement.getAsJsonObject();
 
-            // Load tooltips
+            if (!root.has("weapons")) {
+                System.out.println("[BSTweaker] weapons.json has no 'weapons' array");
+                return weapons;
+            }
+            JsonArray weaponDefs = root.getAsJsonArray("weapons");
+
+            // === Phase 2: Load materials ===
+            for (JsonElement elem : weaponDefs) {
+                JsonObject weaponDef = elem.getAsJsonObject();
+                if (weaponDef.has("material")) {
+                    JsonObject matDef = weaponDef.getAsJsonObject("material");
+                    loadMaterial(matDef);
+                }
+            }
+
+            // === Phase 3: Auto-fill tooltips/scripts/textures ===
+            // ResourceInjector reads weapons.json and fills missing entries
+            try {
+                ResourceInjector.injectResources();
+            } catch (Exception e) {
+                System.err.println("[BSTweaker] ResourceInjector failed (non-fatal): " + e.getMessage());
+            }
+
+            // === Phase 4: Reload tooltips/scripts (may have been auto-filled) ===
             Map<String, JsonObject> tooltipMap = new HashMap<>();
             if (tooltipsFile.exists()) {
-                JsonObject tooltipsRoot = parser.parse(new java.io.InputStreamReader(
-                        new java.io.FileInputStream(tooltipsFile), java.nio.charset.StandardCharsets.UTF_8))
-                        .getAsJsonObject();
-                if (tooltipsRoot.has("tooltips")) {
-                    for (JsonElement elem : tooltipsRoot.getAsJsonArray("tooltips")) {
-                        JsonObject t = elem.getAsJsonObject();
-                        tooltipMap.put(t.get("id").getAsString(), t);
+                JsonElement tooltipsElement = parser.parse(new java.io.InputStreamReader(
+                        new java.io.FileInputStream(tooltipsFile), java.nio.charset.StandardCharsets.UTF_8));
+                if (tooltipsElement != null && tooltipsElement.isJsonObject()) {
+                    JsonObject tooltipsRoot = tooltipsElement.getAsJsonObject();
+                    if (tooltipsRoot.has("tooltips")) {
+                        for (JsonElement elem : tooltipsRoot.getAsJsonArray("tooltips")) {
+                            JsonObject t = elem.getAsJsonObject();
+                            tooltipMap.put(t.get("id").getAsString(), t);
+                        }
                     }
+                } else {
+                    System.out.println("[BSTweaker] tooltips.json is empty or invalid, skipping");
                 }
             }
 
-            // Load scripts
             Map<String, JsonArray> scriptMap = new HashMap<>();
             if (scriptsFile.exists()) {
-                JsonObject scriptsRoot = parser.parse(new java.io.InputStreamReader(
-                        new java.io.FileInputStream(scriptsFile), java.nio.charset.StandardCharsets.UTF_8))
-                        .getAsJsonObject();
-                if (scriptsRoot.has("scripts")) {
-                    for (JsonElement elem : scriptsRoot.getAsJsonArray("scripts")) {
-                        JsonObject s = elem.getAsJsonObject();
-                        if (s.has("events")) {
-                            scriptMap.put(s.get("id").getAsString(), s.getAsJsonArray("events"));
+                JsonElement scriptsElement = parser.parse(new java.io.InputStreamReader(
+                        new java.io.FileInputStream(scriptsFile), java.nio.charset.StandardCharsets.UTF_8));
+                if (scriptsElement != null && scriptsElement.isJsonObject()) {
+                    JsonObject scriptsRoot = scriptsElement.getAsJsonObject();
+                    if (scriptsRoot.has("scripts")) {
+                        for (JsonElement elem : scriptsRoot.getAsJsonArray("scripts")) {
+                            JsonObject s = elem.getAsJsonObject();
+                            if (s.has("events")) {
+                                scriptMap.put(s.get("id").getAsString(), s.getAsJsonArray("events"));
+                            }
                         }
                     }
+                } else {
+                    System.out.println("[BSTweaker] scripts.json is empty or invalid, skipping");
                 }
             }
 
-            // Load weapon definitions
-            if (root.has("weapons")) {
-                JsonArray weaponDefs = root.getAsJsonArray("weapons");
+            // === Phase 5: Create weapons with merged tooltip/script data ===
+            for (JsonElement elem : weaponDefs) {
+                JsonObject weaponDef = elem.getAsJsonObject();
+                String id = weaponDef.has("id") ? weaponDef.get("id").getAsString() : "<unknown>";
 
-                // Pass 1: load materials
-                for (JsonElement elem : weaponDefs) {
-                    JsonObject weaponDef = elem.getAsJsonObject();
-                    if (weaponDef.has("material")) {
-                        JsonObject matDef = weaponDef.getAsJsonObject("material");
-                        loadMaterial(matDef);
-                    }
+                // === 验证武器配置 ===
+                if (!WeaponAttributeValidator.validateWeapon(weaponDef)) {
+                    System.err.println("[BSTweaker] Skipping weapon '" + id + "' due to validation errors");
+                    continue; // 跳过注册
                 }
 
-                // Pass 2: create weapons
-                for (JsonElement elem : weaponDefs) {
-                    JsonObject weaponDef = elem.getAsJsonObject();
-                    String id = weaponDef.has("id") ? weaponDef.get("id").getAsString() : "<unknown>";
+                // Merge tooltip config
+                if (tooltipMap.containsKey(id)) {
+                    JsonObject tooltip = tooltipMap.get(id);
+                    if (tooltip.has("displayName"))
+                        weaponDef.add("displayName", tooltip.get("displayName"));
+                    if (tooltip.has("tooltip"))
+                        weaponDef.add("tooltip", tooltip.get("tooltip"));
+                }
 
-                    // === 验证武器配置 ===
-                    if (!WeaponAttributeValidator.validateWeapon(weaponDef)) {
-                        System.err.println("[BSTweaker] Skipping weapon '" + id + "' due to validation errors");
-                        continue; // 跳过注册
+                Item weapon = createWeapon(weaponDef);
+                if (weapon != null) {
+                    weapons.add(weapon);
+                    itemDefinitionMap.put(weapon, weaponDef);
+
+                    // Load events from scripts.json (matches id or material.name)
+                    String materialName = weaponDef.has("material")
+                            && weaponDef.getAsJsonObject("material").has("name")
+                                    ? weaponDef.getAsJsonObject("material").get("name").getAsString().toLowerCase()
+                                    : "";
+                    JsonArray eventsArray = null;
+
+                    if (scriptMap.containsKey(id)) {
+                        eventsArray = scriptMap.get(id);
+                        System.out.println("[BSTweaker] Found scripts by id: " + id);
+                    } else if (!materialName.isEmpty() && scriptMap.containsKey(materialName)) {
+                        eventsArray = scriptMap.get(materialName);
+                        System.out.println("[BSTweaker] Found scripts by material: " + materialName);
                     }
 
-                    // Merge tooltip config
-                    if (tooltipMap.containsKey(id)) {
-                        JsonObject tooltip = tooltipMap.get(id);
-                        if (tooltip.has("displayName"))
-                            weaponDef.add("displayName", tooltip.get("displayName"));
-                        if (tooltip.has("tooltip"))
-                            weaponDef.add("tooltip", tooltip.get("tooltip"));
-                    }
-
-                    Item weapon = createWeapon(weaponDef);
-                    if (weapon != null) {
-                        weapons.add(weapon);
-                        itemDefinitionMap.put(weapon, weaponDef);
-
-                        // Load events from scripts.json (matches id or material.name)
-                        String materialName = weaponDef.has("material")
-                                && weaponDef.getAsJsonObject("material").has("name")
-                                        ? weaponDef.getAsJsonObject("material").get("name").getAsString().toLowerCase()
-                                        : "";
-                        JsonArray eventsArray = null;
-
-                        if (scriptMap.containsKey(id)) {
-                            eventsArray = scriptMap.get(id);
-                            System.out.println("[BSTweaker] Found scripts by id: " + id);
-                        } else if (!materialName.isEmpty() && scriptMap.containsKey(materialName)) {
-                            eventsArray = scriptMap.get(materialName);
-                            System.out.println("[BSTweaker] Found scripts by material: " + materialName);
+                    if (eventsArray != null) {
+                        weaponDef.add("events", eventsArray);
+                        List<WeaponEvent> events = WeaponEvent.fromJsonArray(eventsArray);
+                        if (!events.isEmpty()) {
+                            EffectEventHandler.registerWeaponEffects(weapon, events);
                         }
-
-                        if (eventsArray != null) {
-                            weaponDef.add("events", eventsArray);
-                            List<WeaponEvent> events = WeaponEvent.fromJsonArray(eventsArray);
-                            if (!events.isEmpty()) {
-                                EffectEventHandler.registerWeaponEffects(weapon, events);
-                            }
-                        } else {
-                            System.out.println("[BSTweaker] No scripts found for weapon: " + id + " (material: "
-                                    + materialName + ")");
-                        }
+                    } else {
+                        System.out.println("[BSTweaker] No scripts found for weapon: " + id + " (material: "
+                                + materialName + ")");
                     }
                 }
             }
@@ -193,7 +217,9 @@ public class TweakerWeaponInjector {
 
     /** Load material from JSON definition and register it. */
     private static void loadMaterial(JsonObject matDef) {
-        String name = matDef.has("name") ? matDef.get("name").getAsString().toUpperCase() : "UNKNOWN";
+        // Strip spaces from material name to prevent invalid ResourceLocations
+        String name = matDef.has("name") ? matDef.get("name").getAsString().replaceAll("\\s+", "").toUpperCase()
+                : "UNKNOWN";
 
         // Skip if already cached
         if (materialCache.containsKey(name)) {
@@ -309,7 +335,23 @@ public class TweakerWeaponInjector {
         try {
             String id = weaponDef.get("id").getAsString();
             String type = weaponDef.get("type").getAsString().toLowerCase();
-            String materialName = weaponDef.get("material").getAsJsonObject().get("name").getAsString().toUpperCase();
+            String rawMaterialName = weaponDef.get("material").getAsJsonObject().get("name").getAsString();
+            String rawTexture = weaponDef.has("texture") ? weaponDef.get("texture").getAsString() : id;
+
+            // Warn about spaces in name fields
+            if (id.contains(" "))
+                System.err.println(
+                        "[BSTweaker] WARNING: id '" + id + "' contains spaces! Spaces break translation key matching.");
+            if (rawTexture.contains(" "))
+                System.err.println(
+                        "[BSTweaker] WARNING: texture '" + rawTexture
+                                + "' contains spaces! Spaces break registration.");
+            if (rawMaterialName.contains(" "))
+                System.err.println("[BSTweaker] WARNING: material.name '" + rawMaterialName
+                        + "' contains spaces! Spaces break registration.");
+
+            // Strip spaces from material name
+            String materialName = rawMaterialName.replaceAll("\\s+", "").toUpperCase();
 
             // Get material
             ToolMaterial material = materialCache.get(materialName);
@@ -326,17 +368,17 @@ public class TweakerWeaponInjector {
             }
 
             // Reflect create weapon - BS constructor auto-sets registry name
+            // Format: mujmajnkraftsbettersurvival:item<material><type>
+            // We keep this as-is since ResourceInjector uses the same formula.
             Class<?> weaponClass = Class.forName(className);
             Constructor<?> constructor = weaponClass.getConstructor(ToolMaterial.class);
             Item weapon = (Item) constructor.newInstance(material);
 
-            // Keep BS native registry name
-            // Format: mujmajnkraftsbettersurvival:item<material><type>
+            // Override translation key to use weapon id
+            // If id already ends with type (e.g. "emeraldexampledagger"), don't double it
+            String translationKey = id.endsWith(type) ? id : id + type;
+            weapon.setTranslationKey(translationKey);
 
-            // Override translation key to use weapon id instead of BSTWEAKER_material
-            // BS constructor sets key to material.name().toLowerCase() + type
-            // We want to use the id from config for proper localization
-            weapon.setTranslationKey(id + type);
 
             // Modify attack damage and speed
             if (weaponDef.has("damageModifier") || weaponDef.has("speedModifier")) {
@@ -345,7 +387,7 @@ public class TweakerWeaponInjector {
 
             System.out.println(
                     "[BSTweaker] Created weapon: " + weapon.getRegistryName() + " (type=" + type + ", material="
-                            + materialName + ", translationKey=" + id + type + ")");
+                            + materialName + ", texture=" + id + ", translationKey=" + translationKey + ")");
             return weapon;
 
         } catch (Exception e) {
@@ -354,6 +396,7 @@ public class TweakerWeaponInjector {
             return null;
         }
     }
+
 
     /** Modify weapon attack attributes. */
     private static void modifyWeaponStats(Item weapon, JsonObject weaponDef) {

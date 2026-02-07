@@ -49,7 +49,7 @@ import net.minecraftforge.common.model.TRSRTransformation;
 @Mixin(ModelManager.class)
 public class MixinModelManagerFastReload {
 
-    @Shadow
+    @Shadow(aliases = { "field_174958_a" })
     private IRegistry<ModelResourceLocation, IBakedModel> modelRegistry;
 
     @Inject(method = "onResourceManagerReload", at = @At("HEAD"), cancellable = true)

@@ -17,6 +17,9 @@ public class ResourceInjector {
     private static File configDir;
     private static File assetsDir;
 
+    /** 记录使用了占位纹理的武器 ID（用于 tooltip 提示） */
+    private static final java.util.Set<String> placeholderWeaponIds = new java.util.HashSet<>();
+
     /**
      * 初始化资源目录
      */
@@ -52,16 +55,20 @@ public class ResourceInjector {
         cfgModelsDir.mkdirs();
         cfgTexturesDir.mkdirs();
 
-        // 1. 从 JAR 解压默认纹理到 cfg/textures（首次运行）
-        extractDefaultTextures(cfgTexturesDir);
+        // 1. 从 JAR 释放所有免费素材到 cfg/textures（逐个检查，不覆盖）
+        extractAllBundledTextures(cfgTexturesDir);
 
-        // 2. 根据 weapons.json 自动生成模型到 cfg/models (黑名单内的 ID 跳过)
-        generateWeaponModels(cfgModelsDir, cfgTexturesDir);
+        // 2. 按武器逐个检查纹理，缺失则从 JAR 释放 emerald 范本并重命名
+        extractPerWeaponTextures(cfgTexturesDir);
 
-        // 3. 自动生成 tooltips.json 和 lang 文件 (可在配置中关闭)
+        // 2. 自动填充 tooltips.json 和 scripts.json（不覆盖已有条目）
         if (com.mujmajnkraft.bstweaker.config.BSTweakerConfig.autoGenerateTooltips) {
             generateWeaponTooltipsAndLang();
         }
+        autoFillScripts();
+
+        // 3. 根据 weapons.json 自动生成模型到 cfg/models (黑名单内的 ID 跳过)
+        generateWeaponModels(cfgModelsDir, cfgTexturesDir);
 
         // DISABLED: Direct asset copying - now using DynamicResourcePack for runtime
         // loading
@@ -82,20 +89,15 @@ public class ResourceInjector {
     }
 
     /**
-     * 从 JAR 解压默认纹理到 cfg/textures（仅在目录为空时）
+     * 从 JAR 释放所有免费素材到 cfg/textures（逐个检查，不存在则复制，不覆盖）。
+     * 包括 emerald 范本、obsidian、scarlite、dragonsteel 等所有打包纹理。
      */
-    private static void extractDefaultTextures(File targetDir) {
-        // 如果目录已有文件，跳过
-        File[] existing = targetDir.listFiles((dir, name) -> name.endsWith(".png"));
-        if (existing != null && existing.length > 0) {
-            return;
-        }
-
+    private static void extractAllBundledTextures(File targetDir) {
         String resourcePath = "/assets/bstweaker/config/textures";
         try {
             java.net.URL url = ResourceInjector.class.getResource(resourcePath);
             if (url == null) {
-                BSTweaker.LOG.info("No default textures in JAR");
+                BSTweaker.LOG.info("No bundled textures in JAR");
                 return;
             }
 
@@ -114,6 +116,7 @@ public class ResourceInjector {
                 path = java.nio.file.Paths.get(uri);
             }
 
+            int[] count = { 0 };
             java.nio.file.Files.walk(path, 1).forEach(source -> {
                 if (java.nio.file.Files.isRegularFile(source)) {
                     try {
@@ -121,15 +124,103 @@ public class ResourceInjector {
                         File targetFile = new File(targetDir, fileName);
                         if (!targetFile.exists()) {
                             java.nio.file.Files.copy(source, targetFile.toPath());
-                            BSTweaker.LOG.info("Extracted texture: " + fileName);
+                            count[0]++;
                         }
                     } catch (IOException e) {
                         BSTweaker.LOG.error("Failed to extract: " + source.getFileName());
                     }
                 }
             });
+            if (count[0] > 0) {
+                BSTweaker.LOG.info("Extracted " + count[0] + " bundled textures to cfg/textures");
+            }
         } catch (Exception e) {
-            BSTweaker.LOG.error("Failed to extract default textures: " + e.getMessage());
+            BSTweaker.LOG.error("Failed to extract bundled textures: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 按武器逐个检查纹理是否存在，不存在则从 JAR 释放 emerald 范本并重命名。
+     * 同时释放范本自身的纹理（itememeraldexample*.png）。
+     */
+    private static void extractPerWeaponTextures(File targetDir) {
+        File weaponsFile = new File(configDir, "weapons.json");
+        if (!weaponsFile.exists())
+            return;
+
+        try {
+            String content = new String(Files.readAllBytes(weaponsFile.toPath()),
+                    java.nio.charset.StandardCharsets.UTF_8);
+            com.google.gson.JsonElement rootElem = new com.google.gson.JsonParser().parse(content);
+            if (rootElem == null || !rootElem.isJsonObject())
+                return;
+            com.google.gson.JsonObject root = rootElem.getAsJsonObject();
+            if (!root.has("weapons"))
+                return;
+
+            // Emerald template type mapping
+            String[] TYPES = { "dagger", "hammer", "spear", "battleaxe", "nunchaku" };
+            // nunchaku has extra spinning variant
+            String[] NUNCHAKU_EXTRAS = { "spinning" };
+
+            for (com.google.gson.JsonElement elem : root.getAsJsonArray("weapons")) {
+                com.google.gson.JsonObject weapon = elem.getAsJsonObject();
+                String texture = getTextureName(weapon);
+                String type = weapon.has("type") ? weapon.get("type").getAsString() : "";
+                if (texture == null || texture.isEmpty() || type.isEmpty())
+                    continue;
+
+                // Check base texture: item<texture>.png
+                String baseFileName = "item" + texture + ".png";
+                File baseFile = new File(targetDir, baseFileName);
+                if (!baseFile.exists()) {
+                    // Copy from emerald template of same type
+                    String templateName = "itememeraldexample" + type + ".png";
+                    copyTemplateTexture(templateName, baseFile);
+                    // 记录此武器使用了占位纹理
+                    String wId = weapon.has("id") ? weapon.get("id").getAsString() : null;
+                    if (wId != null)
+                        placeholderWeaponIds.add(wId);
+                }
+
+                // Check variant textures (e.g. spinning for nunchaku)
+                if ("nunchaku".equals(type)) {
+                    for (String variant : NUNCHAKU_EXTRAS) {
+                        String variantFileName = "item" + texture + variant + ".png";
+                        File variantFile = new File(targetDir, variantFileName);
+                        if (!variantFile.exists()) {
+                            String templateName = "itememeraldexample" + type + variant + ".png";
+                            copyTemplateTexture(templateName, variantFile);
+                        }
+                        // Also copy .mcmeta if exists
+                        String mcmetaFileName = variantFileName + ".mcmeta";
+                        File mcmetaFile = new File(targetDir, mcmetaFileName);
+                        if (!mcmetaFile.exists()) {
+                            String templateMcmeta = "itememeraldexample" + type + variant + ".png.mcmeta";
+                            copyTemplateTexture(templateMcmeta, mcmetaFile);
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            BSTweaker.LOG.error("Failed to extract per-weapon textures: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 从 JAR 复制范本纹理到目标文件。
+     */
+    private static void copyTemplateTexture(String templateName, File targetFile) {
+        String resourcePath = "/assets/bstweaker/config/textures/" + templateName;
+        try (java.io.InputStream in = ResourceInjector.class.getResourceAsStream(resourcePath)) {
+            if (in == null) {
+                BSTweaker.LOG.debug("Template texture not found in JAR: " + templateName);
+                return;
+            }
+            Files.copy(in, targetFile.toPath());
+            BSTweaker.LOG.info("Extracted template texture: " + templateName + " -> " + targetFile.getName());
+        } catch (IOException e) {
+            BSTweaker.LOG.error("Failed to copy template texture: " + e.getMessage());
         }
     }
 
@@ -183,16 +274,14 @@ public class ResourceInjector {
                     continue;
                 }
 
-                // Compute registryName to match actual weapon registry name
-                // - If id already ends with type (e.g., "emeraldexamplenunchaku"), use "item" +
-                // id
-                // - If id doesn't end with type (e.g., "a"), use "item" + id + type
-                String registryName;
-                if (weaponId.endsWith(type)) {
-                    registryName = "item" + weaponId;
-                } else {
-                    registryName = "item" + weaponId + type;
+                // Compute registryName to match BS constructor:
+                // BS sets registryName = "item" + material.name().toLowerCase() + type
+                String matName = "";
+                if (weapon.has("material") && weapon.getAsJsonObject("material").has("name")) {
+                    matName = weapon.getAsJsonObject("material").get("name").getAsString()
+                            .replaceAll("\\s+", "").toLowerCase();
                 }
+                String registryName = "item" + matName + type;
 
                 // 1. 生成 _normal.json (使用 registryName 作为文件名，匹配武器注册名)
                 File normalModel = new File(modelsDir, registryName + "_normal.json");
@@ -321,7 +410,10 @@ public class ResourceInjector {
             if (tooltipsFile.exists()) {
                 String tooltipsContent = new String(Files.readAllBytes(tooltipsFile.toPath()),
                         java.nio.charset.StandardCharsets.UTF_8);
-                tooltipsRoot = new com.google.gson.JsonParser().parse(tooltipsContent).getAsJsonObject();
+                com.google.gson.JsonElement tooltipsElem = new com.google.gson.JsonParser().parse(tooltipsContent);
+                tooltipsRoot = (tooltipsElem != null && tooltipsElem.isJsonObject())
+                        ? tooltipsElem.getAsJsonObject()
+                        : new com.google.gson.JsonObject();
                 tooltipsArray = tooltipsRoot.has("tooltips") ? tooltipsRoot.getAsJsonArray("tooltips")
                         : new com.google.gson.JsonArray();
             } else {
@@ -366,9 +458,11 @@ public class ResourceInjector {
                 String tip1Key = "bstweaker.weapon." + id + ".tip1";
                 String tip2Key = "bstweaker.weapon." + id + ".tip2";
                 String tip3Key = "bstweaker.weapon." + id + ".tip3";
+                String tip4Key = "bstweaker.weapon." + id + ".tip4";
                 // 物品原始翻译 key (Minecraft 标准格式: item.<translationKey>.name)
-                // translationKey is set to id + type in TweakerWeaponInjector
-                String itemLangKey = "item." + id + type + ".name";
+                // If id already ends with type, don't double it
+                String translationKey = id.endsWith(type) ? id : id + type;
+                String itemLangKey = "item." + translationKey + ".name";
 
                 // 添加到 lang 文件
                 // 物品原始名称
@@ -378,12 +472,21 @@ public class ResourceInjector {
                 zhLang.append(nameKey).append("=").append(id).append("\n");
                 zhLang.append(tip1Key).append("=§7一把自定义的").append(typeNameZh).append("\n");
                 zhLang.append(tip2Key).append("=§e由 BSTweaker 生成\n");
-                zhLang.append(tip3Key).append("=§6可在 tooltips.json 中自定义\n\n");
+                zhLang.append(tip3Key).append("=§6可在 tooltips.json 中自定义\n");
 
                 enLang.append(nameKey).append("=").append(id).append("\n");
                 enLang.append(tip1Key).append("=§7A custom ").append(typeNameEn).append("\n");
                 enLang.append(tip2Key).append("=§eGenerated by BSTweaker\n");
-                enLang.append(tip3Key).append("=§6Customize in tooltips.json\n\n");
+                enLang.append(tip3Key).append("=§6Customize in tooltips.json\n");
+
+                // 占位纹理提示 (tip4)
+                boolean isPlaceholder = placeholderWeaponIds.contains(id);
+                if (isPlaceholder) {
+                    zhLang.append(tip4Key).append("=§c\u26a0 占位纹理，请在 textures/ 中替换\n");
+                    enLang.append(tip4Key).append("=§c\u26a0 Placeholder texture, replace in textures/\n");
+                }
+                zhLang.append("\n");
+                enLang.append("\n");
 
                 // 如果 tooltips 中不存在，添加
                 if (!existingIds.contains(id)) {
@@ -394,6 +497,9 @@ public class ResourceInjector {
                     tips.add("@" + tip1Key);
                     tips.add("@" + tip2Key);
                     tips.add("@" + tip3Key);
+                    if (isPlaceholder) {
+                        tips.add("@" + tip4Key);
+                    }
                     tooltip.add("tooltip", tips);
                     tooltipsArray.add(tooltip);
                     modified = true;
@@ -417,6 +523,84 @@ public class ResourceInjector {
 
         } catch (Exception e) {
             BSTweaker.LOG.error("Failed to generate tooltips and lang: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 自动为 weapons.json 中的武器填充 scripts.json 条目。
+     * 如果 scripts.json 中不存在该武器的条目，自动添加带注释的空模板。
+     * 不覆盖已有条目。
+     */
+    private static void autoFillScripts() {
+        File weaponsFile = new File(configDir, "weapons.json");
+        File scriptsFile = new File(configDir, "scripts.json");
+
+        if (!weaponsFile.exists())
+            return;
+
+        try {
+            // 读取 weapons.json
+            String weaponsContent = new String(Files.readAllBytes(weaponsFile.toPath()),
+                    java.nio.charset.StandardCharsets.UTF_8);
+            com.google.gson.JsonElement weaponsElem = new com.google.gson.JsonParser().parse(weaponsContent);
+            if (weaponsElem == null || !weaponsElem.isJsonObject())
+                return;
+            com.google.gson.JsonObject weaponsRoot = weaponsElem.getAsJsonObject();
+            if (!weaponsRoot.has("weapons"))
+                return;
+
+            // 读取或创建 scripts.json
+            com.google.gson.JsonObject scriptsRoot;
+            com.google.gson.JsonArray scriptsArray;
+            if (scriptsFile.exists()) {
+                String scriptsContent = new String(Files.readAllBytes(scriptsFile.toPath()),
+                        java.nio.charset.StandardCharsets.UTF_8);
+                com.google.gson.JsonElement scriptsElem = new com.google.gson.JsonParser().parse(scriptsContent);
+                scriptsRoot = (scriptsElem != null && scriptsElem.isJsonObject())
+                        ? scriptsElem.getAsJsonObject()
+                        : new com.google.gson.JsonObject();
+                scriptsArray = scriptsRoot.has("scripts") ? scriptsRoot.getAsJsonArray("scripts")
+                        : new com.google.gson.JsonArray();
+            } else {
+                scriptsRoot = new com.google.gson.JsonObject();
+                scriptsArray = new com.google.gson.JsonArray();
+            }
+
+            // 收集已存在的 script IDs
+            java.util.Set<String> existingIds = new java.util.HashSet<>();
+            for (com.google.gson.JsonElement elem : scriptsArray) {
+                if (elem.isJsonObject() && elem.getAsJsonObject().has("id")) {
+                    existingIds.add(elem.getAsJsonObject().get("id").getAsString());
+                }
+            }
+
+            boolean modified = false;
+            for (com.google.gson.JsonElement elem : weaponsRoot.getAsJsonArray("weapons")) {
+                com.google.gson.JsonObject weapon = elem.getAsJsonObject();
+                String id = weapon.has("id") ? weapon.get("id").getAsString() : null;
+                if (id == null)
+                    continue;
+
+                if (!existingIds.contains(id)) {
+                    com.google.gson.JsonObject script = new com.google.gson.JsonObject();
+                    script.addProperty("id", id);
+                    script.addProperty("_comment",
+                            "在 events 中添加效果，示例: {\"event\":\"onHit\",\"actions\":[\"victim.setFire(3)\"]}");
+                    script.add("events", new com.google.gson.JsonArray());
+                    scriptsArray.add(script);
+                    modified = true;
+                    BSTweaker.LOG.info("Auto-generated script entry for: " + id);
+                }
+            }
+
+            if (modified) {
+                scriptsRoot.add("scripts", scriptsArray);
+                com.google.gson.Gson gson = new com.google.gson.GsonBuilder().setPrettyPrinting().create();
+                Files.write(scriptsFile.toPath(),
+                        gson.toJson(scriptsRoot).getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            }
+        } catch (Exception e) {
+            BSTweaker.LOG.error("Failed to auto-fill scripts: " + e.getMessage());
         }
     }
 
