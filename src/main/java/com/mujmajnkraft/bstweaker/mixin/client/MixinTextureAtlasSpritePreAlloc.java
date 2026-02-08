@@ -23,7 +23,7 @@ import java.util.List;
 @Mixin(TextureAtlasSprite.class)
 public abstract class MixinTextureAtlasSpritePreAlloc {
 
-    private static final int MAX_SPRITE_SIZE = 128;
+    private static final int MAX_SPRITE_SIZE = 64;
 
     @Shadow
     protected int width;
@@ -45,10 +45,13 @@ public abstract class MixinTextureAtlasSpritePreAlloc {
     private void onLoadSpriteFramesReturn(IResource resource, int mipmapLevels, CallbackInfo ci) {
         String iconName = this.getIconName();
 
-        // Only apply to animation strips (frame count > 1) from weapons.json
-        // Static textures (single frame) are skipped to prevent shrinking issues
-        boolean isAnimationStrip = framesTextureData != null && framesTextureData.size() > 1;
-        if (iconName != null && isAnimationStrip && isBSTweakerWeaponSprite(iconName)) {
+        // Only apply to STATIC textures (single frame) from weapons.json
+        // Animation strips (multiple frames) keep original size - MC handles animation
+        // natively
+        // Pre-allocating animated sprites causes rendering issues (texture appears tiny
+        // because actual pixels occupy only a small corner of the padded 128x128 area)
+        boolean isStaticTexture = framesTextureData != null && framesTextureData.size() == 1;
+        if (iconName != null && isStaticTexture && isBSTweakerWeaponSprite(iconName)) {
             int originalWidth = this.width;
             int originalHeight = this.height;
 

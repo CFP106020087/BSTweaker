@@ -195,13 +195,20 @@ public class DynamicResourcePack implements IResourcePack {
         }
     }
 
-    /** Helper: scan mcmeta files. */
+    /** Helper: scan mcmeta files. Supports both .png.mcmeta and .mcmeta naming. */
     private static void scanMcmeta(File dir) {
         if (dir.exists() && dir.listFiles() != null) {
             for (File file : dir.listFiles()) {
                 if (file.getName().endsWith(".mcmeta")) {
-                    String name = file.getName().replace(".png.mcmeta", "");
+                    String fileName = file.getName();
+                    String name;
+                    if (fileName.endsWith(".png.mcmeta")) {
+                        name = fileName.replace(".png.mcmeta", "");
+                    } else {
+                        name = fileName.replace(".mcmeta", "");
+                    }
                     configMcmeta.put(name, file);
+
                 }
             }
         }
@@ -322,6 +329,13 @@ public class DynamicResourcePack implements IResourcePack {
             if (configMcmeta.containsKey(name)) {
                 return new FileInputStream(configMcmeta.get(name));
             }
+            // Fallback: strip bstweaker_ prefix (registry name -> config name)
+            if (name.contains("bstweaker_")) {
+                String stripped = name.replace("bstweaker_", "");
+                if (configMcmeta.containsKey(stripped)) {
+                    return new FileInputStream(configMcmeta.get(stripped));
+                }
+            }
             // Fallback: check file system
             File mcmetaFile = new File(configDir, "textures/" + name + ".png.mcmeta");
             if (mcmetaFile.exists()) {
@@ -346,9 +360,8 @@ public class DynamicResourcePack implements IResourcePack {
         String namespace = location.getNamespace();
         String path = location.getPath();
 
-        // Check config lang files FIRST (for bstweaker namespace) - needed for tooltip
-        // translation
-        if (Reference.MOD_ID.equals(namespace) && path.startsWith("lang/") && path.endsWith(".lang")) {
+        // Check config lang files - serve from both namespaces
+        if (path.startsWith("lang/") && path.endsWith(".lang")) {
             String name = path.replace("lang/", "").replace(".lang", "");
             if (configLangs.containsKey(name)) {
                 return true;
@@ -416,7 +429,13 @@ public class DynamicResourcePack implements IResourcePack {
             if (configMcmeta.containsKey(name)) {
                 return true;
             }
-
+            // Fallback: strip bstweaker_ prefix (registry name -> config name)
+            if (name.contains("bstweaker_")) {
+                String stripped = name.replace("bstweaker_", "");
+                if (configMcmeta.containsKey(stripped)) {
+                    return true;
+                }
+            }
             // Fallback: check file system directly
             File mcmetaFile = new File(configDir, "textures/" + name + ".png.mcmeta");
             if (mcmetaFile.exists()) {

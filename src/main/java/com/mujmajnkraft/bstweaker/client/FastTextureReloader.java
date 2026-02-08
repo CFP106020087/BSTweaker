@@ -551,30 +551,91 @@ public class FastTextureReloader {
                 false, false  // blur, clamp
             );
             
-            // For animated sprites, update the framesTextureData via reflection
-            // This ensures that animated textures continue to display the new texture
+            // For animated sprites, load ALL frames from the sprite strip
             if (sprite.hasAnimationMetadata()) {
                 try {
-                    java.lang.reflect.Field framesField;
-                    try {
-                        framesField = TextureAtlasSprite.class.getDeclaredField("framesTextureData");
-                    } catch (NoSuchFieldException nsfe) {
-                        framesField = TextureAtlasSprite.class.getDeclaredField("field_110976_a"); // SRG name
-                    }
-                    framesField.setAccessible(true);
+                    java.lang.reflect.Field framesField = net.minecraftforge.fml.common.ObfuscationReflectionHelper
+                            .findField(
+                                    TextureAtlasSprite.class, "field_110976_a"); // framesTextureData
                     @SuppressWarnings("unchecked")
                     java.util.List<int[][]> framesTextureData = (java.util.List<int[][]>) framesField.get(sprite);
-                    
-                    // Replace all animation frames with the new texture data
-                    // For animated sprites, we need to load all frames from the sprite sheet
+
                     int frameCount = framesTextureData.size();
                     if (frameCount > 0) {
-                        // For now, just update all frames with the new data
-                        // A full implementation would parse the sprite sheet for each frame
-                        for (int i = 0; i < frameCount; i++) {
-                            framesTextureData.set(i, newTextureData);
+                        // Load the full animation strip from file
+                        java.io.File animTextureFile = DynamicResourcePack.getTextureFile(textureFileName);
+                        if (animTextureFile != null && animTextureFile.exists()) {
+                            javax.imageio.ImageIO.setUseCache(false);
+                            BufferedImage fullImage = ImageIO.read(animTextureFile);
+
+                            int targetFrameWidth = width;
+                            int targetFrameHeight = height;
+                            int srcFrameWidth = fullImage.getWidth();
+                            int srcFrameHeight = fullImage.getWidth(); // Square frames
+                            int actualFrameCount = fullImage.getHeight() / srcFrameHeight;
+                            boolean needsScale = (srcFrameWidth != targetFrameWidth
+                                    || srcFrameHeight != targetFrameHeight);
+
+                            BSTweaker.LOG.info("Hot-reload animation for " + textureFileName +
+                                    ": " + actualFrameCount + " frames, source=" + srcFrameWidth + "x" + srcFrameHeight
+                                    +
+                                    " -> target=" + targetFrameWidth + "x" + targetFrameHeight);
+
+                            for (int i = 0; i < Math.min(frameCount, actualFrameCount); i++) {
+                                int srcY = i * srcFrameHeight;
+                                BufferedImage frameImage;
+                                if (!needsScale) {
+                                    frameImage = fullImage.getSubimage(0, srcY, srcFrameWidth, srcFrameHeight);
+                                } else {
+                                    frameImage = new BufferedImage(targetFrameWidth, targetFrameHeight,
+                                            BufferedImage.TYPE_INT_ARGB);
+                                    java.awt.Graphics2D g2 = frameImage.createGraphics();
+                                    g2.setRenderingHint(java.awt.RenderingHints.KEY_INTERPOLATION,
+                                            java.awt.RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+                                    g2.drawImage(fullImage.getSubimage(0, srcY, srcFrameWidth, srcFrameHeight),
+                                            0, 0, targetFrameWidth, targetFrameHeight, null);
+                                    g2.dispose();
+                                }
+                                int[] pixels = new int[targetFrameWidth * targetFrameHeight];
+                                frameImage.getRGB(0, 0, targetFrameWidth, targetFrameHeight, pixels, 0,
+                                        targetFrameWidth);
+                                framesTextureData.set(i, new int[][] { pixels });
+                            }
+
+                            // Upload frame 0 to GPU
+                            if (framesTextureData.size() > 0 && framesTextureData.get(0) != null) {
+                                TextureUtil.uploadTextureMipmap(framesTextureData.get(0), width, height, originX,
+                                        originY, false, false);
+                            }
+
+                            // Reset animation counters
+                            try {
+                                java.lang.reflect.Field tickCounterField;
+                                try {
+                                    tickCounterField = TextureAtlasSprite.class.getDeclaredField("tickCounter");
+                                } catch (NoSuchFieldException e2) {
+                                    tickCounterField = TextureAtlasSprite.class.getDeclaredField("field_110983_h");
+                                }
+                                tickCounterField.setAccessible(true);
+                                tickCounterField.setInt(sprite, 0);
+
+                                java.lang.reflect.Field frameCounterField;
+                                try {
+                                    frameCounterField = TextureAtlasSprite.class.getDeclaredField("frameCounter");
+                                } catch (NoSuchFieldException e2) {
+                                    frameCounterField = TextureAtlasSprite.class.getDeclaredField("field_110973_g");
+                                }
+                                frameCounterField.setAccessible(true);
+                                frameCounterField.setInt(sprite, 0);
+                            } catch (Exception resetEx) {
+                                BSTweaker.LOG.debug("Could not reset animation counters: " + resetEx.getMessage());
+                            }
+
+                            BSTweaker.LOG.info("Hot-reloaded " + Math.min(frameCount, actualFrameCount)
+                                    + " animation frames for: " + matchedSpriteName);
+                        } else {
+                            BSTweaker.LOG.warn("Animation texture file not found for: " + textureFileName);
                         }
-                        BSTweaker.LOG.info("Updated " + frameCount + " animation frames for: " + matchedSpriteName);
                     }
                 } catch (Exception ex) {
                     BSTweaker.LOG.warn("Failed to update animation frames: " + ex.getMessage());
